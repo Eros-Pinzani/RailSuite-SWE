@@ -10,28 +10,28 @@ import java.util.List;
 public class ConsoleDAO {
     // Singleton
     private static final ConsoleDAO instance = new ConsoleDAO();
-    ConsoleDAO() {} // costruttore package-private
+    ConsoleDAO() {} // constructor package-private
 
     public static ConsoleDAO getInstance() {
         return instance;
     }
 
     public List<List<String>> getAllConsoles() {
-        List<List<String>> risultati = new ArrayList<>();
+        List<List<String>> results = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT * FROM console")) {
-            int colonne = rs.getMetaData().getColumnCount();
+            int columns = rs.getMetaData().getColumnCount();
             while (rs.next()) {
                 List<String> riga = new ArrayList<>();
-                for (int i = 1; i <= colonne; i++) {
+                for (int i = 1; i <= columns; i++) {
                     riga.add(rs.getString(i));
                 }
-                risultati.add(riga);
+                results.add(riga);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return risultati;
+        return results;
     }
 }

@@ -1,0 +1,20 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Build output
+out/
+target/
+build/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# File temporanei e di log
+*.log
+*.tmp
+*.bak
+*.swp
+*~

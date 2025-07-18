@@ -15,22 +15,27 @@ class CarriageImp implements Carriage {
         this.capacity = capacity;
     }
 
+    @Override
     public int getId() {
         return id;
     }
 
+    @Override
     public String getModel() {
         return model;
     }
 
+    @Override
     public String getModelType() {
         return modelType;
     }
 
+    @Override
     public int getYearProduced() {
         return yearProduced;
     }
 
+    @Override
     public int getCapacity() {
         return capacity;
     }

@@ -9,9 +9,9 @@ import java.util.Properties;
 
 public class PostgresConnection {
     private static final String PROPERTIES_PATH = "src/dao/db.properties";
-    private static String url;
-    private static String user;
-    private static String password;
+    private static final String url;
+    private static final String user;
+    private static final String password;
 
     static {
         Properties props = new Properties();
@@ -21,7 +21,8 @@ public class PostgresConnection {
             user = props.getProperty("db.user");
             password = props.getProperty("db.password");
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error loading database configuration: " + e.getMessage());
+            throw new RuntimeException("Unable to load database configuration", e);
         }
     }
 

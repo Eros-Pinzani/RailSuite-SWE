@@ -22,6 +22,10 @@ class ConvoyDaoImp implements ConvoyDao {
             "DELETE FROM convoy WHERE id_convoy = ? AND id_carriage = ?";
     private static final String findConvoyIdByCarriageIdQuery =
             "SELECT id_convoy FROM convoy WHERE id_carriage = ?";
+    private static final String insertConvoyQuery =
+            "INSERT INTO convoy DEFAULT VALUES RETURNING id_convoy";
+    private static final String insertConvoyCarriageQuery =
+            "INSERT INTO convoy (id_convoy, id_carriage) VALUES (?, ?)";
 
     @Override
     public Convoy selectConvoy(int id) throws SQLException {
@@ -131,5 +135,35 @@ class ConvoyDaoImp implements ConvoyDao {
             throw new SQLException("Error finding convoyId for carriageId: " + carriageId, e);
         }
         return null;
+    }
+
+    @Override
+    public Convoy createConvoy(List<Carriage> carriages) throws SQLException {
+        int generatedId = -1;
+        try (
+            java.sql.Connection conn = PostgresConnection.getConnection();
+            java.sql.PreparedStatement insertConvoyStmt = conn.prepareStatement(insertConvoyQuery);
+        ) {
+            try (java.sql.ResultSet rs = insertConvoyStmt.executeQuery()) {
+                if (rs.next()) {
+                    generatedId = rs.getInt(1);
+                } else {
+                    throw new SQLException("Failed to retrieve generated convoy id");
+                }
+            }
+            if (carriages != null && !carriages.isEmpty()) {
+                try (java.sql.PreparedStatement insertCarriageStmt = conn.prepareStatement(insertConvoyCarriageQuery)) {
+                    for (Carriage carriage : carriages) {
+                        insertCarriageStmt.setInt(1, generatedId);
+                        insertCarriageStmt.setInt(2, carriage.getId());
+                        insertCarriageStmt.addBatch();
+                    }
+                    insertCarriageStmt.executeBatch();
+                }
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Error creating new convoy", e);
+        }
+        return domain.Convoy.of(generatedId, carriages);
     }
 }

@@ -1,7 +1,9 @@
 //TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 
-import dao.ConsoleDAO;
+/*import dao.ConsoleDAO;
+import service.ConsoleService;
+import domain.Console;*/
 
 public class Main {
     public static void main(String[] args) {
@@ -14,12 +16,16 @@ public class Main {
             // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
             System.out.println("i = " + i);
         }
-        var consoles = ConsoleDAO.getInstance().getAllConsoles();
-        for (var riga : consoles) {
-            for (var valore : riga) {
-                System.out.print(valore + " ");
-            }
-            System.out.println();
+        /*var consoles = ConsoleDAO.getInstance().getAllConsoles();
+        for (Console c : consoles) {
+            System.out.println(c.getId() + " - " + c.getNome());
         }
+        ConsoleService service = new ConsoleService();
+        String nomeConsole = "PlayStation 5";
+        var consolesByNome = service.getConsolesByNome(nomeConsole);
+        System.out.println("Console con nome '" + nomeConsole + "':");
+        for (Console c : consolesByNome) {
+            System.out.println(c.getId() + " - " + c.getNome());
+        }*/
     }
 }

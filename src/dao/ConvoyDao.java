@@ -16,4 +16,5 @@ public interface ConvoyDao {
     boolean addCarriageToConvoy(int convoyId, Carriage carriage) throws SQLException;
     boolean removeCarriageFromConvoy(int convoyId, Carriage carriage) throws SQLException;
     Integer findConvoyIdByCarriageId(int carriageId) throws SQLException;
+    Convoy createConvoy(List<Carriage> carriages) throws SQLException;
 }

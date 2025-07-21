@@ -8,5 +8,4 @@ public interface LineDao {
     Line findById(int idLine) throws SQLException;
     List<Line> findAll() throws SQLException;
     List<Line> findByStation(int idStation) throws SQLException;
-    List<Line> findByNextStation(int idNextStation) throws SQLException;
 }

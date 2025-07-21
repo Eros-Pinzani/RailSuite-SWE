@@ -1,26 +1,30 @@
 package domain;
 
-import java.time.Duration;
+import java.util.List;
 
 class LineImp implements Line {
     private final int idLine;
-    private final Station station;
-    private final Station nextStation;
-    private final Duration timeToNextStation;
+    private final String name;
+    private final List<LineStation> stations;
 
-    LineImp(int idLine, Station station, Station nextStation, Duration timeToNextStation) {
+    public LineImp(int idLine, String name, List<LineStation> stations) {
         this.idLine = idLine;
-        this.station = station;
-        this.nextStation = nextStation;
-        this.timeToNextStation = timeToNextStation;
+        this.name = name;
+        this.stations = stations;
     }
 
     @Override
-    public int getIdLine() { return idLine; }
+    public int getIdLine() {
+        return idLine;
+    }
+
     @Override
-    public Station getStation() { return station; }
+    public String getName() {
+        return name;
+    }
+
     @Override
-    public Station getNextStation() { return nextStation; }
-    @Override
-    public Duration getTimeToNextStation() { return timeToNextStation; }
+    public LineStation getStationAt(int order) {
+        return stations.get(order);
+    }
 }

@@ -1,98 +1,72 @@
 package dao;
 
 import domain.Line;
-import domain.Station;
+import domain.LineStation;
+
 import java.sql.*;
+import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import org.postgresql.util.PGInterval;
 
 class LineDaoImp implements LineDao {
-    private final StationDao stationDao = new StationDaoImp();
-
-    private Line mapResultSetToLine(ResultSet rs) throws SQLException {
-        // Conversione da SQL Interval a java.time.Duration
-        Object intervalObj = rs.getObject("time_to_next_station");
-        java.time.Duration duration = null;
-        if (intervalObj instanceof java.time.Duration) {
-            duration = (java.time.Duration) intervalObj;
-        } else if (intervalObj instanceof PGInterval) {
-            PGInterval pgInterval = (PGInterval) intervalObj;
-            duration = java.time.Duration.ofSeconds((long) pgInterval.getSeconds() + pgInterval.getMinutes() * 60 + pgInterval.getHours() * 3600 + pgInterval.getDays() * 86400);
-        } else {
-            // fallback: tentativo di conversione da stringa ISO-8601
-            String intervalStr = rs.getString("time_to_next_station");
-            duration = java.time.Duration.parse(intervalStr);
-        }
-        Station station = stationDao.findById(rs.getInt("id_station"));
-        Station nextStation = stationDao.findById(rs.getInt("id_next_station"));
-        return Line.of(
-            rs.getInt("id_line"),
-            station,
-            nextStation,
-            duration
-        );
-    }
-
     @Override
     public Line findById(int idLine) throws SQLException {
-        String sql = "SELECT * FROM line WHERE id_line = ?";
+        String sqlLine = "SELECT * FROM line WHERE id_line = ?";
+        String sqlStations = "SELECT * FROM line_station WHERE id_line = ? ORDER BY station_order";
         try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idLine);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return mapResultSetToLine(rs);
+             PreparedStatement stmtLine = conn.prepareStatement(sqlLine);
+             PreparedStatement stmtStations = conn.prepareStatement(sqlStations)) {
+            stmtLine.setInt(1, idLine);
+            ResultSet rsLine = stmtLine.executeQuery();
+            if (!rsLine.next()) return null;
+            String name = rsLine.getString("name");
+            stmtStations.setInt(1, idLine);
+            ResultSet rsStations = stmtStations.executeQuery();
+            List<LineStation> stations = new ArrayList<>();
+            while (rsStations.next()) {
+                int stationId = rsStations.getInt("id_station");
+                int order = rsStations.getInt("station_order");
+                Duration duration = null;
+                Object intervalObj = rsStations.getObject("time_to_next_station");
+                if (intervalObj instanceof Duration) {
+                    duration = (Duration) intervalObj;
+                } else if (intervalObj != null) {
+                    String intervalStr = rsStations.getString("time_to_next_station");
+                    if (intervalStr != null) duration = Duration.parse(intervalStr);
+                }
+                stations.add(LineStation.of(stationId, order, duration));
             }
-        } catch (SQLException e) {
-            throw new SQLException("Error finding line by id: " + idLine, e);
+            stations.sort(Comparator.comparingInt(LineStation::getOrder));
+            return Line.of(idLine, name, stations);
         }
-        return null;
     }
 
     @Override
     public List<Line> findAll() throws SQLException {
-        String sql = "SELECT * FROM line";
-        return getLines(sql);
-    }
-
-    @Override
-    public List<Line> findByStation(int idStation) throws SQLException {
-        String sql = "SELECT * FROM line WHERE id_station = ?";
-        return getLinesWithParam(sql, idStation);
-    }
-
-    @Override
-    public List<Line> findByNextStation(int idNextStation) throws SQLException {
-        String sql = "SELECT * FROM line WHERE id_next_station = ?";
-        return getLinesWithParam(sql, idNextStation);
-    }
-
-    private List<Line> getLines(String sql) throws SQLException {
         List<Line> lines = new ArrayList<>();
+        String sql = "SELECT id_line FROM line";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                lines.add(mapResultSetToLine(rs));
+                lines.add(findById(rs.getInt("id_line")));
             }
-        } catch (SQLException e) {
-            throw new SQLException("Error retrieving lines", e);
         }
         return lines;
     }
 
-    private List<Line> getLinesWithParam(String sql, int param) throws SQLException {
+    @Override
+    public List<Line> findByStation(int idStation) throws SQLException {
         List<Line> lines = new ArrayList<>();
+        String sql = "SELECT DISTINCT id_line FROM line_station WHERE id_station = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, param);
+            stmt.setInt(1, idStation);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                lines.add(mapResultSetToLine(rs));
+                lines.add(findById(rs.getInt("id_line")));
             }
-        } catch (SQLException e) {
-            throw new SQLException("Error retrieving lines with param", e);
         }
         return lines;
     }

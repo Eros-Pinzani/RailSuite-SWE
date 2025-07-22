@@ -19,46 +19,57 @@ class StaffPoolImp implements StaffPool {
         this.shiftStatus = shiftStatus;
     }
 
+    @Override
     public int getIdStaff() {
         return idStaff;
     }
 
+    @Override
     public int getIdStation() {
         return idStation;
     }
 
+    @Override
     public void setIdStation(int idStation) {
         this.idStation = idStation;
     }
 
+    @Override
     public int getIdConvoy() {
         return idConvoy;
     }
 
+    @Override
     public void setIdConvoy(int idConvoy) {
         this.idConvoy = idConvoy;
     }
 
+    @Override
     public Timestamp getShiftStart() {
         return shiftStart;
     }
 
+    @Override
     public void setShiftStart(Timestamp shiftStart) {
         this.shiftStart = shiftStart;
     }
 
+    @Override
     public Timestamp getShiftEnd() {
         return shiftEnd;
     }
 
+    @Override
     public void setShiftEnd(Timestamp shiftEnd) {
         this.shiftEnd = shiftEnd;
     }
 
+    @Override
     public ShiftStatus getShiftStatus() {
         return shiftStatus;
     }
 
+    @Override
     public void setShiftStatus(ShiftStatus shiftStatus) {
         this.shiftStatus = shiftStatus;
     }

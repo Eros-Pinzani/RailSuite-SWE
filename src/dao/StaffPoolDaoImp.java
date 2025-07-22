@@ -18,6 +18,8 @@ public class StaffPoolDaoImp implements StaffPoolDao {
     private static final String SELECT_BY_STATUS_AND_STATION =
             "SELECT id_staff, id_station, id_convoy, shift_start, shift_end, status FROM staff_pool WHERE status = ? AND id_station = ?";
 
+    StaffPoolDaoImp() {}
+
     @Override
     public StaffPool findById(int idStaff) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID)) {

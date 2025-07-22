@@ -10,6 +10,8 @@ import java.util.Comparator;
 import java.util.List;
 
 class LineDaoImp implements LineDao {
+    LineDaoImp(){}
+
     @Override
     public Line findById(int idLine) throws SQLException {
         String sqlLine = "SELECT * FROM line WHERE id_line = ?";

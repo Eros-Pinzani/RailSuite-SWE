@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 class LineStationDaoImp implements LineStationDao {
+    LineStationDaoImp(){}
+
     @Override
     public LineStation findById(int idLine, int idStation) throws SQLException {
         String sql = "SELECT * FROM line_station WHERE id_line = ? AND id_station = ?";

@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 class StaffDaoImp implements StaffDao {
+    StaffDaoImp(){}
+
     private static Staff mapResultSetToStaff(ResultSet rs) throws SQLException {
         Staff.TypeOfStaff typeOfStaff = Staff.TypeOfStaff.valueOf(rs.getString("type_of_staff").trim().toUpperCase());
         return Staff.of(

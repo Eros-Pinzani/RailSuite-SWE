@@ -20,6 +20,8 @@ public class ConvoyPoolDaoImp implements ConvoyPoolDao {
     private static final String SELECT_BY_STATION_AND_STATUS =
             "SELECT id_convoy, id_station, status FROM convoy_pool WHERE id_station = ? AND status = ?";
 
+    ConvoyPoolDaoImp (){}
+
     private static ConvoyPool mapResultSetToConvoyPool(ResultSet rs) throws SQLException {
         int idConvoy = rs.getInt("id_convoy");
         int idStation = rs.getInt("id_station");

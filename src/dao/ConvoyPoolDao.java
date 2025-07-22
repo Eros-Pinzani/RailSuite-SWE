@@ -5,6 +5,10 @@ import java.sql.SQLException;
 import java.util.List;
 
 public interface ConvoyPoolDao {
+    static ConvoyPoolDao of() {
+        return new ConvoyPoolDaoImp();
+    }
+
     ConvoyPool getConvoyPoolById(int idConvoy) throws SQLException;
     void updateConvoyPool(ConvoyPool convoyPool) throws SQLException;
     List<ConvoyPool> getAllConvoyPools() throws SQLException;

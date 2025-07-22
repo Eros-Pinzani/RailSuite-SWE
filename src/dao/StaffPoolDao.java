@@ -12,6 +12,10 @@ public interface StaffPoolDao {
         RELAX
     }
 
+    static StaffPoolDao of() {
+        return new StaffPoolDaoImp();
+    }
+
     StaffPool findById(int idStaff) throws SQLException;
     List<StaffPool> findByStation(int idStation) throws SQLException;
     void update(StaffPool staffPool) throws SQLException;

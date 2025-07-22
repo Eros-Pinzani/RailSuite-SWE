@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 class StationDaoImp implements StationDao {
+    StationDaoImp() {}
+
     private static Station mapResultSetToStation(ResultSet rs) throws SQLException {
         return domain.Station.of(
             rs.getInt("id_station"),

@@ -6,7 +6,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CarriageDaoImp implements CarriageDao {
+class CarriageDaoImp implements CarriageDao {
     private static final String selectCarriageQuery =
             "SELECT id_carriage, model, model_type, year_produced, capacity FROM carriage WHERE id_carriage = ?";
     private static final String selectAllCarriageQuery =

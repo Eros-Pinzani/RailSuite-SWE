@@ -7,10 +7,10 @@ import java.sql.SQLException;
 public class CarriageMapper {
     public static Carriage toDomain(ResultSet rs) throws SQLException {
         return Carriage.of(
-            rs.getInt("id"),
+            rs.getInt("id_carriage"),
             rs.getString("model"),
-            rs.getString("modelType"),
-            rs.getInt("yearProduced"),
+            rs.getString("model_type"),
+            rs.getInt("year_produced"),
             rs.getInt("capacity")
         );
     }

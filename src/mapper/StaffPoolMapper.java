@@ -13,7 +13,7 @@ public class StaffPoolMapper {
             rs.getInt("id_convoy"),
             rs.getTimestamp("shift_start"),
             rs.getTimestamp("shift_end"),
-            StaffPool.ShiftStatus.valueOf(rs.getString("shift_status").trim().toUpperCase())
+            StaffPool.ShiftStatus.valueOf(rs.getString("status").trim().toUpperCase())
         );
     }
 }

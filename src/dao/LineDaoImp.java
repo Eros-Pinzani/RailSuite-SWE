@@ -40,7 +40,7 @@ class LineDaoImp implements LineDao {
                 stations.add(LineStation.of(stationId, order, duration));
             }
             stations.sort(Comparator.comparingInt(LineStation::getOrder));
-            return Line.of(idLine, name, stations);
+            return mapper.LineMapper.toDomain(rsLine, stations);
         }
     }
 

@@ -2,7 +2,6 @@ package dao;
 
 import domain.LineStation;
 import java.sql.*;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,11 +17,7 @@ class LineStationDaoImp implements LineStationDao {
             stmt.setInt(2, idStation);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                int order = rs.getInt("station_order");
-                Duration duration = null;
-                String intervalStr = rs.getString("time_to_next_station");
-                if (intervalStr != null) duration = Duration.parse(intervalStr);
-                return LineStation.of(idStation, order, duration);
+                return mapper.LineStationMapper.toDomain(rs);
             }
             return null;
         }
@@ -37,12 +32,7 @@ class LineStationDaoImp implements LineStationDao {
             stmt.setInt(1, idLine);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                int idStation = rs.getInt("id_station");
-                int order = rs.getInt("station_order");
-                Duration duration = null;
-                String intervalStr = rs.getString("time_to_next_station");
-                if (intervalStr != null) duration = Duration.parse(intervalStr);
-                stations.add(LineStation.of(idStation, order, duration));
+                stations.add(mapper.LineStationMapper.toDomain(rs));
             }
         }
         return stations;

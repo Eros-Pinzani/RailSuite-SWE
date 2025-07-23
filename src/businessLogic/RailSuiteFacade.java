@@ -29,6 +29,15 @@ public class RailSuiteFacade {
         return carriageDao.selectAllCarriages();
     }
 
+    public List<Carriage> selectCarriagesByConvoyId(int convoyId) throws SQLException {
+        return carriageDao.selectCarriagesByConvoyId(convoyId);
+    }
+
+    public boolean updateCarriageConvoy(int carriageId, Integer idConvoy) throws SQLException {
+        return carriageDao.updateCarriageConvoy(carriageId, idConvoy);
+    }
+
+
     // Staff
     public Staff findStaffById(int id) throws SQLException {
         return staffDao.findById(id);
@@ -225,4 +234,5 @@ public class RailSuiteFacade {
     public List<Run> selectRunsByFirstStationAndDeparture(int idFirstStation, java.sql.Time timeDeparture) throws SQLException {
         return runDao.selectRunsByFirstStationAndDeparture(idFirstStation, timeDeparture);
     }
+
 }

@@ -29,7 +29,9 @@ public class RunDaoImp implements RunDao {
     private static final String selectRunsByFirstStationAndDepartureQuery =
             "SELECT * FROM run WHERE id_first_station = ? AND time_departure = ?";
 
-
+    private static Run mapResultSetToRun(ResultSet rs) throws SQLException {
+        return mapper.RunMapper.toDomain(rs);
+    }
 
     @Override
     public List<Run> selectAllRuns() throws SQLException {
@@ -38,15 +40,7 @@ public class RunDaoImp implements RunDao {
              PreparedStatement pstmt = conn.prepareStatement(selectAllRunsQuery);
              ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
-                runs.add(Run.of(
-                    rs.getInt("id_line"),
-                    rs.getInt("id_convoy"),
-                    rs.getInt("id_staff"),
-                    rs.getTime("time_departure"),
-                    rs.getTime("time_arrival"),
-                    rs.getInt("id_first_station"),
-                    rs.getInt("id_last_station")
-                ));
+                runs.add(mapResultSetToRun(rs));
             }
         } catch (SQLException e) {
             throw new SQLException("Error selecting all runs", e);
@@ -108,7 +102,17 @@ public class RunDaoImp implements RunDao {
 
     @Override
     public Run selectRunByLineAndConvoy(int idLine, int idConvoy) throws SQLException {
-        return getRun(idLine, idConvoy, selectRunQuery);
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectRunQuery)) {
+            pstmt.setInt(1, idLine);
+            pstmt.setInt(2, idConvoy);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToRun(rs);
+                }
+            }
+        }
+        return null;
     }
 
     @Override
@@ -120,15 +124,7 @@ public class RunDaoImp implements RunDao {
             pstmt.setInt(3, idStaff);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return Run.of(
-                        rs.getInt("id_line"),
-                        rs.getInt("id_convoy"),
-                        rs.getInt("id_staff"),
-                        rs.getTime("time_departure"),
-                        rs.getTime("time_arrival"),
-                        rs.getInt("id_first_station"),
-                        rs.getInt("id_last_station")
-                    );
+                    return mapResultSetToRun(rs);
                 }
             }
         }
@@ -137,30 +133,13 @@ public class RunDaoImp implements RunDao {
 
     @Override
     public Run selectRunByStaffAndConvoy(int idStaff, int idConvoy) throws SQLException {
-        return getRun(idStaff, idConvoy, selectRunByStaffAndConvoyQuery);
-    }
-
-    @Override
-    public Run selectRunByStaffAndLine(int idStaff, int idLine) throws SQLException {
-        return getRun(idStaff, idLine, selectRunByStaffAndLineQuery);
-    }
-
-    private Run getRun(int idStaff, int idLine, String query) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
+             PreparedStatement pstmt = conn.prepareStatement(selectRunByStaffAndConvoyQuery)) {
             pstmt.setInt(1, idStaff);
-            pstmt.setInt(2, idLine);
+            pstmt.setInt(2, idConvoy);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return Run.of(
-                        rs.getInt("id_line"),
-                        rs.getInt("id_convoy"),
-                        rs.getInt("id_staff"),
-                        rs.getTime("time_departure"),
-                        rs.getTime("time_arrival"),
-                        rs.getInt("id_first_station"),
-                        rs.getInt("id_last_station")
-                    );
+                    return mapResultSetToRun(rs);
                 }
             }
         }
@@ -168,30 +147,37 @@ public class RunDaoImp implements RunDao {
     }
 
     @Override
-    public List<Run> selectRunsByStaff(int idStaff) throws SQLException {
-        return getRuns(idStaff, selectRunsByStaffQuery);
+    public Run selectRunByStaffAndLine(int idStaff, int idLine) throws SQLException {
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectRunByStaffAndLineQuery)) {
+            pstmt.setInt(1, idStaff);
+            pstmt.setInt(2, idLine);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToRun(rs);
+                }
+            }
+        }
+        return null;
     }
 
-    private List<Run> getRuns(int idStaff, String query) throws SQLException {
+    private List<Run> getRuns(int id, String query) throws SQLException {
         List<Run> runs = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setInt(1, idStaff);
+            pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    runs.add(Run.of(
-                        rs.getInt("id_line"),
-                        rs.getInt("id_convoy"),
-                        rs.getInt("id_staff"),
-                        rs.getTime("time_departure"),
-                        rs.getTime("time_arrival"),
-                        rs.getInt("id_first_station"),
-                        rs.getInt("id_last_station")
-                    ));
+                    runs.add(mapResultSetToRun(rs));
                 }
             }
         }
         return runs;
+    }
+
+    @Override
+    public List<Run> selectRunsByStaff(int idStaff) throws SQLException {
+        return getRuns(idStaff, selectRunsByStaffQuery);
     }
 
     @Override
@@ -223,15 +209,7 @@ public class RunDaoImp implements RunDao {
             pstmt.setTime(2, timeDeparture);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    runs.add(Run.of(
-                        rs.getInt("id_line"),
-                        rs.getInt("id_convoy"),
-                        rs.getInt("id_staff"),
-                        rs.getTime("time_departure"),
-                        rs.getTime("time_arrival"),
-                        rs.getInt("id_first_station"),
-                        rs.getInt("id_last_station")
-                    ));
+                    runs.add(mapResultSetToRun(rs));
                 }
             }
         }

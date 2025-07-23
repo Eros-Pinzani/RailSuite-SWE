@@ -9,16 +9,7 @@ class StaffDaoImp implements StaffDao {
     StaffDaoImp(){}
 
     private static Staff mapResultSetToStaff(ResultSet rs) throws SQLException {
-        Staff.TypeOfStaff typeOfStaff = Staff.TypeOfStaff.valueOf(rs.getString("type_of_staff").trim().toUpperCase());
-        return Staff.of(
-            rs.getInt("id_staff"),
-            rs.getString("name"),
-            rs.getString("surname"),
-            rs.getString("address"),
-            rs.getString("email"),
-            rs.getString("password"),
-            typeOfStaff
-        );
+        return mapper.StaffMapper.toDomain(rs);
     }
 
     @Override

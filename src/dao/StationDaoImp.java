@@ -8,16 +8,6 @@ import java.util.List;
 class StationDaoImp implements StationDao {
     StationDaoImp() {}
 
-    private static Station mapResultSetToStation(ResultSet rs) throws SQLException {
-        return domain.Station.of(
-            rs.getInt("id_station"),
-            rs.getString("location"),
-            rs.getInt("num_bins"),
-            rs.getString("service_description"),
-            rs.getBoolean("is_head")
-        );
-    }
-
     @Override
     public Station findById(int id) throws SQLException {
         String sql = "SELECT * FROM station WHERE id_station = ?";
@@ -26,7 +16,7 @@ class StationDaoImp implements StationDao {
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return mapResultSetToStation(rs);
+                return mapper.StationMapper.toDomain(rs);
             }
         } catch (SQLException e) {
             throw new SQLException("Error finding station by ID: " + id, e);
@@ -42,7 +32,7 @@ class StationDaoImp implements StationDao {
             stmt.setString(1, location);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return mapResultSetToStation(rs);
+                return mapper.StationMapper.toDomain(rs);
             }
         } catch (SQLException e) {
             throw new SQLException("Error finding station by location: " + location, e);
@@ -76,7 +66,7 @@ class StationDaoImp implements StationDao {
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                stations.add(mapResultSetToStation(rs));
+                stations.add(mapper.StationMapper.toDomain(rs));
             }
         } catch (SQLException e) {
             throw new SQLException("Error retrieving stations", e);

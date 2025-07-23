@@ -26,12 +26,7 @@ public class StaffPoolDaoImp implements StaffPoolDao {
             ps.setInt(1, idStaff);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    int idStation = rs.getInt("id_station");
-                    int idConvoy = rs.getInt("id_convoy");
-                    Timestamp shiftStart = rs.getTimestamp("shift_start");
-                    Timestamp shiftEnd = rs.getTimestamp("shift_end");
-                    StaffPool.ShiftStatus shiftStatus = StaffPool.ShiftStatus.valueOf(rs.getString("status"));
-                    return StaffPool.of(idStaff, idStation, idConvoy, shiftStart, shiftEnd, shiftStatus);
+                    return mapper.StaffPoolMapper.toDomain(rs);
                 }
             }
         }
@@ -42,7 +37,13 @@ public class StaffPoolDaoImp implements StaffPoolDao {
     public List<StaffPool> findByStation(int idStation) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(SELECT_BY_STATION)) {
             ps.setInt(1, idStation);
-            return getStaffPools(idStation, ps);
+            try (ResultSet rs = ps.executeQuery()) {
+                List<StaffPool> result = new java.util.ArrayList<>();
+                while (rs.next()) {
+                    result.add(mapper.StaffPoolMapper.toDomain(rs));
+                }
+                return result;
+            }
         }
     }
 
@@ -66,13 +67,7 @@ public class StaffPoolDaoImp implements StaffPoolDao {
             try (ResultSet rs = ps.executeQuery()) {
                 List<StaffPool> result = new java.util.ArrayList<>();
                 while (rs.next()) {
-                    int idStaff = rs.getInt("id_staff");
-                    int idStation = rs.getInt("id_station");
-                    int idConvoy = rs.getInt("id_convoy");
-                    Timestamp shiftStart = rs.getTimestamp("shift_start");
-                    Timestamp shiftEnd = rs.getTimestamp("shift_end");
-                    StaffPool.ShiftStatus shiftStatus = StaffPool.ShiftStatus.valueOf(rs.getString("status"));
-                    result.add(StaffPool.of(idStaff, idStation, idConvoy, shiftStart, shiftEnd, shiftStatus));
+                    result.add(mapper.StaffPoolMapper.toDomain(rs));
                 }
                 return result;
             }
@@ -84,24 +79,14 @@ public class StaffPoolDaoImp implements StaffPoolDao {
         try (Connection conn = PostgresConnection.getConnection(); PreparedStatement ps = conn.prepareStatement(SELECT_BY_STATUS_AND_STATION)) {
             ps.setString(1, status.name());
             ps.setInt(2, idStation);
-            return getStaffPools(idStation, ps);
-        }
-    }
-
-    private List<StaffPool> getStaffPools(int idStation, PreparedStatement ps) throws SQLException {
-        try (ResultSet rs = ps.executeQuery()) {
-            List<StaffPool> result = new java.util.ArrayList<>();
-            while (rs.next()) {
-                int idStaff = rs.getInt("id_staff");
-                int idConvoy = rs.getInt("id_convoy");
-                Timestamp shiftStart = rs.getTimestamp("shift_start");
-                Timestamp shiftEnd = rs.getTimestamp("shift_end");
-                StaffPool.ShiftStatus shiftStatus = StaffPool.ShiftStatus.valueOf(rs.getString("status"));
-                result.add(StaffPool.of(idStaff, idStation, idConvoy, shiftStart, shiftEnd, shiftStatus));
+            try (ResultSet rs = ps.executeQuery()) {
+                List<StaffPool> result = new java.util.ArrayList<>();
+                while (rs.next()) {
+                    result.add(mapper.StaffPoolMapper.toDomain(rs));
+                }
+                return result;
             }
-            return result;
         }
     }
-
 
 }

@@ -16,6 +16,9 @@ public class RailSuiteFacade {
     private final ConvoyPoolDao convoyPoolDao = ConvoyPoolDao.of();
     private final StaffPoolDao staffPoolDao = StaffPoolDao.of();
     private final LineStationDao lineStationDao = LineStationDao.of();
+    private final CarriageDepotDao carriageDepotDao = CarriageDepotDao.of();
+    private final DepotDao depotDao = DepotDao.of();
+    private final RunDao runDao = RunDao.of();
 
     // Carriage
     public Carriage selectCarriage(int id) throws SQLException {
@@ -156,5 +159,70 @@ public class RailSuiteFacade {
     public List<LineStation> findLineStationsByLine(int idLine) throws SQLException {
         return lineStationDao.findByLine(idLine);
     }
-    // aggiungi altri metodi di business semplificati
+
+    // CarriageDepot
+    public CarriageDepot getCarriageDepot(int idDepot, int idCarriage) throws SQLException {
+        return carriageDepotDao.getCarriageDepot(idDepot, idCarriage);
+    }
+    public List<CarriageDepot> getCarriagesByDepot(int idDepot) throws SQLException {
+        return carriageDepotDao.getCarriagesByDepot(idDepot);
+    }
+
+    // Depot
+    public Depot getDepot(int idDepot) throws SQLException {
+        return depotDao.getDepot(idDepot);
+    }
+    public List<Depot> getAllDepots() throws SQLException {
+        return depotDao.getAllDepots();
+    }
+    public void insertDepot(int idDepot) throws SQLException {
+        depotDao.insertDepot(idDepot);
+    }
+    public void deleteDepot(int idDepot) throws SQLException {
+        depotDao.deleteDepot(idDepot);
+    }
+
+    // Run
+    public Run selectRunByLineAndConvoy(int idLine, int idConvoy) throws SQLException {
+        return runDao.selectRunByLineAndConvoy(idLine, idConvoy);
+    }
+    public Run selectRun(int idLine, int idConvoy, int idStaff) throws SQLException {
+        return runDao.selectRun(idLine, idConvoy, idStaff);
+    }
+    public Run selectRunByStaffAndConvoy(int idStaff, int idConvoy) throws SQLException {
+        return runDao.selectRunByStaffAndConvoy(idStaff, idConvoy);
+    }
+    public Run selectRunByStaffAndLine(int idStaff, int idLine) throws SQLException {
+        return runDao.selectRunByStaffAndLine(idStaff, idLine);
+    }
+    public List<Run> selectAllRuns() throws SQLException {
+        return runDao.selectAllRuns();
+    }
+    public boolean removeRun(int idLine, int idConvoy) throws SQLException {
+        return runDao.removeRun(idLine, idConvoy);
+    }
+    public Run createRun(int idLine, int idConvoy, int idStaff, java.sql.Time timeDeparture, java.sql.Time timeArrival, int idFirstStation, int idLastStation) throws SQLException {
+        return runDao.createRun(idLine, idConvoy, idStaff, timeDeparture, timeArrival, idFirstStation, idLastStation);
+    }
+    public boolean updateRun(int idLine, int idConvoy, int idStaff, java.sql.Time timeDeparture, java.sql.Time timeArrival, int idFirstStation, int idLastStation) throws SQLException {
+        return runDao.updateRun(idLine, idConvoy, idStaff, timeDeparture, timeArrival, idFirstStation, idLastStation);
+    }
+    public List<Run> selectRunsByStaff(int idStaff) throws SQLException {
+        return runDao.selectRunsByStaff(idStaff);
+    }
+    public List<Run> selectRunsByLine(int idLine) throws SQLException {
+        return runDao.selectRunsByLine(idLine);
+    }
+    public List<Run> selectRunsByConvoy(int idConvoy) throws SQLException {
+        return runDao.selectRunsByConvoy(idConvoy);
+    }
+    public List<Run> selectRunsByFirstStation(int idFirstStation) throws SQLException {
+        return runDao.selectRunsByFirstStation(idFirstStation);
+    }
+    public List<Run> selectRunsByLastStation(int idLastStation) throws SQLException {
+        return runDao.selectRunsByLastStation(idLastStation);
+    }
+    public List<Run> selectRunsByFirstStationAndDeparture(int idFirstStation, java.sql.Time timeDeparture) throws SQLException {
+        return runDao.selectRunsByFirstStationAndDeparture(idFirstStation, timeDeparture);
+    }
 }

@@ -38,23 +38,17 @@ class ConvoyDaoImp implements ConvoyDao {
             convoyStmt.setInt(1, id);
             try (java.sql.ResultSet convoyRs = convoyStmt.executeQuery()) {
                 if (!convoyRs.next()) return null;
-            }
-            carriageStmt.setInt(1, id);
-            try (java.sql.ResultSet rs = carriageStmt.executeQuery()) {
-                while (rs.next()) {
-                    carriages.add(domain.Carriage.of(
-                        rs.getInt("id_carriage"),
-                        rs.getString("model"),
-                        rs.getString("model_type"),
-                        rs.getInt("year_produced"),
-                        rs.getInt("capacity")
-                    ));
+                carriageStmt.setInt(1, id);
+                try (java.sql.ResultSet rs = carriageStmt.executeQuery()) {
+                    while (rs.next()) {
+                        carriages.add(mapper.CarriageMapper.toDomain(rs));
+                    }
                 }
+                return mapper.ConvoyMapper.toDomain(convoyRs, carriages);
             }
         } catch (SQLException e) {
             throw new SQLException("Error finding convoy by id: " + id, e);
         }
-        return domain.Convoy.of(id, carriages);
     }
 
     @Override
@@ -139,10 +133,10 @@ class ConvoyDaoImp implements ConvoyDao {
 
     @Override
     public Convoy createConvoy(List<Carriage> carriages) throws SQLException {
-        int generatedId = -1;
+        int generatedId;
         try (
             java.sql.Connection conn = PostgresConnection.getConnection();
-            java.sql.PreparedStatement insertConvoyStmt = conn.prepareStatement(insertConvoyQuery);
+            java.sql.PreparedStatement insertConvoyStmt = conn.prepareStatement(insertConvoyQuery)
         ) {
             try (java.sql.ResultSet rs = insertConvoyStmt.executeQuery()) {
                 if (rs.next()) {

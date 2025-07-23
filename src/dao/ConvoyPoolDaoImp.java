@@ -22,13 +22,6 @@ public class ConvoyPoolDaoImp implements ConvoyPoolDao {
 
     ConvoyPoolDaoImp (){}
 
-    private static ConvoyPool mapResultSetToConvoyPool(ResultSet rs) throws SQLException {
-        int idConvoy = rs.getInt("id_convoy");
-        int idStation = rs.getInt("id_station");
-        ConvoyPool.ConvoyStatus status = ConvoyPool.ConvoyStatus.valueOf(rs.getString("status").trim().toUpperCase());
-        return ConvoyPool.of(idConvoy, idStation, status);
-    }
-
     @Override
     public ConvoyPool getConvoyPoolById(int idConvoy) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
@@ -36,7 +29,7 @@ public class ConvoyPoolDaoImp implements ConvoyPoolDao {
             ps.setInt(1, idConvoy);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapResultSetToConvoyPool(rs);
+                    return mapper.ConvoyPoolMapper.toDomain(rs);
                 }
             }
         }
@@ -61,7 +54,7 @@ public class ConvoyPoolDaoImp implements ConvoyPoolDao {
              PreparedStatement ps = conn.prepareStatement(SELECT_ALL);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                list.add(mapResultSetToConvoyPool(rs));
+                list.add(mapper.ConvoyPoolMapper.toDomain(rs));
             }
         }
         return list;
@@ -75,7 +68,7 @@ public class ConvoyPoolDaoImp implements ConvoyPoolDao {
             ps.setInt(1, idStation);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(mapResultSetToConvoyPool(rs));
+                    list.add(mapper.ConvoyPoolMapper.toDomain(rs));
                 }
             }
         }
@@ -90,7 +83,7 @@ public class ConvoyPoolDaoImp implements ConvoyPoolDao {
             ps.setString(1, status.name());
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(mapResultSetToConvoyPool(rs));
+                    list.add(mapper.ConvoyPoolMapper.toDomain(rs));
                 }
             }
         }
@@ -106,7 +99,7 @@ public class ConvoyPoolDaoImp implements ConvoyPoolDao {
             ps.setString(2, status.name());
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(mapResultSetToConvoyPool(rs));
+                    list.add(mapper.ConvoyPoolMapper.toDomain(rs));
                 }
             }
         }

@@ -1,6 +1,7 @@
 package dao;
 
 import domain.Carriage;
+import mapper.CarriageMapper;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -24,13 +25,7 @@ class CarriageDaoImp implements CarriageDao {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return domain.Carriage.of(
-                            rs.getInt("id"),
-                            rs.getString("model"),
-                            rs.getString("model_type"),
-                            rs.getInt("year_produced"),
-                            rs.getInt("capacity")
-                    );
+                    return CarriageMapper.toDomain(rs);
                 }
             }
         } catch (SQLException e) {
@@ -48,13 +43,7 @@ class CarriageDaoImp implements CarriageDao {
                 ResultSet rs = pstmt.executeQuery()
         ) {
             while (rs.next()) {
-                results.add(domain.Carriage.of(
-                        rs.getInt("id"),
-                        rs.getString("model"),
-                        rs.getString("model_type"),
-                        rs.getInt("year_produced"),
-                        rs.getInt("capacity")
-                ));
+                results.add(CarriageMapper.toDomain(rs));
             }
         } catch (SQLException e) {
             throw new SQLException("Error finding all carriages:", e);

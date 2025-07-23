@@ -1,16 +1,14 @@
 package dao;
 
+import domain.CarriageDepot;
 import domain.Depot;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import mapper.DepotMapper;
 
 class DepotDaoImp implements DepotDao {
     DepotDaoImp() {}
-
-    private static Depot mapResultSetToDepot(ResultSet rs) throws SQLException {
-        return Depot.of(rs.getInt("id_depot"));
-    }
 
     @Override
     public Depot getDepot(int idDepot) throws SQLException {
@@ -20,7 +18,13 @@ class DepotDaoImp implements DepotDao {
             stmt.setInt(1, idDepot);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return mapResultSetToDepot(rs);
+                Depot depot = DepotMapper.toDomain(rs);
+                CarriageDepotDao carriageDepotDao = new CarriageDepotDaoImp();
+                List<CarriageDepot> carriages = carriageDepotDao.getCarriagesByDepot(idDepot);
+                for (CarriageDepot cd : carriages) {
+                    depot.addCarriage(cd);
+                }
+                return depot;
             }
         } catch (SQLException e) {
             throw new SQLException("Error finding depot by ID: " + idDepot, e);
@@ -44,7 +48,13 @@ class DepotDaoImp implements DepotDao {
              PreparedStatement stmt = conn.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
-                depots.add(mapResultSetToDepot(rs));
+                Depot depot = DepotMapper.toDomain(rs);
+                CarriageDepotDao carriageDepotDao = new CarriageDepotDaoImp();
+                List<CarriageDepot> carriages = carriageDepotDao.getCarriagesByDepot(depot.getIdDepot());
+                for (CarriageDepot cd : carriages) {
+                    depot.addCarriage(cd);
+                }
+                depots.add(depot);
             }
         } catch (SQLException e) {
             throw new SQLException("Error retrieving depots", e);

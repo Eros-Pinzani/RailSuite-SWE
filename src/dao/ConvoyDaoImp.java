@@ -8,24 +8,21 @@ import java.util.List;
 
 class ConvoyDaoImp implements ConvoyDao {
     private static final String selectConvoyQuery =
-            "SELECT id_convoy, id_carriage FROM convoy WHERE id_convoy = ?";
-    private static final String selectConvoySubQuery=
-            "SELECT id_carriage, model, model_type, year_produced, capacity FROM carriage WHERE id_carriage IN " +
-                    "(SELECT id_carriage FROM convoy WHERE id_convoy = ?)";
+            "SELECT id_convoy FROM convoy WHERE id_convoy = ?";
+    private static final String selectCarriagesByConvoyIdQuery =
+            "SELECT id_carriage, model, model_type, year_produced, capacity, id_convoy FROM carriage WHERE id_convoy = ?";
     private static final String selectAllConvoyIdsQuery =
-            "SELECT DISTINCT id_convoy FROM convoy";
+            "SELECT id_convoy FROM convoy";
     private static final String deleteConvoyQuery =
             "DELETE FROM convoy WHERE id_convoy = ?";
-    private static final String addCarriageToConvoyQuery =
-            "INSERT INTO convoy (id_convoy, id_carriage) VALUES (?, ?)";
+    private static final String updateCarriageConvoyQuery =
+            "UPDATE carriage SET id_convoy = ? WHERE id_carriage = ?";
     private static final String removeCarriageFromConvoyQuery =
-            "DELETE FROM convoy WHERE id_convoy = ? AND id_carriage = ?";
+            "UPDATE carriage SET id_convoy = NULL WHERE id_carriage = ?";
     private static final String findConvoyIdByCarriageIdQuery =
-            "SELECT id_convoy FROM convoy WHERE id_carriage = ?";
+            "SELECT id_convoy FROM carriage WHERE id_carriage = ?";
     private static final String insertConvoyQuery =
             "INSERT INTO convoy DEFAULT VALUES RETURNING id_convoy";
-    private static final String insertConvoyCarriageQuery =
-            "INSERT INTO convoy (id_convoy, id_carriage) VALUES (?, ?)";
 
     @Override
     public Convoy selectConvoy(int id) throws SQLException {
@@ -33,7 +30,7 @@ class ConvoyDaoImp implements ConvoyDao {
         try (
             java.sql.Connection conn = PostgresConnection.getConnection();
             java.sql.PreparedStatement convoyStmt = conn.prepareStatement(selectConvoyQuery);
-            java.sql.PreparedStatement carriageStmt = conn.prepareStatement(selectConvoySubQuery)
+            java.sql.PreparedStatement carriageStmt = conn.prepareStatement(selectCarriagesByConvoyIdQuery)
         ) {
             convoyStmt.setInt(1, id);
             try (java.sql.ResultSet convoyRs = convoyStmt.executeQuery()) {
@@ -73,10 +70,13 @@ class ConvoyDaoImp implements ConvoyDao {
     public boolean removeConvoy(int id) throws SQLException {
         try (
             java.sql.Connection conn = PostgresConnection.getConnection();
-            java.sql.PreparedStatement pstmt = conn.prepareStatement(deleteConvoyQuery)
+            java.sql.PreparedStatement updateCarriageStmt = conn.prepareStatement("UPDATE carriage SET id_convoy = NULL WHERE id_convoy = ?");
+            java.sql.PreparedStatement deleteConvoyStmt = conn.prepareStatement(deleteConvoyQuery)
         ) {
-            pstmt.setInt(1, id);
-            int affectedRows = pstmt.executeUpdate();
+            updateCarriageStmt.setInt(1, id);
+            updateCarriageStmt.executeUpdate();
+            deleteConvoyStmt.setInt(1, id);
+            int affectedRows = deleteConvoyStmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
             throw new SQLException("Error removing convoy with id: " + id, e);
@@ -87,7 +87,7 @@ class ConvoyDaoImp implements ConvoyDao {
     public boolean addCarriageToConvoy(int convoyId, Carriage carriage) throws SQLException {
         try (
             java.sql.Connection conn = PostgresConnection.getConnection();
-            java.sql.PreparedStatement pstmt = conn.prepareStatement(addCarriageToConvoyQuery)
+            java.sql.PreparedStatement pstmt = conn.prepareStatement(updateCarriageConvoyQuery)
         ) {
             pstmt.setInt(1, convoyId);
             pstmt.setInt(2, carriage.getId());
@@ -104,8 +104,7 @@ class ConvoyDaoImp implements ConvoyDao {
             java.sql.Connection conn = PostgresConnection.getConnection();
             java.sql.PreparedStatement pstmt = conn.prepareStatement(removeCarriageFromConvoyQuery)
         ) {
-            pstmt.setInt(1, convoyId);
-            pstmt.setInt(2, carriage.getId());
+            pstmt.setInt(1, carriage.getId());
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
@@ -146,17 +145,22 @@ class ConvoyDaoImp implements ConvoyDao {
                 }
             }
             if (carriages != null && !carriages.isEmpty()) {
-                try (java.sql.PreparedStatement insertCarriageStmt = conn.prepareStatement(insertConvoyCarriageQuery)) {
+                try (java.sql.PreparedStatement updateCarriageStmt = conn.prepareStatement(updateCarriageConvoyQuery)) {
                     for (Carriage carriage : carriages) {
-                        insertCarriageStmt.setInt(1, generatedId);
-                        insertCarriageStmt.setInt(2, carriage.getId());
-                        insertCarriageStmt.addBatch();
+                        updateCarriageStmt.setInt(1, generatedId);
+                        updateCarriageStmt.setInt(2, carriage.getId());
+                        updateCarriageStmt.addBatch();
                     }
-                    insertCarriageStmt.executeBatch();
+                    int[] results = updateCarriageStmt.executeBatch();
+                    for (int res : results) {
+                        if (res == 0) {
+                            throw new SQLException("Failed to update carriage with id_convoy: " + generatedId);
+                        }
+                    }
                 }
             }
         } catch (SQLException e) {
-            throw new SQLException("Error creating new convoy", e);
+            throw new SQLException("Error creating new convoy and updating carriages", e);
         }
         return domain.Convoy.of(generatedId, carriages);
     }

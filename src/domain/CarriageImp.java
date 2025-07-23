@@ -6,13 +6,15 @@ class CarriageImp implements Carriage {
     private final String modelType;
     private final int yearProduced;
     private final int capacity;
+    private Integer idConvoy;
 
-    CarriageImp(int id, String model, String modelType, int yearProduced, int capacity) {
+    CarriageImp(int id, String model, String modelType, int yearProduced, int capacity, Integer idConvoy) {
         this.id = id;
         this.model = model;
         this.modelType = modelType;
         this.yearProduced = yearProduced;
         this.capacity = capacity;
+        this.idConvoy = idConvoy;
     }
 
     @Override
@@ -38,5 +40,15 @@ class CarriageImp implements Carriage {
     @Override
     public int getCapacity() {
         return capacity;
+    }
+
+    @Override
+    public Integer getIdConvoy() {
+        return idConvoy;
+    }
+
+    @Override
+    public void setIdConvoy(Integer idConvoy) {
+        this.idConvoy = idConvoy;
     }
 }

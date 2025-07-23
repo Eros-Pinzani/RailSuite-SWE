@@ -2,7 +2,6 @@ package businessLogic;
 
 import dao.*;
 import domain.*;
-import mapper.*;
 
 import java.util.List;
 import java.sql.SQLException;
@@ -94,10 +93,6 @@ public class RailSuiteFacade {
         return convoyDao.selectAllConvoys();
     }
 
-    public boolean removeConvoy(int id) throws SQLException {
-        return convoyDao.removeConvoy(id);
-    }
-
     public boolean addCarriageToConvoy(int convoyId, Carriage carriage) throws SQLException {
         return convoyDao.addCarriageToConvoy(convoyId, carriage);
     }
@@ -114,6 +109,9 @@ public class RailSuiteFacade {
         return convoyDao.createConvoy(carriages);
     }
 
+    public boolean removeConvoy(int id) throws SQLException {
+        return convoyDao.removeConvoy(id);
+    }
     // ConvoyPool
     public ConvoyPool getConvoyPoolById(int idConvoy) throws SQLException {
         return convoyPoolDao.getConvoyPoolById(idConvoy);

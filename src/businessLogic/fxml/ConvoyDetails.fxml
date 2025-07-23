@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="businessLogic.controller.ConvoyDetailsController" spacing="10" alignment="CENTER">
+    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="ID Convoglio:" />
+        <TextField fx:id="convoyIdField" promptText="Inserisci ID" />
+        <Button fx:id="loadButton" text="Carica" onAction="#onLoadConvoy" />
+    </HBox>
+    <TableView fx:id="carriageTable" prefHeight="200" prefWidth="700">
+        <columns>
+            <TableColumn fx:id="carriageIdColumn" text="ID" prefWidth="60" />
+            <TableColumn fx:id="carriageModelColumn" text="Modello" prefWidth="120" />
+            <TableColumn fx:id="carriageTypeColumn" text="Tipo Modello" prefWidth="120" />
+            <TableColumn fx:id="carriageYearColumn" text="Anno"/>
+            <TableColumn fx:id="carriageCapacityColumn" text="Capacità"/>
+        </columns>
+    </TableView>
+    <HBox spacing="10" alignment="CENTER">
+        <Button fx:id="addCarriageButton" text="Aggiungi Carrozza" onAction="#onAddCarriage" />
+        <Button fx:id="removeCarriageButton" text="Rimuovi Carrozza" onAction="#onRemoveCarriage" />
+        <TextField fx:id="newConvoyCarriageIdsField" promptText="ID carrozze (es: 1,2,3)" />
+        <Button fx:id="createConvoyButton" text="Crea Convoglio" onAction="#onCreateConvoy" />
+    </HBox>
+</VBox>

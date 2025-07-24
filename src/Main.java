@@ -1,15 +1,23 @@
+import businessLogic.controller.SceneManager;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/businessLogic/fxml/ConvoyDetails.fxml"));
-        Scene scene = new Scene(loader.load());
-        primaryStage.setTitle("Gestione Convoglio e Carrozze");
+        SceneManager.getInstance().setStage(primaryStage);
+        var resource = getClass().getResource("/businessLogic/fxml/LogIn.fxml");
+        if (resource == null) {
+            throw new IllegalStateException("LogIn.fxml resource not found");
+        }
+        Parent root = FXMLLoader.load(resource);
+        Scene scene = new Scene(root, 800, 600);
         primaryStage.setScene(scene);
+        primaryStage.setTitle("RailSuite");
+        primaryStage.centerOnScreen();
         primaryStage.show();
     }
 

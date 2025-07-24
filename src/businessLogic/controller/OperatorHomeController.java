@@ -3,34 +3,45 @@ package businessLogic.controller;
 import businessLogic.service.OperatorHomeService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import domain.Staff;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.application.Platform;
+import javafx.scene.control.TreeTableView;
+import javafx.scene.control.TreeTableColumn;
+import javafx.scene.control.TreeItem;
+import businessLogic.service.OperatorHomeService.AssignedConvoyInfo;
+import javafx.beans.property.SimpleStringProperty;
+import java.util.List;
+import java.util.logging.Logger;
+import javafx.scene.control.TreeTableCell;
+import javafx.scene.control.Button;
+import javafx.util.Callback;
 
 public class OperatorHomeController {
     @FXML
     private Label operatorNameLabel;
     @FXML
-    private ImageView profileImage;
-    @FXML
-    private MenuButton menuButton;
-    @FXML
     private MenuItem logoutMenuItem;
     @FXML
     private MenuItem exitMenuItem;
+    @FXML
+    private TreeTableView<AssignedConvoyInfo> assignedTrainsTable;
+    @FXML
+    private TreeTableColumn<AssignedConvoyInfo, String> convoyIdColumn;
+    @FXML
+    private TreeTableColumn<AssignedConvoyInfo, String> departureStationColumn;
+    @FXML
+    private TreeTableColumn<AssignedConvoyInfo, String> departureTimeColumn;
+    @FXML
+    private TreeTableColumn<AssignedConvoyInfo, String> arrivalStationColumn;
+    @FXML
+    private TreeTableColumn<AssignedConvoyInfo, String> arrivalTimeColumn;
+    @FXML
+    private TreeTableColumn<AssignedConvoyInfo, Void> detailsColumn;
+    @FXML
+    private Label noConvoyLabel;
 
-    private final OperatorHomeService operatorHomeService = new OperatorHomeService();
-
-    public void setUserData(String nome, String cognome) {
-        String fullName = nome + " " + cognome;
-        operatorNameLabel.setText(fullName);
-        Image img = operatorHomeService.getProfileImage();
-        profileImage.setImage(img);
-    }
+    private static final Logger logger = Logger.getLogger(OperatorHomeController.class.getName());
 
     @FXML
     public void initialize() {
@@ -38,16 +49,10 @@ public class OperatorHomeController {
         if (staff != null) {
             String fullName = staff.getName() + " " + staff.getSurname();
             operatorNameLabel.setText(fullName);
-            Image img = operatorHomeService.getProfileImage();
-            profileImage.setImage(img);
+            populateAssignedTrainsTable(staff.getIdStaff());
         }
-        profileImage.setOnMouseClicked(this::handleProfileClick);
-        logoutMenuItem.setOnAction(e -> handleLogout());
-        exitMenuItem.setOnAction(e -> handleExit());
-    }
-
-    private void handleProfileClick(MouseEvent event) {
-        menuButton.show();
+        logoutMenuItem.setOnAction(event -> handleLogout());
+        exitMenuItem.setOnAction(event -> handleExit());
     }
 
     private void handleLogout() {
@@ -57,5 +62,61 @@ public class OperatorHomeController {
 
     private void handleExit() {
         Platform.exit();
+    }
+
+    private void populateAssignedTrainsTable(int staffId) {
+        OperatorHomeService service = new OperatorHomeService();
+        try {
+            List<AssignedConvoyInfo> convoys = service.getAssignedConvoysForOperator(staffId);
+            boolean hasConvoys = !convoys.isEmpty();
+            assignedTrainsTable.setVisible(hasConvoys);
+            noConvoyLabel.setVisible(!hasConvoys);
+            if (!hasConvoys) {
+                assignedTrainsTable.setRoot(null);
+                return;
+            }
+            TreeItem<AssignedConvoyInfo> root = new TreeItem<>(new AssignedConvoyInfo(0, "", "", "", ""));
+            for (AssignedConvoyInfo info : convoys) {
+                root.getChildren().add(new TreeItem<>(info));
+            }
+            assignedTrainsTable.setRoot(root);
+            assignedTrainsTable.setShowRoot(false);
+            convoyIdColumn.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().getValue().convoyId)));
+            departureStationColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getValue().departureStation));
+            departureTimeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getValue().departureTime));
+            arrivalStationColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getValue().arrivalStation));
+            arrivalTimeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getValue().arrivalTime));
+            // Colonna Dettagli con bottone
+            detailsColumn.setCellFactory(param -> new TreeTableCell<>() {
+                private final Button btn = new Button("Dettagli");
+                {
+                    btn.setOnAction(e -> {
+                        AssignedConvoyInfo data = getTableRow() != null ? (AssignedConvoyInfo) getTableRow().getItem() : null;
+                        if (data != null) {
+                            openConvoyDetailsScene(data);
+                        }
+                    });
+                }
+                @Override
+                protected void updateItem(Void item, boolean empty) {
+                    super.updateItem(item, empty);
+                    AssignedConvoyInfo data = getTableRow() != null ? (AssignedConvoyInfo) getTableRow().getItem() : null;
+                    if (empty || data == null || data.convoyId == 0) {
+                        setGraphic(null);
+                    } else {
+                        setGraphic(btn);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            logger.severe("Errore durante il popolamento della tabella dei convogli assegnati: " + e.getMessage());
+            assignedTrainsTable.setVisible(false);
+            noConvoyLabel.setVisible(true);
+        }
+    }
+
+    private void openConvoyDetailsScene(AssignedConvoyInfo info) {
+        ConvoyDetailsController.setStaticConvoyInfo(info);
+        SceneManager.getInstance().switchScene("/businessLogic/fxml/ConvoyDetails.fxml");
     }
 }

@@ -1,11 +1,19 @@
 package businessLogic.controller;
 
 import businessLogic.service.ConvoyService;
+import businessLogic.service.OperatorHomeService.AssignedConvoyInfo;
+import businessLogic.RailSuiteFacade;
 import domain.Carriage;
+import domain.Convoy;
+import domain.Line;
+import domain.Run;
+import domain.Station;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+
+import java.util.List;
 
 public class ConvoyDetailsController {
     @FXML private Button addCarriageButton;
@@ -20,8 +28,22 @@ public class ConvoyDetailsController {
     @FXML private TableColumn<Carriage, Integer> carriageCapacityColumn;
     @FXML private TextField newConvoyCarriageIdsField;
     @FXML private Button loadButton;
+    @FXML private Label convoyIdLabel;
+    @FXML private Label lineNameLabel;
+    @FXML private Label departureStationLabel;
+    @FXML private Label departureTimeLabel;
+    @FXML private Label arrivalStationLabel;
+    @FXML private Label arrivalTimeLabel;
 
     private final ConvoyService convoyService = new ConvoyService();
+
+    private AssignedConvoyInfo convoyInfo;
+
+    private static AssignedConvoyInfo staticConvoyInfo;
+
+    public static void setStaticConvoyInfo(AssignedConvoyInfo info) {
+        staticConvoyInfo = info;
+    }
 
     @FXML
     public void initialize() {
@@ -30,6 +52,47 @@ public class ConvoyDetailsController {
         carriageTypeColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getModelType()));
         carriageYearColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleIntegerProperty(data.getValue().getYearProduced()).asObject());
         carriageCapacityColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleIntegerProperty(data.getValue().getCapacity()).asObject());
+
+        if (staticConvoyInfo != null) {
+            setConvoyInfo(staticConvoyInfo);
+            staticConvoyInfo = null;
+        }
+    }
+
+    public void setConvoyInfo(AssignedConvoyInfo info) {
+        this.convoyInfo = info;
+        populateDetails();
+    }
+
+    private void populateDetails() {
+        if (convoyInfo == null) return;
+        try {
+            RailSuiteFacade facade = new RailSuiteFacade();
+            convoyIdLabel.setText(String.valueOf(convoyInfo.convoyId));
+            departureStationLabel.setText(convoyInfo.departureStation);
+            departureTimeLabel.setText(convoyInfo.departureTime);
+            arrivalStationLabel.setText(convoyInfo.arrivalStation);
+            arrivalTimeLabel.setText(convoyInfo.arrivalTime);
+            // Recupera la corsa (run) associata
+            List<Run> runs = facade.selectRunsByConvoy(convoyInfo.convoyId);
+            if (!runs.isEmpty()) {
+                Run run = runs.get(0);
+                Line line = facade.findLineById(run.getIdLine());
+                if (line != null) {
+                    lineNameLabel.setText(line.getName());
+                } else {
+                    lineNameLabel.setText("");
+                }
+            } else {
+                lineNameLabel.setText("");
+            }
+            // Carrozze
+            List<Carriage> carriages = facade.selectCarriagesByConvoyId(convoyInfo.convoyId);
+            ObservableList<Carriage> obs = FXCollections.observableArrayList(carriages);
+            carriageTable.setItems(obs);
+        } catch (Exception e) {
+            convoyIdLabel.setText("Errore");
+        }
     }
 
     @FXML

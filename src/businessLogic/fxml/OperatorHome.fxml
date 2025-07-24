@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TreeTableColumn?>
+<?import javafx.scene.control.TreeTableView?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<StackPane style="-fx-background-color: #f5f5f5;" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="businessLogic.controller.OperatorHomeController">
+<StackPane minHeight="600.0" minWidth="800.0" style="-fx-background-color: #f5f5f5;" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="businessLogic.controller.OperatorHomeController">
     <VBox>
         <!-- HEADER -->
-        <HBox alignment="CENTER_RIGHT" minHeight="50.0" prefHeight="50.0" spacing="16.0" style="-fx-background-color: #1976d2; -fx-padding: 16 32 16 16;">
+        <HBox alignment="CENTER_RIGHT" minHeight="50.0" prefHeight="50.0" spacing="15.0" style="-fx-background-color: #1976d2; -fx-padding: 16 32 16 16;">
             <Label fx:id="operatorNameLabel" alignment="CENTER" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white;" />
             <MenuButton fx:id="menuButton" graphicTextGap="0" style="-fx-background-color: transparent;">
                 <graphic>
@@ -24,9 +27,30 @@
             </MenuButton>
         </HBox>
         <!-- CONTENUTO PRINCIPALE -->
-        <VBox alignment="TOP_LEFT" spacing="20" style="-fx-padding: 32 0 0 32;">
-            <Label style="-fx-font-size: 24px; -fx-text-fill: #333;" text="Benvenuto nella dashboard!" />
-            <Region VBox.vgrow="ALWAYS" />
+        <VBox id="AssignedTrain" alignment="TOP_LEFT" spacing="10.0">
+         <Label text="Treni assegnati">
+            <font>
+               <Font name="System Bold" size="20.0" />
+            </font>
+         </Label>
+         <!-- MESSAGGIO AL POSTO DELLA TABELLA -->
+         <Label fx:id="noConvoyLabel" text="Non ha nessun turno a lui associato" visible="false" style="-fx-font-size: 16px; -fx-text-fill: #888; -fx-padding: 20 0 0 0;" />
+         <TreeTableView fx:id="assignedTrainsTable" prefHeight="200.0" prefWidth="200.0" editable="false" visible="true">
+           <columns>
+             <TreeTableColumn fx:id="convoyIdColumn" editable="false" prefWidth="82.39999085664749" sortable="false" text="Convoglio" />
+               <TreeTableColumn fx:id="departureStationColumn" editable="false" prefWidth="149.5999755859375" sortable="false" text="Stazione di partenza" />
+               <TreeTableColumn fx:id="departureTimeColumn" editable="false" prefWidth="132.80006408691406" sortable="false" text="Orario di partenza" />
+               <TreeTableColumn fx:id="arrivalStationColumn" editable="false" prefWidth="137.5999755859375" sortable="false" text="Stazione di arrivo" />
+               <TreeTableColumn fx:id="arrivalTimeColumn" editable="false" prefWidth="137.5999755859375" sortable="false" text="Orario di arrivo" />
+               <TreeTableColumn fx:id="detailsColumn" editable="false" prefWidth="148.79996337890623" sortable="false" text="Dettagli" />
+           </columns>
+         </TreeTableView>
+         <VBox.margin>
+            <Insets />
+         </VBox.margin>
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
         </VBox>
     </VBox>
 </StackPane>

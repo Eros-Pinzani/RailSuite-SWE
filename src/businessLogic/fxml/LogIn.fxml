@@ -19,7 +19,7 @@
             <Label prefWidth="55.0" text="Password:" />
             <PasswordField fx:id="passwordField" minWidth="250.0" />
         </HBox>
-        <Button onAction="#handleLogin" text="Accedi" />
+        <Button fx:id="loginButton" onAction="#handleLogin" text="Accedi" />
         <Label fx:id="errorLabel" textFill="red" />
     </VBox>
 </StackPane>

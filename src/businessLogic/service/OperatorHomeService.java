@@ -2,22 +2,13 @@ package businessLogic.service;
 
 import businessLogic.RailSuiteFacade;
 import domain.Run;
-import domain.Convoy;
 import domain.Station;
-import javafx.scene.image.Image;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class OperatorHomeService {
-    public Image getProfileImage() {
-        var url = getClass().getResource("/businessLogic/fxml/Images/person-fill.png");
-        if (url == null) {
-            return new Image("https://www.gravatar.com/avatar/?d=mp&s=48");
-        }
-        return new Image(url.toExternalForm());
-    }
 
     public static class AssignedConvoyInfo {
         public int convoyId;

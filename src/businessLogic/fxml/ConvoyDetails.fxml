@@ -1,33 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+
 <?import javafx.geometry.Insets?>
-<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="businessLogic.controller.ConvoyDetailsController" spacing="10" alignment="CENTER">
-    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-    <Label text="Dettagli Convoglio e Corsa" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" spacing="10" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="businessLogic.controller.ConvoyDetailsController">
+    <padding><Insets bottom="20" left="20" right="20" top="20" /></padding>
+    <Label style="-fx-font-size: 18px; -fx-font-weight: bold;" text="Dettagli Convoglio e Corsa" />
     <GridPane hgap="10" vgap="10">
-        <Label text="ID Convoglio:" GridPane.rowIndex="0" GridPane.columnIndex="0" />
-        <Label fx:id="convoyIdLabel" GridPane.rowIndex="0" GridPane.columnIndex="1" />
-        <Label text="Linea:" GridPane.rowIndex="1" GridPane.columnIndex="0" />
-        <Label fx:id="lineNameLabel" GridPane.rowIndex="1" GridPane.columnIndex="1" />
-        <Label text="Stazione di partenza:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
-        <Label fx:id="departureStationLabel" GridPane.rowIndex="2" GridPane.columnIndex="1" />
-        <Label text="Orario di partenza:" GridPane.rowIndex="3" GridPane.columnIndex="0" />
-        <Label fx:id="departureTimeLabel" GridPane.rowIndex="3" GridPane.columnIndex="1" />
-        <Label text="Stazione di arrivo:" GridPane.rowIndex="4" GridPane.columnIndex="0" />
-        <Label fx:id="arrivalStationLabel" GridPane.rowIndex="4" GridPane.columnIndex="1" />
-        <Label text="Orario di arrivo:" GridPane.rowIndex="5" GridPane.columnIndex="0" />
-        <Label fx:id="arrivalTimeLabel" GridPane.rowIndex="5" GridPane.columnIndex="1" />
+        <Label text="ID Convoglio:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+        <Label fx:id="convoyIdLabel" GridPane.columnIndex="2" />
+        <Label text="Linea:" GridPane.columnIndex="2" />
+        <Label fx:id="lineNameLabel" GridPane.columnIndex="4" />
+        <Label text="Stazione di partenza:" GridPane.rowIndex="3" />
+        <Label fx:id="departureStationLabel" GridPane.columnIndex="4" GridPane.rowIndex="3" />
+        <Label text="Orario di partenza:" GridPane.rowIndex="4" />
+        <Label fx:id="departureTimeLabel" GridPane.columnIndex="4" GridPane.rowIndex="4" />
+        <Label text="Stazione di arrivo:" GridPane.rowIndex="5" />
+        <Label fx:id="arrivalStationLabel" GridPane.columnIndex="4" GridPane.rowIndex="5" />
+        <Label text="Orario di arrivo:" GridPane.rowIndex="6" />
+        <Label fx:id="arrivalTimeLabel" GridPane.columnIndex="4" GridPane.rowIndex="6" />
+      <columnConstraints>
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+         <ColumnConstraints />
+      </columnConstraints>
+      <rowConstraints>
+         <RowConstraints />
+         <RowConstraints />
+         <RowConstraints />
+         <RowConstraints />
+         <RowConstraints />
+         <RowConstraints />
+         <RowConstraints />
+      </rowConstraints>
     </GridPane>
-    <Label text="Carrozze del convoglio:" style="-fx-font-size: 15px; -fx-font-weight: bold;" />
+    <Label style="-fx-font-size: 15px; -fx-font-weight: bold;" text="Carrozze del convoglio:" />
     <TableView fx:id="carriageTable" prefHeight="200" prefWidth="700">
         <columns>
-            <TableColumn fx:id="carriageIdColumn" text="ID" prefWidth="60" />
-            <TableColumn fx:id="carriageModelColumn" text="Modello" prefWidth="120" />
-            <TableColumn fx:id="carriageTypeColumn" text="Tipo Modello" prefWidth="120" />
-            <TableColumn fx:id="carriageYearColumn" text="Anno"/>
-            <TableColumn fx:id="carriageCapacityColumn" text="Capacità"/>
+            <TableColumn fx:id="carriageIdColumn" prefWidth="60" reorderable="false" text="ID" />
+            <TableColumn fx:id="carriageModelColumn" prefWidth="120" reorderable="false" text="Modello" />
+            <TableColumn fx:id="carriageTypeColumn" prefWidth="120" reorderable="false" text="Tipo Modello" />
+            <TableColumn fx:id="carriageYearColumn" reorderable="false" text="Anno" />
+            <TableColumn fx:id="carriageCapacityColumn" reorderable="false" text="Capacità" />
         </columns>
     </TableView>
 </VBox>

@@ -26,8 +26,8 @@
                 </items>
             </MenuButton>
         </HBox>
-        <!-- CONTENUTO PRINCIPALE -->
-        <VBox id="AssignedTrain" alignment="TOP_LEFT" spacing="10.0">
+        <!-- MAIN -->
+        <VBox id="AssignedTrain" spacing="10.0">
          <Label text="Treni assegnati">
             <font>
                <Font name="System Bold" size="20.0" />
@@ -37,12 +37,12 @@
          <Label fx:id="noConvoyLabel" text="Non ha nessun turno a lui associato" visible="false" style="-fx-font-size: 16px; -fx-text-fill: #888; -fx-padding: 20 0 0 0;" />
          <TreeTableView fx:id="assignedTrainsTable" prefHeight="200.0" prefWidth="200.0" editable="false" visible="true">
            <columns>
-             <TreeTableColumn fx:id="convoyIdColumn" editable="false" prefWidth="82.39999085664749" sortable="false" text="Convoglio" />
-               <TreeTableColumn fx:id="departureStationColumn" editable="false" prefWidth="149.5999755859375" sortable="false" text="Stazione di partenza" />
-               <TreeTableColumn fx:id="departureTimeColumn" editable="false" prefWidth="132.80006408691406" sortable="false" text="Orario di partenza" />
-               <TreeTableColumn fx:id="arrivalStationColumn" editable="false" prefWidth="137.5999755859375" sortable="false" text="Stazione di arrivo" />
-               <TreeTableColumn fx:id="arrivalTimeColumn" editable="false" prefWidth="137.5999755859375" sortable="false" text="Orario di arrivo" />
-               <TreeTableColumn fx:id="detailsColumn" editable="false" prefWidth="148.79996337890623" sortable="false" text="Dettagli" />
+             <TreeTableColumn fx:id="convoyIdColumn" editable="false" prefWidth="82.39999085664749" sortable="false" text="Convoglio" reorderable="false" />
+               <TreeTableColumn fx:id="departureStationColumn" editable="false" prefWidth="149.5999755859375" sortable="false" text="Stazione di partenza" reorderable="false" />
+               <TreeTableColumn fx:id="departureTimeColumn" editable="false" prefWidth="132.80006408691406" sortable="false" text="Orario di partenza" reorderable="false" />
+               <TreeTableColumn fx:id="arrivalStationColumn" editable="false" prefWidth="137.5999755859375" sortable="false" text="Stazione di arrivo" reorderable="false" />
+               <TreeTableColumn fx:id="arrivalTimeColumn" editable="false" prefWidth="137.5999755859375" sortable="false" text="Orario di arrivo" reorderable="false" />
+               <TreeTableColumn fx:id="detailsColumn" editable="false" prefWidth="148.79996337890623" sortable="false" text="Dettagli" reorderable="false" />
            </columns>
          </TreeTableView>
          <VBox.margin>

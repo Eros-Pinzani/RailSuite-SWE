@@ -34,7 +34,7 @@ public class SceneManager {
             primaryStage.setScene(scene);
             primaryStage.centerOnScreen();
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Errore durante il cambio scena: " + fxmlPath, e);
+            LOGGER.log(Level.SEVERE, "Error while switching scene: " + fxmlPath, e);
         }
     }
 }

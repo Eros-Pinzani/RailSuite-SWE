@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import javafx.scene.control.TreeTableCell;
 import javafx.scene.control.Button;
-import javafx.util.Callback;
+
 
 public class OperatorHomeController {
     @FXML
@@ -51,8 +51,8 @@ public class OperatorHomeController {
             operatorNameLabel.setText(fullName);
             populateAssignedTrainsTable(staff.getIdStaff());
         }
-        logoutMenuItem.setOnAction(event -> handleLogout());
-        exitMenuItem.setOnAction(event -> handleExit());
+        logoutMenuItem.setOnAction(_ -> handleLogout());
+        exitMenuItem.setOnAction(_ -> handleExit());
     }
 
     private void handleLogout() {
@@ -86,12 +86,11 @@ public class OperatorHomeController {
             departureTimeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getValue().departureTime));
             arrivalStationColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getValue().arrivalStation));
             arrivalTimeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getValue().arrivalTime));
-            // Colonna Dettagli con bottone
-            detailsColumn.setCellFactory(param -> new TreeTableCell<>() {
+            detailsColumn.setCellFactory(_ -> new TreeTableCell<>() {
                 private final Button btn = new Button("Dettagli");
                 {
-                    btn.setOnAction(e -> {
-                        AssignedConvoyInfo data = getTableRow() != null ? (AssignedConvoyInfo) getTableRow().getItem() : null;
+                    btn.setOnAction(_ -> {
+                        AssignedConvoyInfo data = getTableRow() != null ? getTableRow().getItem() : null;
                         if (data != null) {
                             openConvoyDetailsScene(data);
                         }
@@ -100,7 +99,7 @@ public class OperatorHomeController {
                 @Override
                 protected void updateItem(Void item, boolean empty) {
                     super.updateItem(item, empty);
-                    AssignedConvoyInfo data = getTableRow() != null ? (AssignedConvoyInfo) getTableRow().getItem() : null;
+                    AssignedConvoyInfo data = getTableRow() != null ? getTableRow().getItem() : null;
                     if (empty || data == null || data.convoyId == 0) {
                         setGraphic(null);
                     } else {
@@ -109,7 +108,7 @@ public class OperatorHomeController {
                 }
             });
         } catch (Exception e) {
-            logger.severe("Errore durante il popolamento della tabella dei convogli assegnati: " + e.getMessage());
+            logger.severe("Error while populating the assigned convoys table: " + e.getMessage());
             assignedTrainsTable.setVisible(false);
             noConvoyLabel.setVisible(true);
         }

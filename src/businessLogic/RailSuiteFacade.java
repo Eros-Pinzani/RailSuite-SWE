@@ -163,8 +163,8 @@ public class RailSuiteFacade {
         return lineStationDao.findById(idLine, idStation);
     }
 
-    public List<LineStation> findLineStationsByLine(int idLine) throws SQLException {
-        return lineStationDao.findByLine(idLine);
+    public List<LineStation> findLineStationsByLineId(int lineId) throws SQLException {
+        return lineStationDao.findByLine(lineId);
     }
 
     // CarriageDepot

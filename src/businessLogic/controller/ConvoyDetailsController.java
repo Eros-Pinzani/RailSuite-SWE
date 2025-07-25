@@ -3,21 +3,21 @@ package businessLogic.controller;
 import businessLogic.service.ConvoyDetailsService;
 import businessLogic.service.ConvoyDetailsService.StationRow;
 import businessLogic.service.OperatorHomeService.AssignedConvoyInfo;
-import domain.Carriage;
+
+import domain.Staff;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.scene.Cursor;
 import javafx.scene.control.*;
 
+
 public class ConvoyDetailsController {
-    @FXML private TextField convoyIdField;
     @FXML private TableView<domain.Carriage> carriageTable;
     @FXML private TableColumn<domain.Carriage, Integer> carriageIdColumn;
     @FXML private TableColumn<domain.Carriage, String> carriageModelColumn;
     @FXML private TableColumn<domain.Carriage, String> carriageTypeColumn;
     @FXML private TableColumn<domain.Carriage, Integer> carriageYearColumn;
     @FXML private TableColumn<domain.Carriage, Integer> carriageCapacityColumn;
-    @FXML private TextField newConvoyCarriageIdsField;
-    @FXML private Button loadButton;
     @FXML private Label convoyIdLabel;
     @FXML private Label lineNameLabel;
     @FXML private Label departureStationLabel;
@@ -29,6 +29,9 @@ public class ConvoyDetailsController {
     @FXML private TableColumn<StationRow, String> stationNameColumn;
     @FXML private TableColumn<StationRow, String> arrivalTimeColumn;
     @FXML private TableColumn<StationRow, String> departureTimeColumn;
+    @FXML private Label operatorNameLabel;
+    @FXML private MenuItem logoutMenuItem;
+    @FXML private MenuItem exitMenuItem;
 
     private final ConvoyDetailsService convoyDetailsService = new ConvoyDetailsService();
     private AssignedConvoyInfo convoyInfo;
@@ -40,6 +43,18 @@ public class ConvoyDetailsController {
 
     @FXML
     public void initialize() {
+        Staff staff = UserSession.getInstance().getStaff();
+        if (staff != null && operatorNameLabel != null) {
+            String fullName = staff.getName() + " " + staff.getSurname();
+            operatorNameLabel.setText(fullName);
+        }
+        if (logoutMenuItem != null) {
+            logoutMenuItem.setOnAction(_ -> handleLogout());
+        }
+        if (exitMenuItem != null) {
+            exitMenuItem.setOnAction(_ -> handleExit());
+        }
+
         carriageIdColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleIntegerProperty(data.getValue().getId()).asObject());
         carriageModelColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getModel()));
         carriageTypeColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getModelType()));
@@ -59,6 +74,13 @@ public class ConvoyDetailsController {
         if (staticConvoyInfo != null) {
             setConvoyInfo(staticConvoyInfo);
             staticConvoyInfo = null;
+        }
+
+        if (operatorNameLabel != null) {
+            operatorNameLabel.setCursor(Cursor.HAND);
+            operatorNameLabel.setOnMouseClicked(event -> {
+                SceneManager.getInstance().switchScene("/businessLogic/fxml/OperatorHome.fxml");
+            });
         }
     }
 
@@ -84,38 +106,11 @@ public class ConvoyDetailsController {
         if (stationTable != null) stationTable.setItems(FXCollections.observableArrayList(dto.stationRows));
     }
 
-    @FXML
-    private void onLoadConvoy() {
-        int convoyId;
-        try {
-            convoyId = Integer.parseInt(convoyIdField.getText());
-        } catch (NumberFormatException e) {
-            showError("ID convoglio non valido.");
-            return;
-        }
-        if (!convoyDetailsService.convoyExists(convoyId)) {
-            showError("Il convoglio con ID " + convoyId + " non esiste.");
-            carriageTable.setItems(FXCollections.observableArrayList());
-            return;
-        }
-        if (!convoyDetailsService.convoyHasCarriages(convoyId)) {
-            showInfo("Il convoglio con ID " + convoyId + " non ha carrozze associate.");
-            carriageTable.setItems(FXCollections.observableArrayList());
-            return;
-        }
-        javafx.collections.ObservableList<domain.Carriage> carriages = FXCollections.observableArrayList(convoyDetailsService.getCarriagesForConvoy(convoyId));
-        carriageTable.setItems(carriages);
+    private void handleLogout() {
+        UserSession.getInstance().clear();
+        SceneManager.getInstance().switchScene("/businessLogic/fxml/LogIn.fxml");
     }
-
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setHeaderText(message);
-        alert.showAndWait();
-    }
-
-    private void showInfo(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setHeaderText(message);
-        alert.showAndWait();
+    private void handleExit() {
+        javafx.application.Platform.exit();
     }
 }

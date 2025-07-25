@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
@@ -15,7 +14,7 @@
         <!-- HEADER -->
         <HBox alignment="CENTER_RIGHT" minHeight="50.0" prefHeight="50.0" spacing="15.0" style="-fx-background-color: #1976d2; -fx-padding: 16 32 16 16;">
             <Label fx:id="operatorNameLabel" alignment="CENTER" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white;" />
-            <MenuButton fx:id="menuButton" graphicTextGap="0" style="-fx-background-color: transparent;">
+            <MenuButton graphicTextGap="0" style="-fx-background-color: transparent;">
                 <graphic>
                     <Label style="-fx-font-size: 22px; -fx-text-fill: white; -fx-padding: 0 0 0 8;" text="≡" />
                 </graphic>
@@ -33,8 +32,6 @@
                 <Label fx:id="convoyIdLabel" style="-fx-font-weight: bold;" />
                 <Label text="Linea:" />
                 <Label fx:id="lineNameLabel" style="-fx-font-weight: bold;" />
-                <Label text="Staff:" />
-                <Label fx:id="staffNameLabel" style="-fx-font-weight: bold;" />
             </HBox>
             <TableView fx:id="carriageTable" prefHeight="100" minHeight="50" maxHeight="400" prefWidth="700">
                 <columns>

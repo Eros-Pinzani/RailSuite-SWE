@@ -1,167 +1,15 @@
 package businessLogic.service;
 
 import businessLogic.RailSuiteFacade;
-import domain.Convoy;
 import domain.Carriage;
 import java.util.List;
-import java.util.logging.Logger;
 import businessLogic.service.OperatorHomeService.AssignedConvoyInfo;
 import domain.Run;
 import domain.Line;
 
 
 public class ConvoyDetailsService {
-    private static final Logger logger = Logger.getLogger(ConvoyDetailsService.class.getName());
     private final RailSuiteFacade facade = new RailSuiteFacade();
-
-    public Convoy getConvoyDetails(int convoyId) {
-        try {
-            return facade.selectConvoy(convoyId);
-        } catch (Exception e) {
-            logger.warning("Error in getConvoyDetails: " + e.getMessage());
-            return null;
-        }
-    }
-
-    public List<Carriage> getCarriagesForConvoy(int convoyId) {
-        try {
-            return facade.selectAllCarriages().stream()
-                .filter(c -> {
-                    Integer idConvoy = null;
-                    try {
-                        idConvoy = facade.findConvoyIdByCarriageId(c.getId());
-                    } catch (Exception e) {
-                        logger.warning("Error in getCarriagesForConvoy (filter): " + e.getMessage());
-                    }
-                    return idConvoy != null && idConvoy == convoyId;
-                })
-                .toList();
-        } catch (Exception e) {
-            logger.warning("Error in getCarriagesForConvoy: " + e.getMessage());
-            return List.of();
-        }
-    }
-
-    public boolean addCarriageToConvoy(int convoyId, int carriageId) {
-        Carriage carriage = null;
-        try {
-            carriage = facade.selectCarriage(carriageId);
-        } catch (Exception e) {
-            logger.warning("Error in addCarriageToConvoy (selectCarriage): " + e.getMessage());
-        }
-        if (carriage != null) {
-            try {
-                Integer existingConvoyId = facade.findConvoyIdByCarriageId(carriageId);
-                if (existingConvoyId != null) {
-                    logger.warning("Carriage already assigned to a convoy.");
-                    throw new IllegalStateException("La carrozza è già assegnata a un convoglio.");
-                }
-                boolean result = facade.addCarriageToConvoy(convoyId, carriage);
-                if (result) {
-                    carriage.setIdConvoy(convoyId);
-                    facade.updateCarriageConvoy(carriageId, convoyId);
-                }
-                return result;
-            } catch (IllegalStateException e) {
-                throw e;
-            } catch (Exception e) {
-                logger.warning("Error in addCarriageToConvoy (addCarriage): " + e.getMessage());
-            }
-        }
-        return false;
-    }
-
-    public boolean removeCarriageFromConvoy(int convoyId, int carriageId) {
-        Carriage carriage = null;
-        try {
-            carriage = facade.selectCarriage(carriageId);
-        } catch (Exception e) {
-            logger.warning("Error in removeCarriageFromConvoy (selectCarriage): " + e.getMessage());
-        }
-        if (carriage != null) {
-            try {
-                boolean result = facade.removeCarriageFromConvoy(convoyId, carriage);
-                if (result) {
-                    carriage.setIdConvoy(null);
-                    facade.updateCarriageConvoy(carriageId, null);
-                }
-                return result;
-            } catch (Exception e) {
-                logger.warning("Error in removeCarriageFromConvoy (removeCarriage): " + e.getMessage());
-            }
-        }
-        return false;
-    }
-
-    public boolean updateCarriageConvoy(int carriageId, Integer idConvoy) {
-        try {
-            return facade.updateCarriageConvoy(carriageId, idConvoy);
-        } catch (Exception e) {
-            logger.warning("Error in updateCarriageConvoy: " + e.getMessage());
-            return false;
-        }
-    }
-
-    public Carriage selectCarriage(int id) {
-        try {
-            return facade.selectCarriage(id);
-        } catch (Exception e) {
-            logger.warning("Error in selectCarriage: " + e.getMessage());
-            return null;
-        }
-    }
-
-    public Convoy createConvoy(List<Carriage> carriages) {
-        // Controllo che nessuna carrozza sia già assegnata a un convoglio
-        for (Carriage carriage : carriages) {
-            Integer idConvoy;
-            try {
-                idConvoy = facade.findConvoyIdByCarriageId(carriage.getId());
-            } catch (Exception e) {
-                logger.warning("Error checking associated convoy: " + e.getMessage());
-                throw new RuntimeException("Error checking associated convoy for carriage " + carriage.getId());
-            }
-            if (idConvoy != null) {
-                logger.warning("Carriage with ID " + carriage.getId() + " is already assigned to convoy " + idConvoy);
-                throw new IllegalArgumentException("La carrozza con ID " + carriage.getId() + " è già assegnata al convoglio " + idConvoy);
-            }
-        }
-        try {
-            return facade.createConvoy(carriages);
-        } catch (Exception e) {
-            logger.warning("Error in createConvoy: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Parsing e validazione degli ID carrozze da stringa separata da virgole
-     */
-    public List<Integer> parseCarriageIds(String idsText) throws IllegalArgumentException {
-        if (idsText == null || idsText.isBlank()) {
-            throw new IllegalArgumentException("Inserisci almeno un ID di carrozza.");
-        }
-        String[] idsArr = idsText.split(",");
-        List<Integer> ids = new java.util.ArrayList<>();
-        for (String idStr : idsArr) {
-            try {
-                ids.add(Integer.parseInt(idStr.trim()));
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("ID non valido: " + idStr);
-            }
-        }
-        return ids;
-    }
-
-    public boolean convoyHasCarriages(int convoyId) {
-        List<Carriage> carriages = getCarriagesForConvoy(convoyId);
-        return carriages != null && !carriages.isEmpty();
-    }
-
-    public boolean convoyExists(int convoyId) {
-        Convoy convoy = getConvoyDetails(convoyId);
-        return convoy != null;
-    }
 
     public static class ConvoyDetailsDTO {
         public final String convoyId;
@@ -200,7 +48,6 @@ public class ConvoyDetailsService {
     public ConvoyDetailsDTO getConvoyDetailsDTO(AssignedConvoyInfo convoyInfo) {
         if (convoyInfo == null) return null;
         try {
-            RailSuiteFacade facade = new RailSuiteFacade();
             String convoyId = String.valueOf(convoyInfo.convoyId);
             String departureStation = convoyInfo.departureStation;
             String departureTime = convoyInfo.departureTime;
@@ -216,8 +63,10 @@ public class ConvoyDetailsService {
                 try {
                     int staffId = run.getIdStaff();
                     domain.Staff staff = facade.findStaffById(staffId);
-                    if (staff != null) staffName = staff.getName();
-                } catch (Exception ignored) {}
+                    staffName = (staff != null && staff.getName() != null && !staff.getName().isBlank()) ? staff.getName() : "Staff non trovato";
+                } catch (Exception e) {
+                    staffName = "Staff non trovato";
+                }
                 Line line = facade.findLineById(run.getIdLine());
                 if (line != null) {
                     lineName = line.getName();

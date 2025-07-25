@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="businessLogic.controller.TrainStatusController">
+    <children>
+        <HBox alignment="CENTER_RIGHT" minHeight="50.0" prefHeight="50.0" spacing="15.0" style="-fx-background-color: #1976d2; -fx-padding: 16 32 16 16;">
+            <Label text="Status dei treni" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;" alignment="CENTER_LEFT" />
+            <Pane HBox.hgrow="ALWAYS" />
+            <Label fx:id="supervisorNameLabel" alignment="CENTER" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white;" />
+            <MenuButton fx:id="menuButton" graphicTextGap="0" style="-fx-background-color: transparent;">
+                <graphic>
+                    <Label style="-fx-font-size: 22px; -fx-text-fill: white; -fx-padding: 0 0 0 8;" text="≡" />
+                </graphic>
+                <items>
+                    <MenuItem fx:id="logoutMenuItem" text="Logout" />
+                    <MenuItem fx:id="exitMenuItem" text="Chiudi App" />
+                </items>
+            </MenuButton>
+        </HBox>
+        <Pane minHeight="30" />
+        <Label text="Treni" style="-fx-font-size: 32; -fx-alignment: center;" alignment="CENTER" maxWidth="1.7976931348623157E308" />
+        <VBox spacing="20" style="-fx-padding: 32;">
+            <!-- Sezione 1: Assegna convoglio e operatore a una linea -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Linea:" />
+                <ComboBox fx:id="lineComboBox" prefWidth="150" />
+                <Label text="Convoglio:" />
+                <ComboBox fx:id="convoyComboBox" prefWidth="150" />
+                <Label text="Operatore:" />
+                <ComboBox fx:id="operatorComboBox" prefWidth="150" />
+                <Button fx:id="assignButton" text="Assegna" />
+            </HBox>
+
+            <!-- Sezione 2: Crea nuovo convoglio -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Crea nuovo convoglio:" />
+                <ComboBox fx:id="carriageTypeComboBox" promptText="Tipo carrozza" prefWidth="150" />
+                <ComboBox fx:id="carriageModelComboBox" promptText="Modello carrozza" prefWidth="150" disable="true" />
+                <Spinner fx:id="carriageCountSpinner" prefWidth="80" />
+                <Button fx:id="createConvoyButton" text="Crea convoglio" />
+            </HBox>
+
+            <!-- Sezione 2b: Elimina convoglio -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Elimina convoglio:" />
+                <ComboBox fx:id="deleteConvoyComboBox" promptText="Seleziona convoglio" prefWidth="150" />
+                <Button fx:id="deleteConvoyButton" text="Elimina" />
+            </HBox>
+
+            <!-- Sezione 3: Crea nuova carrozza -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Nuova carrozza:" />
+                <TextField fx:id="carriageModelField" promptText="Modello" prefWidth="120" />
+                <TextField fx:id="carriageTypeField" promptText="Tipo" prefWidth="120" />
+                <Button fx:id="addCarriageButton" text="Aggiungi carrozza" />
+            </HBox>
+            <!-- ListView per visualizzare le carrozze disponibili -->
+            <Label text="Carrozze disponibili:" style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+            <ListView fx:id="carriageListView" prefHeight="100" />
+            <!-- Sezione 4: Tabella riepilogativa -->
+            <Label text="Riepilogo assegnazioni" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+            <TableView fx:id="summaryTable" prefHeight="180" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="summaryLineColumn" text="Linea" />
+                    <TableColumn fx:id="summaryConvoyColumn" text="Convoglio" />
+                    <TableColumn fx:id="summaryOperatorColumn" text="Operatore" />
+                    <TableColumn fx:id="summaryCarriagesColumn" text="Carrozze" />
+                    <TableColumn fx:id="summaryDeleteColumn" text="" minWidth="80" maxWidth="80" />
+                </columns>
+            </TableView>
+        </VBox>
+    </children>
+</VBox>

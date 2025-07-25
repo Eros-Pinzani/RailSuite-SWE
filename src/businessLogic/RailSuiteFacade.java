@@ -36,6 +36,10 @@ public class RailSuiteFacade {
         return carriageDao.updateCarriageConvoy(carriageId, idConvoy);
     }
 
+    public void insertCarriage(Carriage carriage) throws SQLException {
+        carriageDao.insertCarriage(carriage);
+    }
+
 
     // Staff
     public Staff findStaffById(int id) throws SQLException {
@@ -52,6 +56,10 @@ public class RailSuiteFacade {
 
     public List<Staff> findStaffByType(Staff.TypeOfStaff type) throws SQLException {
         return staffDao.findByType(type);
+    }
+
+    public List<Staff> findAllOperators() throws SQLException {
+        return staffDao.findByType(Staff.TypeOfStaff.OPERATOR);
     }
 
     // Station

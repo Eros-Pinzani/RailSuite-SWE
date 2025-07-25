@@ -16,6 +16,8 @@ class CarriageDaoImp implements CarriageDao {
             "SELECT id_carriage, model, model_type, year_produced, capacity, id_convoy FROM carriage WHERE id_convoy = ?";
     private static final String updateCarriageConvoyQuery =
             "UPDATE carriage SET id_convoy = ? WHERE id_carriage = ?";
+    private static final String insertCarriageQuery =
+            "INSERT INTO carriage (model, model_type, year_produced, capacity, id_convoy) VALUES (?, ?, ?, ?, ?)";
 
     public CarriageDaoImp() {
     }
@@ -90,6 +92,27 @@ class CarriageDaoImp implements CarriageDao {
             return affectedRows > 0;
         } catch (SQLException e) {
             throw new SQLException("Error updating convoy for carriage: " + carriageId, e);
+        }
+    }
+
+    @Override
+    public void insertCarriage(Carriage carriage) throws SQLException {
+        try (
+                Connection conn = PostgresConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(insertCarriageQuery)
+        ) {
+            pstmt.setString(1, carriage.getModel());
+            pstmt.setString(2, carriage.getModelType());
+            pstmt.setInt(3, carriage.getYearProduced());
+            pstmt.setInt(4, carriage.getCapacity());
+            if (carriage.getIdConvoy() == null) {
+                pstmt.setNull(5, java.sql.Types.INTEGER);
+            } else {
+                pstmt.setInt(5, carriage.getIdConvoy());
+            }
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new SQLException("Error inserting carriage", e);
         }
     }
 }

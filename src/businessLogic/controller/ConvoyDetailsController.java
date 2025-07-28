@@ -9,6 +9,7 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 
 
 public class ConvoyDetailsController {
@@ -18,6 +19,7 @@ public class ConvoyDetailsController {
     @FXML private TableColumn<domain.Carriage, String> carriageTypeColumn;
     @FXML private TableColumn<domain.Carriage, Integer> carriageYearColumn;
     @FXML private TableColumn<domain.Carriage, Integer> carriageCapacityColumn;
+    @FXML private TableColumn<domain.Carriage, Void> notifyColumn;
     @FXML private Label convoyIdLabel;
     @FXML private Label lineNameLabel;
     @FXML private Label departureStationLabel;
@@ -32,6 +34,8 @@ public class ConvoyDetailsController {
     @FXML private Label operatorNameLabel;
     @FXML private MenuItem logoutMenuItem;
     @FXML private MenuItem exitMenuItem;
+    @FXML private Button toggleCarriageTableButton;
+    @FXML private Button toggleStationTableButton;
 
     private final ConvoyDetailsService convoyDetailsService = new ConvoyDetailsService();
     private AssignedConvoyInfo convoyInfo;
@@ -69,6 +73,46 @@ public class ConvoyDetailsController {
         }
         if (departureTimeColumn != null) {
             departureTimeColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().departureTime));
+        }
+
+        if (notifyColumn != null) {
+            notifyColumn.setCellFactory(col -> new TableCell<domain.Carriage, Void>() {
+                private final Button btnGuasto = new Button("Guasto tecnico");
+                private final Button btnPulizie = new Button("Pulizie");
+                private final HBox box = new HBox(10, btnGuasto, btnPulizie);
+                {
+                    btnGuasto.setStyle("-fx-background-color: #e57373; -fx-text-fill: white;");
+                    btnPulizie.setStyle("-fx-background-color: #64b5f6; -fx-text-fill: white;");
+                    btnGuasto.setFocusTraversable(false);
+                    btnPulizie.setFocusTraversable(false);
+                }
+                @Override
+                protected void updateItem(Void item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty) {
+                        setGraphic(null);
+                    } else {
+                        setGraphic(box);
+                    }
+                }
+            });
+        }
+
+        if (toggleCarriageTableButton != null && carriageTable != null) {
+            toggleCarriageTableButton.setOnAction(e -> {
+                boolean isVisible = carriageTable.isVisible();
+                carriageTable.setVisible(!isVisible);
+                carriageTable.setManaged(!isVisible);
+                toggleCarriageTableButton.setText(isVisible ? "Mostra tabella convoglio" : "Nascondi tabella convoglio");
+            });
+        }
+        if (toggleStationTableButton != null && stationTable != null) {
+            toggleStationTableButton.setOnAction(e -> {
+                boolean isVisible = stationTable.isVisible();
+                stationTable.setVisible(!isVisible);
+                stationTable.setManaged(!isVisible);
+                toggleStationTableButton.setText(isVisible ? "Mostra dettagli corsa" : "Nascondi dettagli corsa");
+            });
         }
 
         if (staticConvoyInfo != null) {

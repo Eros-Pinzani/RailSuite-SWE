@@ -4,22 +4,30 @@ import businessLogic.service.ConvoyService;
 import businessLogic.RailSuiteFacade;
 import domain.Carriage;
 import domain.Convoy;
+import domain.ConvoyTableDTO;
+import domain.Station;
+import dao.StationDao;
 import domain.Staff;
 import javafx.fxml.FXML;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Spinner;
-import javafx.scene.control.Button;
+import javafx.scene.control.*;
 import javafx.collections.FXCollections;
+import javafx.scene.control.cell.CheckBoxTableCell;
+
+
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class ManageConvoyController {
-    @FXML private ComboBox<String> carriageTypeComboBox;
-    @FXML private ComboBox<String> carriageModelComboBox;
-    @FXML private Spinner<Integer> carriageCountSpinner;
     @FXML private Button createConvoyButton;
     @FXML private ComboBox<Convoy> deleteConvoyComboBox;
     @FXML private Button deleteConvoyButton;
+    @FXML private ComboBox<Station> stationComboBox;
+    @FXML private TableView<ConvoyTableDTO> convoyTableView;
+    @FXML private TableColumn<ConvoyTableDTO, Number> convoyIdColumn;
+    @FXML private TableColumn<ConvoyTableDTO, String> typeColumn;
+    @FXML private TableColumn<ConvoyTableDTO, String> statusColumn;
+    @FXML private TableColumn<ConvoyTableDTO, Number> carriageCountColumn;
+    @FXML private Button manageCarriagesButton;
     @FXML private javafx.scene.control.Label supervisorNameLabel;
     @FXML private javafx.scene.control.MenuItem logoutMenuItem;
     @FXML private javafx.scene.control.MenuItem exitMenuItem;
@@ -28,9 +36,67 @@ public class ManageConvoyController {
     private final ConvoyService convoyService = new ConvoyService();
     private final RailSuiteFacade facade = new RailSuiteFacade();
     private List<Carriage> allCarriagesFinal = List.of();
+    private final javafx.collections.ObservableList<Carriage> selectedDepotCarriages = FXCollections.observableArrayList();
+    private javafx.collections.ObservableList<domain.CarriageDepotDTO> manageCarriageList = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
+        header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
+
+        // Imposta la visualizzazione del nome stazione nel ComboBox
+        stationComboBox.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(Station item, boolean empty) {
+                super.updateItem(item, empty);
+                setText((empty || item == null) ? "" : item.getLocation());
+            }
+        });
+        stationComboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(Station item, boolean empty) {
+                super.updateItem(item, empty);
+                setText((empty || item == null) ? "" : item.getLocation());
+            }
+        });
+
+        // Carica le stazioni head nella ComboBox
+        try {
+            List<Station> stations = StationDao.of().findAllHeadStations();
+            stationComboBox.setItems(FXCollections.observableArrayList(stations));
+        } catch (Exception e) {
+            stationComboBox.setItems(FXCollections.observableArrayList());
+        }
+        stationComboBox.setOnAction(e -> onStationSelected());
+
+        // Configura colonne tabella
+        convoyIdColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleIntegerProperty(data.getValue().getIdConvoy()));
+        typeColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getType()));
+        statusColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getStatus()));
+        carriageCountColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleIntegerProperty(data.getValue().getCarriageCount()));
+
+        // Gestione selezione tabella
+        convoyTableView.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
+            boolean selected = newSel != null;
+            manageCarriagesButton.setDisable(!selected);
+            deleteConvoyButton.setDisable(!selected);
+        });
+
+        // Pulsanti
+        manageCarriagesButton.setOnAction(e -> {
+            depotAvailabilityObserver.run();
+            openManageCarriagesScene();
+        });
+        createConvoyButton.setOnAction(e -> openCreateConvoyScene());
+        deleteConvoyButton.setOnAction(e -> handleDeleteConvoy());
+
+        // Disabilita il pulsante "Crea Convoglio" se non è selezionata una stazione
+        createConvoyButton.setDisable(true);
+        stationComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
+            createConvoyButton.setDisable(newVal == null);
+        });
+    }
+
+    static void header(Label supervisorNameLabel, MenuItem logoutMenuItem, MenuItem exitMenuItem) {
         Staff staff = UserSession.getInstance().getStaff();
         if (staff != null) {
             String fullName = staff.getName() + " " + staff.getSurname();
@@ -39,111 +105,77 @@ public class ManageConvoyController {
         supervisorNameLabel.setOnMouseClicked(e -> SceneManager.getInstance().switchScene("/businessLogic/fxml/SupervisorHome.fxml"));
         logoutMenuItem.setOnAction(_ -> UserSession.getInstance().clear());
         exitMenuItem.setOnAction(_ -> javafx.application.Platform.exit());
-        updateAvailableCarriagesUI();
-        createConvoyButton.setOnAction(e -> handleCreateConvoy());
-        try {
-            deleteConvoyComboBox.setItems(FXCollections.observableArrayList(facade.selectAllConvoys()));
-        } catch (Exception ex) {
-            deleteConvoyComboBox.setItems(FXCollections.observableArrayList());
-        }
-        deleteConvoyComboBox.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
-            @Override protected void updateItem(Convoy item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : ("Convoglio " + item.getId()));
-            }
-        });
-        deleteConvoyComboBox.setButtonCell(new javafx.scene.control.ListCell<>() {
-            @Override protected void updateItem(Convoy item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : ("Convoglio " + item.getId()));
-            }
-        });
-        deleteConvoyButton.setOnAction(_ -> handleDeleteConvoy());
     }
 
-    private void updateAvailableCarriagesUI() {
-        try {
-            allCarriagesFinal = facade.selectAllCarriages().stream()
-                .filter(c -> c.getIdConvoy() == null)
-                .collect(Collectors.toList());
-            List<String> types = allCarriagesFinal.stream()
-                .map(Carriage::getModelType)
-                .distinct()
-                .collect(Collectors.toList());
-            carriageTypeComboBox.setItems(FXCollections.observableArrayList(types));
-            carriageModelComboBox.setDisable(true);
-            if (!types.isEmpty()) {
-                carriageTypeComboBox.getSelectionModel().selectFirst();
-                String firstType = types.get(0);
-                List<String> models = allCarriagesFinal.stream()
-                    .filter(c -> c.getModelType().equals(firstType))
-                    .map(Carriage::getModel)
-                    .distinct()
-                    .collect(Collectors.toList());
-                String firstModel = models.isEmpty() ? null : models.get(0);
-                updateCarriageCountSpinner(firstType, firstModel, allCarriagesFinal);
-                carriageModelComboBox.setItems(FXCollections.observableArrayList(models));
-                carriageModelComboBox.setDisable(false);
-                if (!models.isEmpty()) {
-                    carriageModelComboBox.getSelectionModel().selectFirst();
-                }
-            } else {
-                carriageModelComboBox.setItems(FXCollections.observableArrayList());
-                updateCarriageCountSpinner(null, null, allCarriagesFinal);
-            }
-        } catch (Exception e) {
-            carriageTypeComboBox.setItems(FXCollections.observableArrayList());
-            carriageModelComboBox.setItems(FXCollections.observableArrayList());
-            updateCarriageCountSpinner(null, null, List.of());
-        }
-    }
-
-    private void updateCarriageCountSpinner(String type, String model, List<Carriage> allCarriages) {
-        if (type == null || model == null) {
-            carriageCountSpinner.setValueFactory(new javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory(1, 1, 1));
-            carriageCountSpinner.getValueFactory().setValue(1);
-            carriageCountSpinner.setDisable(true);
+    private void onStationSelected() {
+        Station selected = stationComboBox.getValue();
+        if (selected == null) {
+            convoyTableView.setItems(FXCollections.observableArrayList());
             return;
         }
-        long count = allCarriages.stream().filter(c -> c.getModelType().equals(type) && c.getModel().equals(model)).count();
-        int max = (int) Math.max(count, 1);
-        carriageCountSpinner.setValueFactory(new javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory(1, max, 1));
-        carriageCountSpinner.getValueFactory().setValue(1);
-        carriageCountSpinner.setDisable(count == 0);
+        // Query e popolamento tabella convogli per la stazione selezionata
+        List<ConvoyTableDTO> convoyList = convoyService.getConvoyTableByStation(selected.getIdStation());
+        convoyTableView.setItems(FXCollections.observableArrayList(convoyList));
     }
 
-    private void handleCreateConvoy() {
-        String selectedType = carriageTypeComboBox.getValue();
-        String selectedModel = carriageModelComboBox.getValue();
-        int count = carriageCountSpinner.getValue();
-        if (selectedType == null || selectedModel == null || count < 1) return;
-        List<Carriage> available = allCarriagesFinal.stream()
-            .filter(c -> c.getModelType().equals(selectedType) && c.getModel().equals(selectedModel))
-            .limit(count)
-            .collect(Collectors.toList());
-        if (available.size() < count) return;
-        convoyService.createConvoy(available);
-        deleteConvoyComboBox.setItems(FXCollections.observableArrayList(convoyService.getAllConvoys()));
-        updateAvailableCarriagesUI();
+
+    private void openCreateConvoyScene() {
+        depotAvailabilityObserver.run();
+        Station selectedStation = stationComboBox.getValue();
+        Staff staff = UserSession.getInstance().getStaff();
+        businessLogic.controller.SceneManager.getInstance().openCreateConvoyScene(staff, selectedStation);
+    }
+
+    private void openManageCarriagesScene() {
+        depotAvailabilityObserver.run();
+        Station selectedStation = stationComboBox.getValue();
+        ConvoyTableDTO selectedConvoy = convoyTableView.getSelectionModel().getSelectedItem();
+        Staff staff = UserSession.getInstance().getStaff();
+        if (selectedStation != null && selectedConvoy != null) {
+            businessLogic.controller.SceneManager.getInstance().openManageCarriagesScene(staff, selectedStation, selectedConvoy);
+        }
     }
 
     private void handleDeleteConvoy() {
-        Convoy selected = deleteConvoyComboBox.getValue();
+        ConvoyTableDTO selected = convoyTableView.getSelectionModel().getSelectedItem();
         if (selected == null) return;
-        try {
-            List<Carriage> carriages = facade.selectCarriagesByConvoyId(selected.getId());
-            for (Carriage c : carriages) {
-                try {
-                    facade.updateCarriageConvoy(c.getId(), null);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
+        String status = selected.getStatus();
+        if ("DEPOT".equals(status) || "WAITING".equals(status)) {
+            try {
+                Station selectedStation = stationComboBox.getValue();
+                if (selectedStation == null) {
+                    showError("Seleziona una stazione per eliminare il convoglio.");
+                    return;
                 }
+                convoyService.deleteConvoy(selected.getIdConvoy(), selectedStation.getIdStation());
+                onStationSelected();
+            } catch (Exception e) {
+                showError("Errore durante l'eliminazione del convoglio: " + e.getMessage());
             }
-            facade.removeConvoy(selected.getId());
-            deleteConvoyComboBox.setItems(FXCollections.observableArrayList(facade.selectAllConvoys()));
-            updateAvailableCarriagesUI();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            showError("Il convoglio può essere eliminato solo se in stato DEPOT o WAITING.");
         }
+    }
+
+    // Observer per aggiornamento disponibilità vetture in deposito
+    private final Runnable depotAvailabilityObserver = () -> {
+        Station selectedStation = stationComboBox.getValue();
+        if (selectedStation != null) {
+            try {
+                // Chiama il service/dao per aggiornare la disponibilità delle vetture nel deposito associato
+                convoyService.updateDepotCarriageAvailability(selectedStation.getIdStation());
+            } catch (Exception e) {
+                showError("Errore durante l'aggiornamento della disponibilità delle vetture in deposito: " + e.getMessage());
+            }
+        }
+    };
+
+
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Errore");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

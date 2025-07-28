@@ -96,4 +96,158 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
             throw new SQLException("Error deleting carriage_depot: " + carriageDepot.getIdDepot() + ", " + carriageDepot.getIdCarriage(), e);
         }
     }
+
+    @Override
+    public void deleteCarriageDepotByCarriage(int idCarriage) throws SQLException {
+        String sql = "DELETE FROM carriage_depot WHERE id_carriage = ?";
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idCarriage);
+            stmt.executeUpdate();
+        }
+    }
+
+    @Override
+    public void deleteCarriageDepotByCarriageIfAvailable(int idCarriage) throws SQLException {
+        String sql = "DELETE FROM carriage_depot WHERE id_carriage = ? AND status_of_carriage = 'AVAILABLE'";
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idCarriage);
+            stmt.executeUpdate();
+        }
+    }
+
+    @Override
+    public List<domain.CarriageDepotDTO> findCarriagesWithDepotStatusByConvoy(int idConvoy) throws SQLException {
+        List<domain.CarriageDepotDTO> result = new ArrayList<>();
+        String sql = "SELECT c.id_carriage, c.model, c.year_produced, c.capacity, cd.status_of_carriage, cd.time_exited " +
+                "FROM carriage c " +
+                "LEFT JOIN carriage_depot cd ON c.id_carriage = cd.id_carriage AND cd.time_exited IS NULL " +
+                "WHERE c.id_convoy = ?";
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idConvoy);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                result.add(new domain.CarriageDepotDTO(
+                    rs.getInt("id_carriage"),
+                    rs.getString("model"),
+                    rs.getInt("year_produced"),
+                    rs.getInt("capacity"),
+                    rs.getString("status_of_carriage"),
+                    rs.getTimestamp("time_exited")
+                ));
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public List<domain.Carriage> findAvailableCarriagesForConvoyAdd(int idStation, String modelType) throws SQLException {
+        List<domain.Carriage> result = new ArrayList<>();
+        String sql = "SELECT c.* FROM carriage_depot cd " +
+                "JOIN depot d ON cd.id_depot = d.id_depot " +
+                "JOIN carriage c ON cd.id_carriage = c.id_carriage " +
+                "WHERE d.id_depot = ? AND cd.status_of_carriage = 'AVAILABLE' AND c.model_type = ? AND c.id_convoy IS NULL AND cd.time_exited IS NULL";
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idStation);
+            stmt.setString(2, modelType);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                result.add(mapper.CarriageMapper.toDomain(rs));
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public List<domain.Carriage> findAvailableCarriagesForConvoy(int idStation, String modelType) throws SQLException {
+        List<domain.Carriage> result = new ArrayList<>();
+        String sql =
+                // Aggiorna lo stato delle vetture in CLEANING e MAINTENANCE se scaduto il tempo
+                "WITH updated AS (\n" +
+                "    UPDATE carriage_depot cd\n" +
+                "    SET status_of_carriage = 'AVAILABLE'\n" +
+                "    FROM depot d\n" +
+                "    WHERE cd.id_depot = d.id_depot\n" +
+                "      AND d.id_depot = ?\n" +
+                "      AND ((cd.status_of_carriage = 'CLEANING' AND cd.time_entered <= NOW() - INTERVAL '3 hours')\n" +
+                "           OR (cd.status_of_carriage = 'MAINTENANCE' AND cd.time_entered <= NOW() - INTERVAL '1 day'))\n" +
+                "      AND cd.time_exited IS NULL\n" +
+                "    RETURNING cd.id_carriage\n" +
+                ")\n" +
+                // Seleziona tutte le vetture disponibili
+                "SELECT c.* FROM carriage_depot cd\n" +
+                "JOIN depot d ON cd.id_depot = d.id_depot\n" +
+                "JOIN carriage c ON cd.id_carriage = c.id_carriage\n" +
+                "WHERE d.id_depot = ?\n" +
+                "  AND cd.status_of_carriage = 'AVAILABLE'\n" +
+                "  AND c.model_type = ?\n" +
+                "  AND c.id_convoy IS NULL\n" +
+                "  AND cd.time_exited IS NULL";
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idStation); // per l'UPDATE
+            stmt.setInt(2, idStation); // per la SELECT
+            stmt.setString(3, modelType);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                result.add(mapper.CarriageMapper.toDomain(rs));
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public List<String> findAvailableCarriageTypesForConvoy(int idStation) throws SQLException {
+        List<String> result = new ArrayList<>();
+        String sql =
+                // Aggiorna lo stato delle vetture in CLEANING e MAINTENANCE se scaduto il tempo
+                "WITH updated AS (\n" +
+                "    UPDATE carriage_depot cd\n" +
+                "    SET status_of_carriage = 'AVAILABLE'\n" +
+                "    FROM depot d\n" +
+                "    WHERE cd.id_depot = d.id_depot\n" +
+                "      AND d.id_depot = ?\n" +
+                "      AND ((cd.status_of_carriage = 'CLEANING' AND cd.time_entered <= NOW() - INTERVAL '3 hours')\n" +
+                "           OR (cd.status_of_carriage = 'MAINTENANCE' AND cd.time_entered <= NOW() - INTERVAL '1 day'))\n" +
+                "      AND cd.time_exited IS NULL\n" +
+                "    RETURNING cd.id_carriage\n" +
+                ")\n" +
+                // Seleziona tutti i model_type disponibili
+                "SELECT DISTINCT c.model_type FROM carriage_depot cd\n" +
+                "JOIN depot d ON cd.id_depot = d.id_depot\n" +
+                "JOIN carriage c ON cd.id_carriage = c.id_carriage\n" +
+                "WHERE d.id_depot = ?\n" +
+                "  AND cd.status_of_carriage = 'AVAILABLE'\n" +
+                "  AND c.id_convoy IS NULL\n" +
+                "  AND cd.time_exited IS NULL";
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idStation); // per l'UPDATE
+            stmt.setInt(2, idStation); // per la SELECT
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                result.add(rs.getString("model_type"));
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public CarriageDepot findActiveDepotByCarriage(int idCarriage) throws SQLException {
+        String sql = "SELECT * FROM carriage_depot WHERE id_carriage = ? AND time_exited IS NULL";
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idCarriage);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return mapper.CarriageDepotMapper.toDomain(rs);
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Error finding active depot for carriage: " + idCarriage, e);
+        }
+        return null;
+    }
 }

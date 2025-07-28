@@ -19,6 +19,15 @@ public class ConvoyPoolDaoImp implements ConvoyPoolDao {
             "SELECT id_convoy, id_station, status FROM convoy_pool WHERE status = ?";
     private static final String SELECT_BY_STATION_AND_STATUS =
             "SELECT id_convoy, id_station, status FROM convoy_pool WHERE id_station = ? AND status = ?";
+    private static final String SELECT_TABLE_DATA_BY_STATION =
+        "SELECT cp.id_convoy, cp.status, COUNT(c.id_carriage) as carriage_count, " +
+        "COALESCE(string_agg(DISTINCT c.model_type, ','), '') as types " +
+        "FROM convoy_pool cp " +
+        "LEFT JOIN carriage c ON c.id_convoy = cp.id_convoy " +
+        "WHERE cp.id_station = ? " +
+        "GROUP BY cp.id_convoy, cp.status";
+    private static final String INSERT =
+        "INSERT INTO convoy_pool (id_convoy, id_station, status) VALUES (?, ?, ?)";
 
     ConvoyPoolDaoImp (){}
 
@@ -104,5 +113,35 @@ public class ConvoyPoolDaoImp implements ConvoyPoolDao {
             }
         }
         return list;
+    }
+
+    @Override
+    public List<domain.ConvoyTableDTO> getConvoyTableDataByStation(int idStation) throws SQLException {
+        List<domain.ConvoyTableDTO> result = new ArrayList<>();
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(SELECT_TABLE_DATA_BY_STATION)) {
+            ps.setInt(1, idStation);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int idConvoy = rs.getInt("id_convoy");
+                    String status = rs.getString("status");
+                    int carriageCount = rs.getInt("carriage_count");
+                    String type = rs.getString("types");
+                    result.add(new domain.ConvoyTableDTO(idConvoy, type, status, carriageCount));
+                }
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public void insertConvoyPool(domain.ConvoyPool pool) throws SQLException {
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(INSERT)) {
+            ps.setInt(1, pool.getIdConvoy());
+            ps.setInt(2, pool.getIdStation());
+            ps.setString(3, pool.getConvoyStatus().name());
+            ps.executeUpdate();
+        }
     }
 }

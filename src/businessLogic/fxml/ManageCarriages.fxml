@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="businessLogic.controller.ManageCarriagesController" spacing="0">
+    <children>
+        <!-- HEADER (riutilizzato da ManageConvoy) -->
+        <HBox alignment="CENTER_RIGHT" minHeight="50.0" prefHeight="50.0" spacing="15.0" style="-fx-background-color: #1976d2; -fx-padding: 0 0 0 24;" VBox.vgrow="NEVER">
+            <Button fx:id="backButton" text="← Indietro" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold;" />
+            <Label text="Gestione Vetture" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white;" alignment="CENTER_LEFT" />
+            <Pane HBox.hgrow="ALWAYS" />
+            <Label fx:id="supervisorNameLabel" alignment="CENTER" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white; -fx-cursor: hand;" />
+            <MenuButton fx:id="menuButton" graphicTextGap="0" style="-fx-background-color: transparent;">
+                <graphic>
+                    <Label style="-fx-font-size: 22px; -fx-text-fill: white; -fx-padding: 0 0 0 8;" text="≡" />
+                </graphic>
+                <items>
+                    <MenuItem fx:id="logoutMenuItem" text="Logout" />
+                    <MenuItem fx:id="exitMenuItem" text="Chiudi App" />
+                </items>
+            </MenuButton>
+        </HBox>
+        <VBox spacing="24" style="-fx-padding: 32;">
+            <children>
+                <Label text="Gestione vetture del convoglio" style="-fx-font-size: 22px; -fx-font-weight: bold;" />
+                <HBox spacing="16">
+                    <Label text="Stazione selezionata:" />
+                    <Label fx:id="selectedStationLabel" style="-fx-font-weight: bold;" />
+                </HBox>
+                <HBox spacing="16">
+                    <Label text="Convoglio selezionato:" />
+                    <Label fx:id="selectedConvoyLabel" style="-fx-font-weight: bold;" />
+                </HBox>
+                <TableView fx:id="manageCarriageTableView" prefHeight="250">
+                    <columns>
+                        <TableColumn fx:id="idManageCarriageColumn" text="ID" />
+                        <TableColumn fx:id="modelManageCarriageColumn" text="Modello" />
+                        <TableColumn fx:id="yearManageCarriageColumn" text="Anno" />
+                        <TableColumn fx:id="capacityManageCarriageColumn" text="Capacità" />
+                        <TableColumn fx:id="statusManageCarriageColumn" text="Stato in deposito" />
+                        <TableColumn fx:id="exitTimeManageCarriageColumn" text="Fine manutenzione" />
+                        <TableColumn fx:id="removeManageCarriageColumn" text="Rimuovi" />
+                    </columns>
+                </TableView>
+                <HBox spacing="16" alignment="CENTER_RIGHT">
+                    <Label text="Aggiungi vettura:" />
+                    <Button fx:id="openAddCarriageDialogButton" text="Seleziona da elenco..." />
+                    <Button fx:id="closeManageCarriagesButton" text="Chiudi" />
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</VBox>

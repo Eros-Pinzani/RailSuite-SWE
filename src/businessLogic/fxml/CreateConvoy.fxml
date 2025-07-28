@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="businessLogic.controller.CreateConvoyController" spacing="0">
+    <children>
+        <!-- HEADER (riutilizzato da ManageConvoy) -->
+        <HBox alignment="CENTER_RIGHT" minHeight="50.0" prefHeight="50.0" spacing="15.0" style="-fx-background-color: #1976d2; -fx-padding: 0 0 0 24;" VBox.vgrow="NEVER">
+            <Button fx:id="backButton" text="← Indietro" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold;" />
+            <Label text="Nuovo convoglio" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white;" alignment="CENTER_LEFT" />
+            <Pane HBox.hgrow="ALWAYS" />
+            <Label fx:id="supervisorNameLabel" alignment="CENTER" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white; -fx-cursor: hand;" />
+            <MenuButton fx:id="menuButton" graphicTextGap="0" style="-fx-background-color: transparent;">
+                <graphic>
+                    <Label style="-fx-font-size: 22px; -fx-text-fill: white; -fx-padding: 0 0 0 8;" text="≡" />
+                </graphic>
+                <items>
+                    <MenuItem fx:id="logoutMenuItem" text="Logout" />
+                    <MenuItem fx:id="exitMenuItem" text="Chiudi App" />
+                </items>
+            </MenuButton>
+        </HBox>
+        <VBox spacing="24" style="-fx-padding: 32;">
+            <children>
+                <Label text="Crea nuovo convoglio" style="-fx-font-size: 22px; -fx-font-weight: bold;" />
+                <HBox spacing="16">
+                    <Label text="Stazione selezionata:" />
+                    <Label fx:id="selectedStationLabel" style="-fx-font-weight: bold;" />
+                </HBox>
+                <HBox spacing="16">
+                    <VBox spacing="8">
+                        <Label text="Tipo vettura:" />
+                        <ComboBox fx:id="depotCarriageTypeComboBox" />
+                    </VBox>
+                </HBox>
+                <TableView fx:id="depotCarriageTableView" prefHeight="200" visible="false">
+                    <columns>
+                        <TableColumn fx:id="selectCarriageColumn" text="Seleziona" />
+                        <TableColumn fx:id="idCarriageColumn" text="ID" />
+                        <TableColumn fx:id="modelCarriageColumn" text="Modello" />
+                        <TableColumn fx:id="yearCarriageColumn" text="Anno" />
+                        <TableColumn fx:id="capacityCarriageColumn" text="Capacità" />
+                    </columns>
+                </TableView>
+                <HBox spacing="16" alignment="CENTER_RIGHT">
+                    <Button fx:id="confirmCreateConvoyButton" text="Conferma" style="-fx-font-weight: bold;" />
+                    <Button fx:id="cancelCreateConvoyButton" text="Annulla" />
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</VBox>

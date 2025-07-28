@@ -62,14 +62,7 @@ public class ManageRunController {
 
     @FXML
     public void initialize() {
-        Staff staff = UserSession.getInstance().getStaff();
-        if (staff != null) {
-            String fullName = staff.getName() + " " + staff.getSurname();
-            supervisorNameLabel.setText(fullName);
-        }
-        supervisorNameLabel.setOnMouseClicked(e -> SceneManager.getInstance().switchScene("/businessLogic/fxml/SupervisorHome.fxml"));
-        logoutMenuItem.setOnAction(_ -> UserSession.getInstance().clear());
-        exitMenuItem.setOnAction(_ -> javafx.application.Platform.exit());
+        ManageConvoyController.header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
 
         try {
             lineComboBox.setItems(FXCollections.observableArrayList(facade.findAllLines()));

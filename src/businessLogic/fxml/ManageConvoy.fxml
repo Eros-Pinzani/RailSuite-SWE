@@ -22,26 +22,23 @@
                 <Label text="Gestione convogli" style="-fx-font-size: 22px; -fx-font-weight: bold;" />
                 <HBox spacing="16" alignment="BOTTOM_LEFT">
                     <VBox spacing="8">
-                        <Label text="Tipo carrozza:" />
-                        <ComboBox fx:id="carriageTypeComboBox" />
+                        <Label text="Stazione:" />
+                        <ComboBox fx:id="stationComboBox" />
                     </VBox>
-                    <VBox spacing="8">
-                        <Label text="Modello carrozza:" />
-                        <ComboBox fx:id="carriageModelComboBox" />
-                    </VBox>
-                    <VBox spacing="8">
-                        <Label text="Numero carrozze:" />
-                        <Spinner fx:id="carriageCountSpinner" />
-                    </VBox>
-                    <Pane HBox.hgrow="ALWAYS" />
-                    <Button fx:id="createConvoyButton" text="Crea convoglio" style="-fx-font-weight: bold; -fx-padding: 0 32 0 32; -fx-min-height: 40px; -fx-max-height: 40px;" />
                 </HBox>
                 <Separator />
-                <HBox spacing="16" alignment="BOTTOM_LEFT">
-                    <Label text="Elimina convoglio:" />
-                    <ComboBox fx:id="deleteConvoyComboBox" />
-                    <Pane HBox.hgrow="ALWAYS" />
-                    <Button fx:id="deleteConvoyButton" text="Elimina" style="-fx-font-weight: bold; -fx-padding: 0 32 0 32; -fx-min-height: 40px; -fx-max-height: 40px;" />
+                <TableView fx:id="convoyTableView" prefHeight="200">
+                    <columns>
+                        <TableColumn fx:id="convoyIdColumn" text="ID Convoglio" />
+                        <TableColumn fx:id="typeColumn" text="Tipo" />
+                        <TableColumn fx:id="statusColumn" text="Status" />
+                        <TableColumn fx:id="carriageCountColumn" text="N° Vetture" />
+                    </columns>
+                </TableView>
+                <HBox spacing="16" alignment="CENTER_LEFT">
+                    <Button fx:id="createConvoyButton" text="Crea Convoglio" style="-fx-font-weight: bold; -fx-padding: 0 32 0 32; -fx-min-height: 40px; -fx-max-height: 40px;" />
+                    <Button fx:id="manageCarriagesButton" text="Gestione Vetture" style="-fx-font-weight: bold; -fx-padding: 0 32 0 32; -fx-min-height: 40px; -fx-max-height: 40px;" disable="true" />
+                    <Button fx:id="deleteConvoyButton" text="Elimina Convoglio" style="-fx-font-weight: bold; -fx-padding: 0 32 0 32; -fx-min-height: 40px; -fx-max-height: 40px;" disable="true" />
                 </HBox>
             </children>
         </VBox>

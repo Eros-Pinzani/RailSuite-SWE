@@ -37,4 +37,32 @@ public class SceneManager {
             LOGGER.log(Level.SEVERE, "Error while switching scene: " + fxmlPath, e);
         }
     }
+
+    public void openCreateConvoyScene(domain.Staff staff, domain.Station station) {
+        try {
+            FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/businessLogic/fxml/CreateConvoy.fxml"));
+            Parent root = loader.load();
+            businessLogic.controller.CreateConvoyController controller = loader.getController();
+            controller.setSession(staff, station);
+            Scene scene = new Scene(root, 800, 600);
+            primaryStage.setScene(scene);
+            primaryStage.centerOnScreen();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error while opening CreateConvoy scene", e);
+        }
+    }
+
+    public void openManageCarriagesScene(domain.Staff staff, domain.Station station, domain.ConvoyTableDTO convoy) {
+        try {
+            FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/businessLogic/fxml/ManageCarriages.fxml"));
+            Parent root = loader.load();
+            businessLogic.controller.ManageCarriagesController controller = loader.getController();
+            controller.setSession(staff, station, convoy);
+            Scene scene = new Scene(root, 800, 600);
+            primaryStage.setScene(scene);
+            primaryStage.centerOnScreen();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error while opening ManageCarriages scene", e);
+        }
+    }
 }

@@ -13,5 +13,4 @@ public interface CarriageDao {
     List<Carriage> selectAllCarriages() throws SQLException;
     List<Carriage> selectCarriagesByConvoyId(int convoyId) throws SQLException;
     boolean updateCarriageConvoy(int carriageId, Integer idConvoy) throws SQLException;
-    void insertCarriage(Carriage carriage) throws SQLException;
 }

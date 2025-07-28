@@ -35,7 +35,9 @@ public class SupervisorHomeController {
     @FXML
     private TableColumn<NotificationRow, Void> denyColumn;
     @FXML
-    private Button trainStatusButton;
+    private Button gestioneCorseButton;
+    @FXML
+    private Button gestioneConvogliButton;
 
     public class NotificationRow {
         private final String carriageId;
@@ -127,7 +129,8 @@ public class SupervisorHomeController {
         notificationTable.getItems().addListener((javafx.collections.ListChangeListener<NotificationRow>) c -> adjustTableHeight());
         adjustTableHeight();
 
-        trainStatusButton.setOnAction(e -> SceneManager.getInstance().switchScene("/businessLogic/fxml/TrainStatus.fxml"));
+        gestioneCorseButton.setOnAction(e -> SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageRun.fxml"));
+        gestioneConvogliButton.setOnAction(e -> SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageConvoy.fxml"));
     }
 
     private void adjustTableHeight() {
@@ -146,6 +149,4 @@ public class SupervisorHomeController {
     private void handleExit() {
         javafx.application.Platform.exit();
     }
-
-    // Eventuali metodi per gestire il menu
 }

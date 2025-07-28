@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="businessLogic.controller.ManageConvoyController" spacing="0">
+    <children>
+        <HBox alignment="CENTER_RIGHT" minHeight="50.0" prefHeight="50.0" spacing="15.0" style="-fx-background-color: #1976d2; -fx-padding: 0 0 0 24;" VBox.vgrow="NEVER">
+            <Label text="Gestione Convogli" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white;" alignment="CENTER_LEFT" />
+            <Pane HBox.hgrow="ALWAYS" />
+            <Label fx:id="supervisorNameLabel" alignment="CENTER" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white; -fx-cursor: hand;" />
+            <MenuButton fx:id="menuButton" graphicTextGap="0" style="-fx-background-color: transparent;">
+                <graphic>
+                    <Label style="-fx-font-size: 22px; -fx-text-fill: white; -fx-padding: 0 0 0 8;" text="≡" />
+                </graphic>
+                <items>
+                    <MenuItem fx:id="logoutMenuItem" text="Logout" />
+                    <MenuItem fx:id="exitMenuItem" text="Chiudi App" />
+                </items>
+            </MenuButton>
+        </HBox>
+        <VBox spacing="16" style="-fx-padding: 32;">
+            <children>
+                <Label text="Gestione convogli" style="-fx-font-size: 22px; -fx-font-weight: bold;" />
+                <HBox spacing="16" alignment="BOTTOM_LEFT">
+                    <VBox spacing="8">
+                        <Label text="Tipo carrozza:" />
+                        <ComboBox fx:id="carriageTypeComboBox" />
+                    </VBox>
+                    <VBox spacing="8">
+                        <Label text="Modello carrozza:" />
+                        <ComboBox fx:id="carriageModelComboBox" />
+                    </VBox>
+                    <VBox spacing="8">
+                        <Label text="Numero carrozze:" />
+                        <Spinner fx:id="carriageCountSpinner" />
+                    </VBox>
+                    <Pane HBox.hgrow="ALWAYS" />
+                    <Button fx:id="createConvoyButton" text="Crea convoglio" style="-fx-font-weight: bold; -fx-padding: 0 32 0 32; -fx-min-height: 40px; -fx-max-height: 40px;" />
+                </HBox>
+                <Separator />
+                <HBox spacing="16" alignment="BOTTOM_LEFT">
+                    <Label text="Elimina convoglio:" />
+                    <ComboBox fx:id="deleteConvoyComboBox" />
+                    <Pane HBox.hgrow="ALWAYS" />
+                    <Button fx:id="deleteConvoyButton" text="Elimina" style="-fx-font-weight: bold; -fx-padding: 0 32 0 32; -fx-min-height: 40px; -fx-max-height: 40px;" />
+                </HBox>
+            </children>
+        </VBox>
+    </children>
+</VBox>

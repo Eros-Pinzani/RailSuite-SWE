@@ -36,11 +36,6 @@ public class RailSuiteFacade {
         return carriageDao.updateCarriageConvoy(carriageId, idConvoy);
     }
 
-    public void insertCarriage(Carriage carriage) throws SQLException {
-        carriageDao.insertCarriage(carriage);
-    }
-
-
     // Staff
     public Staff findStaffById(int id) throws SQLException {
         return staffDao.findById(id);

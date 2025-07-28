@@ -48,42 +48,34 @@ public class ConvoyDetailsService {
     public ConvoyDetailsDTO getConvoyDetailsDTO(AssignedConvoyInfo convoyInfo) {
         if (convoyInfo == null) return null;
         try {
-            String convoyId = String.valueOf(convoyInfo.convoyId);
-            String departureStation = convoyInfo.departureStation;
-            String departureTime = convoyInfo.departureTime;
-            String arrivalStation = convoyInfo.arrivalStation;
-            String arrivalTime = convoyInfo.arrivalTime;
-            String staffName = "";
-            String lineName = "";
-            List<Carriage> carriages = facade.selectCarriagesByConvoyId(convoyInfo.convoyId);
-            List<StationRow> stationRows = new java.util.ArrayList<>();
-            List<Run> runs = facade.selectRunsByConvoy(convoyInfo.convoyId);
-            if (!runs.isEmpty()) {
-                Run run = runs.getFirst();
-                try {
-                    int staffId = run.getIdStaff();
-                    domain.Staff staff = facade.findStaffById(staffId);
-                    staffName = (staff != null && staff.getName() != null && !staff.getName().isBlank()) ? staff.getName() : "Staff non trovato";
-                } catch (Exception e) {
-                    staffName = "Staff non trovato";
-                }
-                Line line = facade.findLineById(run.getIdLine());
-                if (line != null) {
-                    lineName = line.getName();
-                    List<domain.LineStation> lineStations = facade.findLineStationsByLineId(run.getIdLine());
-                    for (domain.LineStation ls : lineStations) {
-                        String stationName = "";
-                        try {
-                            domain.Station station = facade.findStationById(ls.getStationId());
-                            if (station != null) stationName = station.getLocation();
-                        } catch (Exception ignored) {}
-                        stationRows.add(new StationRow(stationName, "", ""));
-                    }
-                }
-            }
-            return new ConvoyDetailsDTO(convoyId, lineName, staffName, departureStation, departureTime, arrivalStation, arrivalTime, carriages, stationRows);
+            dao.ConvoyDao convoyDao = dao.ConvoyDao.of();
+            ConvoyDetailsRaw raw = convoyDao.selectConvoyDetailsById(convoyInfo.convoyId);
+            return new ConvoyDetailsDTO(
+                String.valueOf(raw.convoyId),
+                raw.lineName,
+                raw.staffName,
+                raw.departureStation,
+                raw.departureTime,
+                raw.arrivalStation,
+                raw.arrivalTime,
+                raw.carriages,
+                raw.stationRows
+            );
         } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
+    }
+
+    public static class ConvoyDetailsRaw {
+        public int convoyId;
+        public String lineName;
+        public String staffName;
+        public String departureStation;
+        public String departureTime;
+        public String arrivalStation;
+        public String arrivalTime;
+        public List<Carriage> carriages;
+        public List<StationRow> stationRows;
     }
 }

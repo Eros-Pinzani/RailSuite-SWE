@@ -1,12 +1,9 @@
 package businessLogic.service;
 
-import businessLogic.RailSuiteFacade;
-import domain.Run;
-import domain.Station;
-
+import dao.ConvoyDao;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class OperatorHomeService {
 
@@ -27,24 +24,10 @@ public class OperatorHomeService {
     }
 
     public List<AssignedConvoyInfo> getAssignedConvoysForOperator(int staffId) throws SQLException {
-        RailSuiteFacade facade = new RailSuiteFacade();
-        List<Run> runs = facade.selectRunsByStaff(staffId);
-        List<AssignedConvoyInfo> result = new ArrayList<>();
-        for (Run run : runs) {
-            int convoyId = run.getIdConvoy();
-            String departureStation = "";
-            String arrivalStation = "";
-            String departureTime = run.getTimeDeparture() != null ? run.getTimeDeparture().toString() : "";
-            String arrivalTime = run.getTimeArrival() != null ? run.getTimeArrival().toString() : "";
-            try {
-                Station dep = facade.findStationById(run.getIdFirstStation());
-                Station arr = facade.findStationById(run.getIdLastStation());
-                if (dep != null) departureStation = dep.getLocation();
-                if (arr != null) arrivalStation = arr.getLocation();
-            } catch (Exception ignored) {
-            }
-            result.add(new AssignedConvoyInfo(convoyId, departureStation, departureTime, arrivalStation, arrivalTime));
-        }
-        return result;
+        ConvoyDao dao = ConvoyDao.of();
+        List<ConvoyDao.ConvoyAssignedRow> rows = dao.selectAssignedConvoysRowsByStaff(staffId);
+        return rows.stream()
+            .map(r -> new AssignedConvoyInfo(r.convoyId, r.departureStation, r.departureTime, r.arrivalStation, r.arrivalTime))
+            .collect(Collectors.toList());
     }
 }

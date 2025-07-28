@@ -4,6 +4,7 @@ import domain.Carriage;
 import domain.Convoy;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 class ConvoyDaoImp implements ConvoyDao {
@@ -163,5 +164,119 @@ class ConvoyDaoImp implements ConvoyDao {
             throw new SQLException("Error creating new convoy and updating carriages", e);
         }
         return domain.Convoy.of(generatedId, carriages);
+    }
+
+    @Override
+    public businessLogic.service.ConvoyDetailsService.ConvoyDetailsRaw selectConvoyDetailsById(int id) throws SQLException {
+        businessLogic.service.ConvoyDetailsService.ConvoyDetailsRaw raw = new businessLogic.service.ConvoyDetailsService.ConvoyDetailsRaw();
+        raw.convoyId = id;
+        raw.lineName = "";
+        raw.staffName = "";
+        raw.departureStation = "";
+        raw.departureTime = "";
+        raw.arrivalStation = "";
+        raw.arrivalTime = "";
+        java.util.List<domain.Carriage> carriages = new java.util.ArrayList<>();
+        java.util.Set<Integer> carriageIds = new java.util.HashSet<>();
+        java.util.List<businessLogic.service.ConvoyDetailsService.StationRow> stationRows = new java.util.ArrayList<>();
+        try (
+            java.sql.Connection conn = PostgresConnection.getConnection();
+            java.sql.PreparedStatement stmt = conn.prepareStatement(
+                "SELECT ca.id_carriage, ca.model, ca.model_type, ca.year_produced, ca.capacity, " +
+                "l.id_line, l.name AS line_name, s.id_station, s.location AS station_name, ls.station_order, " +
+                "r.time_departure, r.time_arrival, stf.name AS staff_name, stf.surname AS staff_surname, " +
+                "r.id_first_station, r.id_last_station, s2.location AS departure_station, s3.location AS arrival_station " +
+                "FROM convoy c " +
+                "LEFT JOIN carriage ca ON ca.id_convoy = c.id_convoy " +
+                "LEFT JOIN run r ON r.id_convoy = c.id_convoy " +
+                "LEFT JOIN staff stf ON stf.id_staff = r.id_staff " +
+                "LEFT JOIN line l ON l.id_line = r.id_line " +
+                "LEFT JOIN line_station ls ON ls.id_line = l.id_line " +
+                "LEFT JOIN station s ON s.id_station = ls.id_station " +
+                "LEFT JOIN station s2 ON s2.id_station = r.id_first_station " +
+                "LEFT JOIN station s3 ON s3.id_station = r.id_last_station " +
+                "WHERE c.id_convoy = ? " +
+                "ORDER BY ls.station_order"
+            )
+        ) {
+            stmt.setInt(1, id);
+            try (java.sql.ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int carriageId = rs.getInt("id_carriage");
+                    if (carriageId > 0 && !carriageIds.contains(carriageId)) {
+                        carriages.add(Carriage.of(
+                            carriageId,
+                            rs.getString("model"),
+                            rs.getString("model_type"),
+                            rs.getInt("year_produced"),
+                            rs.getInt("capacity"),
+                            id
+                        ));
+                        carriageIds.add(carriageId);
+                    }
+                    if (raw.lineName.isEmpty() && rs.getString("line_name") != null) {
+                        raw.lineName = rs.getString("line_name");
+                    }
+                    if (raw.staffName.isEmpty() && rs.getString("staff_name") != null) {
+                        raw.staffName = rs.getString("staff_name") + " " + rs.getString("staff_surname");
+                    }
+                    if (raw.departureStation.isEmpty() && rs.getString("departure_station") != null) {
+                        raw.departureStation = rs.getString("departure_station");
+                    }
+                    if (raw.arrivalStation.isEmpty() && rs.getString("arrival_station") != null) {
+                        raw.arrivalStation = rs.getString("arrival_station");
+                    }
+                    if (raw.departureTime.isEmpty() && rs.getString("time_departure") != null) {
+                        raw.departureTime = rs.getString("time_departure");
+                    }
+                    if (raw.arrivalTime.isEmpty() && rs.getString("time_arrival") != null) {
+                        raw.arrivalTime = rs.getString("time_arrival");
+                    }
+                    int stationId = rs.getInt("id_station");
+                    String stationName = rs.getString("station_name");
+                    if (stationId > 0 && stationName != null && stationRows.stream().noneMatch(s -> s.stationName.equals(stationName))) {
+                        stationRows.add(new businessLogic.service.ConvoyDetailsService.StationRow(
+                            stationName, "", ""
+                        ));
+                    }
+                }
+            }
+        }
+        raw.carriages = carriages;
+        raw.stationRows = stationRows;
+        return raw;
+    }
+
+    @Override
+    public List<ConvoyDao.ConvoyAssignedRow> selectAssignedConvoysRowsByStaff(int staffId) throws SQLException {
+        List<ConvoyDao.ConvoyAssignedRow> result = new ArrayList<>();
+        String sql = "SELECT r.id_convoy, s1.location AS departure_station, r.time_departure, s2.location AS arrival_station, r.time_arrival " +
+                "FROM run r " +
+                "JOIN station s1 ON r.id_first_station = s1.id_station " +
+                "JOIN station s2 ON r.id_last_station = s2.id_station " +
+                "WHERE r.id_staff = ?";
+        try (
+            java.sql.Connection conn = PostgresConnection.getConnection();
+            java.sql.PreparedStatement stmt = conn.prepareStatement(sql)
+        ) {
+            stmt.setInt(1, staffId);
+            try (java.sql.ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    int convoyId = rs.getInt("id_convoy");
+                    String departureStation = rs.getString("departure_station");
+                    String departureTime = rs.getString("time_departure");
+                    String arrivalStation = rs.getString("arrival_station");
+                    String arrivalTime = rs.getString("time_arrival");
+                    result.add(new ConvoyDao.ConvoyAssignedRow(
+                        convoyId,
+                        departureStation != null ? departureStation : "",
+                        departureTime != null ? departureTime : "",
+                        arrivalStation != null ? arrivalStation : "",
+                        arrivalTime != null ? arrivalTime : ""
+                    ));
+                }
+            }
+        }
+        return result;
     }
 }

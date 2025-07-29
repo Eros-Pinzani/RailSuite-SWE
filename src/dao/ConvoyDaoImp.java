@@ -2,26 +2,53 @@ package dao;
 
 import domain.Carriage;
 import domain.Convoy;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementation of the ConvoyDao interface.
+ * Contains SQL queries and logic for accessing convoy data.
+ */
 class ConvoyDaoImp implements ConvoyDao {
+    /**
+     * SQL query to select a convoy by id.
+     */
     private static final String selectConvoyQuery =
             "SELECT id_convoy FROM convoy WHERE id_convoy = ?";
+    /**
+     * SQL query to select carriages by convoy id.
+     */
     private static final String selectCarriagesByConvoyIdQuery =
             "SELECT id_carriage, model, model_type, year_produced, capacity, id_convoy FROM carriage WHERE id_convoy = ?";
+    /**
+     * SQL query to select all convoy ids.
+     */
     private static final String selectAllConvoyIdsQuery =
             "SELECT id_convoy FROM convoy";
+    /**
+     * SQL query to delete a convoy by id.
+     */
     private static final String deleteConvoyQuery =
             "DELETE FROM convoy WHERE id_convoy = ?";
+    /**
+     * SQL query to update the convoy assignment for a carriage.
+     */
     private static final String updateCarriageConvoyQuery =
             "UPDATE carriage SET id_convoy = ? WHERE id_carriage = ?";
+    /**
+     * SQL query to remove a carriage from a convoy.
+     */
     private static final String removeCarriageFromConvoyQuery =
             "UPDATE carriage SET id_convoy = NULL WHERE id_carriage = ?";
+    /**
+     * SQL query to find convoy id by carriage id.
+     */
     private static final String findConvoyIdByCarriageIdQuery =
             "SELECT id_convoy FROM carriage WHERE id_carriage = ?";
+    /**
+     * SQL query to insert a new convoy and return its id.
+     */
     private static final String insertConvoyQuery =
             "INSERT INTO convoy DEFAULT VALUES RETURNING id_convoy";
 

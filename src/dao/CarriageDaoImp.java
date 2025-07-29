@@ -7,13 +7,29 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementation of the CarriageDao interface.
+ * Contains SQL queries and logic for accessing carriage data.
+ */
 class CarriageDaoImp implements CarriageDao {
+    /**
+     * SQL query to select a carriage by id.
+     */
     private static final String selectCarriageQuery =
             "SELECT id_carriage, model, model_type, year_produced, capacity FROM carriage WHERE id_carriage = ?";
+    /**
+     * SQL query to select all carriages.
+     */
     private static final String selectAllCarriageQuery =
             "SELECT id_carriage, model, model_type, year_produced, capacity FROM carriage";
+    /**
+     * SQL query to select carriages by convoy id.
+     */
     private static final String selectCarriagesByConvoyIdQuery =
             "SELECT id_carriage, model, model_type, year_produced, capacity, id_convoy FROM carriage WHERE id_convoy = ?";
+    /**
+     * SQL query to update the convoy assignment for a carriage.
+     */
     private static final String updateCarriageConvoyQuery =
             "UPDATE carriage SET id_convoy = ? WHERE id_carriage = ?";
 

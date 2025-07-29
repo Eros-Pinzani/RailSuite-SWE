@@ -1,5 +1,9 @@
 package businessLogic.controller;
 
+/**
+ * Controller for the Manage Run screen.
+ * Handles the display and management of train runs for a selected line and date.
+ */
 import businessLogic.service.LineService;
 import businessLogic.service.ConvoyService;
 import businessLogic.service.StaffService;
@@ -60,6 +64,10 @@ public class ManageRunController {
         public String getCarriages() { return carriages; }
     }
 
+    /**
+     * Initializes the controller after its root element has been completely processed.
+     * Sets up UI bindings, event handlers, and loads lines, convoys, and operators.
+     */
     @FXML
     public void initialize() {
         ManageConvoyController.header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
@@ -116,6 +124,11 @@ public class ManageRunController {
         assignButton.setOnAction(e -> handleAssign());
     }
 
+    /**
+     * Handles the assignment of a run to a line, convoy, and operator.
+     * Validates for duplicates and creates a new run if valid.
+     * Refreshes the summary table after assignment.
+     */
     private void handleAssign() {
         Line selectedLine = lineComboBox.getValue();
         Convoy convoy = convoyComboBox.getValue();
@@ -148,6 +161,9 @@ public class ManageRunController {
         refreshSummaryTable();
     }
 
+    /**
+     * Refreshes the summary table with the current list of runs and their details.
+     */
     private void refreshSummaryTable() {
         ObservableList<SummaryRow> rows = FXCollections.observableArrayList();
         try {
@@ -179,6 +195,10 @@ public class ManageRunController {
         summaryTable.setItems(rows);
     }
 
+    /**
+     * Adds a delete button to each row in the summary table, allowing removal of runs.
+     * Handles the deletion and refreshes the table after removal.
+     */
     private void addDeleteButtonToTable() {
         summaryDeleteColumn.setCellFactory(col -> new javafx.scene.control.TableCell<>() {
             private final javafx.scene.control.Button deleteButton = new javafx.scene.control.Button("Elimina");

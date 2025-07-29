@@ -1,5 +1,9 @@
 package businessLogic.controller;
 
+/**
+ * Controller for the Supervisor Home screen.
+ * Handles supervisor navigation and dashboard actions.
+ */
 import domain.Staff;
 import javafx.fxml.FXML;
 import javafx.scene.control.MenuItem;
@@ -69,6 +73,10 @@ public class SupervisorHomeController {
         }
     }
 
+    /**
+     * Initializes the controller after its root element has been completely processed.
+     * Sets up UI bindings, event handlers, and populates the notification table.
+     */
     @FXML
     public void initialize() {
         Staff staff = UserSession.getInstance().getStaff();
@@ -133,6 +141,10 @@ public class SupervisorHomeController {
         gestioneConvogliButton.setOnAction(e -> SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageConvoy.fxml"));
     }
 
+    /**
+     * Adjusts the height of the notification table based on the number of rows.
+     * Improves readability by resizing the table dynamically.
+     */
     private void adjustTableHeight() {
         int rowCount = notificationTable.getItems().size();
         double rowHeight = 36; // Altezza aumentata per una migliore leggibilità
@@ -141,11 +153,17 @@ public class SupervisorHomeController {
         notificationTable.setPrefHeight(totalHeight);
     }
 
+    /**
+     * Handles the logout action, clearing the user session and returning to the login screen.
+     */
     private void handleLogout() {
         UserSession.getInstance().clear();
         SceneManager.getInstance().switchScene("/businessLogic/fxml/LogIn.fxml");
     }
 
+    /**
+     * Handles the exit action, closing the application.
+     */
     private void handleExit() {
         javafx.application.Platform.exit();
     }

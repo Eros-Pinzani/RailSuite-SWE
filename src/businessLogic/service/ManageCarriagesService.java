@@ -1,5 +1,9 @@
 package businessLogic.service;
 
+/**
+ * Service for managing carriages in a convoy.
+ * Provides business logic for adding, removing, and retrieving carriages with depot status.
+ */
 import dao.CarriageDepotDao;
 import dao.CarriageDao;
 import dao.ConvoyPoolDao;
@@ -8,6 +12,12 @@ import domain.CarriageDepotDTO;
 import java.util.List;
 
 public class ManageCarriagesService {
+    /**
+     * Returns all carriages in a convoy, including their depot status.
+     * Used to display the status of each carriage in a convoy.
+     * @param idConvoy The convoy ID.
+     * @return List of CarriageDepotDTO objects for the convoy.
+     */
     public List<CarriageDepotDTO> getCarriagesWithDepotStatusByConvoy(int idConvoy) {
         try {
             CarriageDepotDao depotDao = CarriageDepotDao.of();
@@ -17,6 +27,13 @@ public class ManageCarriagesService {
         }
     }
 
+    /**
+     * Returns available carriages in the depot for a given station and model type.
+     * Used to select carriages for convoy management.
+     * @param idStation The station ID.
+     * @param modelType The type of carriage model (can be null for all types).
+     * @return List of available Carriage objects.
+     */
     public List<Carriage> getAvailableDepotCarriages(int idStation, String modelType) {
         try {
             CarriageDepotDao depotDao = CarriageDepotDao.of();
@@ -26,6 +43,12 @@ public class ManageCarriagesService {
         }
     }
 
+    /**
+     * Adds a carriage to a convoy and updates its depot status.
+     * Used to assign a carriage to a convoy from the UI.
+     * @param idCarriage The ID of the carriage.
+     * @param idConvoy The ID of the convoy.
+     */
     public void addCarriageToConvoy(int idCarriage, int idConvoy) {
         try {
             CarriageDao.of().updateCarriageConvoy(idCarriage, idConvoy);
@@ -35,6 +58,12 @@ public class ManageCarriagesService {
         }
     }
 
+    /**
+     * Removes a carriage from a convoy and updates its depot status.
+     * Used to remove a carriage from a convoy and return it to the depot.
+     * @param idCarriage The ID of the carriage.
+     * @param idConvoy The ID of the convoy.
+     */
     public void removeCarriageFromConvoy(int idCarriage, int idConvoy) {
         try {
             CarriageDepotDao depotDao = CarriageDepotDao.of();
@@ -65,6 +94,12 @@ public class ManageCarriagesService {
         }
     }
 
+    /**
+     * Returns available carriage types in the depot for a given station.
+     * Used to filter or select carriage types in the UI.
+     * @param idStation The station ID.
+     * @return List of available carriage type names.
+     */
     public List<String> getAvailableDepotCarriageTypes(int idStation) {
         try {
             CarriageDepotDao depotDao = CarriageDepotDao.of();
@@ -74,6 +109,13 @@ public class ManageCarriagesService {
         }
     }
 
+    /**
+     * Returns available carriage models in the depot for a given station and type.
+     * Used to filter or select carriage models in the UI.
+     * @param idStation The station ID.
+     * @param modelType The type of carriage model (can be null for all types).
+     * @return List of available carriage model names.
+     */
     public List<String> getAvailableDepotCarriageModels(int idStation, String modelType) {
         try {
             CarriageDepotDao depotDao = CarriageDepotDao.of();

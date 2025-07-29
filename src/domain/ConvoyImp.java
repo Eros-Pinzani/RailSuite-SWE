@@ -2,10 +2,19 @@ package domain;
 
 import java.util.List;
 
+/**
+ * Implementation of the Convoy interface.
+ * Stores and manages a list of carriages belonging to a convoy.
+ */
 class ConvoyImp implements Convoy {
     private final int idConvoy;
     private final List<Carriage> carriages;
 
+    /**
+     * Constructs a ConvoyImp with the given id and carriages.
+     * @param idConvoy the convoy id
+     * @param carriages the list of carriages in the convoy
+     */
     public ConvoyImp(int idConvoy, List<Carriage> carriages) {
         this.idConvoy = idConvoy;
         this.carriages = carriages;

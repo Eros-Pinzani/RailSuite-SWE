@@ -1,5 +1,9 @@
 package businessLogic.controller;
 
+/**
+ * Controller for the Manage Convoy screen.
+ * Handles the display, creation, and removal of convoys for a selected station.
+ */
 import businessLogic.service.ConvoyService;
 import domain.ConvoyTableDTO;
 import domain.Station;
@@ -28,6 +32,10 @@ public class ManageConvoyController {
 
     private final ConvoyService convoyService = new ConvoyService();
 
+    /**
+     * Initializes the controller after its root element has been completely processed.
+     * Sets up UI bindings, event handlers, and loads stations and convoys.
+     */
     @FXML
     public void initialize() {
         header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
@@ -86,6 +94,12 @@ public class ManageConvoyController {
         });
     }
 
+    /**
+     * Sets up the supervisor header, including name and menu actions.
+     * @param supervisorNameLabel The label for the supervisor's name.
+     * @param logoutMenuItem The logout menu item.
+     * @param exitMenuItem The exit menu item.
+     */
     static void header(Label supervisorNameLabel, MenuItem logoutMenuItem, MenuItem exitMenuItem) {
         Staff staff = UserSession.getInstance().getStaff();
         if (staff != null) {
@@ -97,6 +111,10 @@ public class ManageConvoyController {
         exitMenuItem.setOnAction(_ -> javafx.application.Platform.exit());
     }
 
+    /**
+     * Handles the event when a station is selected from the combo box.
+     * Loads and displays the convoys for the selected station.
+     */
     private void onStationSelected() {
         Station selected = stationComboBox.getValue();
         if (selected == null) {
@@ -108,7 +126,10 @@ public class ManageConvoyController {
         convoyTableView.setItems(FXCollections.observableArrayList(convoyList));
     }
 
-
+    /**
+     * Opens the Create Convoy screen for the selected station and staff.
+     * Also updates depot carriage availability before opening.
+     */
     private void openCreateConvoyScene() {
         depotAvailabilityObserver.run();
         Station selectedStation = stationComboBox.getValue();
@@ -116,6 +137,10 @@ public class ManageConvoyController {
         businessLogic.controller.SceneManager.getInstance().openCreateConvoyScene(staff, selectedStation);
     }
 
+    /**
+     * Opens the Manage Carriages screen for the selected station and convoy.
+     * Also updates depot carriage availability before opening.
+     */
     private void openManageCarriagesScene() {
         depotAvailabilityObserver.run();
         Station selectedStation = stationComboBox.getValue();
@@ -126,6 +151,10 @@ public class ManageConvoyController {
         }
     }
 
+    /**
+     * Handles the deletion of the selected convoy, if allowed by status.
+     * Shows an error if the operation is not permitted or fails.
+     */
     private void handleDeleteConvoy() {
         ConvoyTableDTO selected = convoyTableView.getSelectionModel().getSelectedItem();
         if (selected == null) return;
@@ -147,7 +176,10 @@ public class ManageConvoyController {
         }
     }
 
-    // Observer per aggiornamento disponibilità vetture in deposito
+    /**
+     * Observer that updates the availability of depot carriages for the selected station.
+     * Called before opening certain screens or after changes.
+     */
     private final Runnable depotAvailabilityObserver = () -> {
         Station selectedStation = stationComboBox.getValue();
         if (selectedStation != null) {
@@ -160,7 +192,10 @@ public class ManageConvoyController {
         }
     };
 
-
+    /**
+     * Displays an error dialog with the given message.
+     * @param message The error message to display.
+     */
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Errore");

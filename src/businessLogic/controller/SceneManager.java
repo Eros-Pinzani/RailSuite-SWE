@@ -1,5 +1,9 @@
 package businessLogic.controller;
 
+/**
+ * Utility class for managing scene transitions in the JavaFX application.
+ * Provides methods to switch between different FXML screens.
+ */
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,6 +19,10 @@ public class SceneManager {
 
     private SceneManager() {}
 
+    /**
+     * Returns the singleton instance of SceneManager.
+     * @return the SceneManager instance
+     */
     public static SceneManager getInstance() {
         if (instance == null) {
             instance = new SceneManager();
@@ -22,10 +30,18 @@ public class SceneManager {
         return instance;
     }
 
+    /**
+     * Sets the primary stage for the application.
+     * @param stage the main JavaFX stage
+     */
     public void setStage(Stage stage) {
         primaryStage = stage;
     }
 
+    /**
+     * Switches the current scene to the one specified by the FXML path.
+     * @param fxmlPath the path to the FXML file
+     */
     public void switchScene(String fxmlPath) {
         try {
             FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource(fxmlPath));
@@ -38,6 +54,11 @@ public class SceneManager {
         }
     }
 
+    /**
+     * Opens the Create Convoy scene and sets the session for the controller.
+     * @param staff the staff member
+     * @param station the selected station
+     */
     public void openCreateConvoyScene(domain.Staff staff, domain.Station station) {
         try {
             FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/businessLogic/fxml/CreateConvoy.fxml"));
@@ -52,6 +73,12 @@ public class SceneManager {
         }
     }
 
+    /**
+     * Opens the Manage Carriages scene and sets the session for the controller.
+     * @param staff the staff member
+     * @param station the selected station
+     * @param convoy the selected convoy
+     */
     public void openManageCarriagesScene(domain.Staff staff, domain.Station station, domain.ConvoyTableDTO convoy) {
         try {
             FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/businessLogic/fxml/ManageCarriages.fxml"));

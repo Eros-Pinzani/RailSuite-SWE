@@ -9,12 +9,18 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Implementation of the LineDao interface.
+ * Contains SQL queries and logic for accessing line data.
+ */
 class LineDaoImp implements LineDao {
     LineDaoImp(){}
 
     @Override
     public Line findById(int idLine) throws SQLException {
+        // SQL query to select a line by id.
         String sqlLine = "SELECT * FROM line WHERE id_line = ?";
+        // SQL query to select stations for a line.
         String sqlStations = "SELECT * FROM line_station WHERE id_line = ? ORDER BY station_order";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmtLine = conn.prepareStatement(sqlLine);
@@ -47,6 +53,7 @@ class LineDaoImp implements LineDao {
     @Override
     public List<Line> findAll() throws SQLException {
         List<Line> lines = new ArrayList<>();
+        // SQL query to select all lines.
         String sql = "SELECT id_line FROM line";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql);
@@ -61,6 +68,7 @@ class LineDaoImp implements LineDao {
     @Override
     public List<Line> findByStation(int idStation) throws SQLException {
         List<Line> lines = new ArrayList<>();
+        // SQL query to select lines by station id.
         String sql = "SELECT DISTINCT id_line FROM line_station WHERE id_station = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {

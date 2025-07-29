@@ -1,24 +1,48 @@
 package dao;
 
 import domain.ConvoyPool;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementation of the ConvoyPoolDao interface.
+ * Contains SQL queries and logic for accessing convoy pool data.
+ */
 public class ConvoyPoolDaoImp implements ConvoyPoolDao {
+    /**
+     * SQL query to select a convoy pool by id.
+     */
     private static final String SELECT_BY_ID =
             "SELECT id_convoy, id_station, status FROM convoy_pool WHERE id_convoy = ?";
+    /**
+     * SQL query to update a convoy pool.
+     */
     private static final String UPDATE =
             "UPDATE convoy_pool SET id_station = ?, status = ? WHERE id_convoy = ?";
+    /**
+     * SQL query to select all convoy pools.
+     */
     private static final String SELECT_ALL =
             "SELECT id_convoy, id_station, status FROM convoy_pool";
+    /**
+     * SQL query to select convoy pools by station.
+     */
     private static final String SELECT_BY_STATION =
             "SELECT id_convoy, id_station, status FROM convoy_pool WHERE id_station = ?";
+    /**
+     * SQL query to select convoy pools by status.
+     */
     private static final String SELECT_BY_STATUS =
             "SELECT id_convoy, id_station, status FROM convoy_pool WHERE status = ?";
+    /**
+     * SQL query to select convoy pools by station and status.
+     */
     private static final String SELECT_BY_STATION_AND_STATUS =
             "SELECT id_convoy, id_station, status FROM convoy_pool WHERE id_station = ? AND status = ?";
+    /**
+     * SQL query to select table data by station.
+     */
     private static final String SELECT_TABLE_DATA_BY_STATION =
         "SELECT cp.id_convoy, cp.status, COUNT(c.id_carriage) as carriage_count, " +
         "COALESCE(string_agg(DISTINCT c.model_type, ','), '') as types " +
@@ -26,6 +50,9 @@ public class ConvoyPoolDaoImp implements ConvoyPoolDao {
         "LEFT JOIN carriage c ON c.id_convoy = cp.id_convoy " +
         "WHERE cp.id_station = ? " +
         "GROUP BY cp.id_convoy, cp.status";
+    /**
+     * SQL query to insert a new convoy pool.
+     */
     private static final String INSERT =
         "INSERT INTO convoy_pool (id_convoy, id_station, status) VALUES (?, ?, ?)";
 

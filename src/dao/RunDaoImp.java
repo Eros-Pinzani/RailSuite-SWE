@@ -5,27 +5,45 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementation of the RunDao interface.
+ * Contains SQL queries and logic for accessing run data.
+ */
 public class RunDaoImp implements RunDao {
+    // SQL query to select a run by line and convoy
     private static final String selectRunQuery =
             "SELECT * FROM run WHERE id_line = ? AND id_convoy = ?";
+    // SQL query to select a run by line, convoy, and staff
     private static final String selectRunByLineConvoyStaffQuery =
             "SELECT * FROM run WHERE id_line = ? AND id_convoy = ? AND id_staff = ?";
+    // SQL query to select a run by staff and convoy
     private static final String selectRunByStaffAndConvoyQuery =
             "SELECT * FROM run WHERE id_staff = ? AND id_convoy = ?";
+    // SQL query to select a run by staff and line
     private static final String selectRunByStaffAndLineQuery = "SELECT * FROM run WHERE id_staff = ? AND id_line = ?";
+    // SQL query to select all runs
     private static final String selectAllRunsQuery = "SELECT * FROM run";
+    // SQL query to delete a run by line and convoy
     private static final String deleteRunQuery = "DELETE FROM run WHERE id_line = ? AND id_convoy = ?";
+    // SQL query to insert a new run
     private static final String insertRunQuery =
             "INSERT INTO run (id_line, id_convoy, id_staff, time_departure, time_arrival, id_first_station, id_last_station) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?)";
+    // SQL query to update an existing run
     private static final String updateRunQuery =
             "UPDATE run SET id_staff = ?, time_departure = ?, time_arrival = ?, id_first_station = ?, id_last_station = ?" +
             "WHERE id_line = ? AND id_convoy = ?";
+    // SQL query to select all runs by staff
     private static final String selectRunsByStaffQuery = "SELECT * FROM run WHERE id_staff = ?";
+    // SQL query to select all runs by line
     private static final String selectRunsByLineQuery = "SELECT * FROM run WHERE id_line = ?";
+    // SQL query to select all runs by convoy
     private static final String selectRunsByConvoyQuery = "SELECT * FROM run WHERE id_convoy = ?";
+    // SQL query to select all runs by first station
     private static final String selectRunsByFirstStationQuery = "SELECT * FROM run WHERE id_first_station = ?";
+    // SQL query to select all runs by last station
     private static final String selectRunsByLastStationQuery = "SELECT * FROM run WHERE id_last_station = ?";
+    // SQL query to select all runs by first station and departure time
     private static final String selectRunsByFirstStationAndDepartureQuery =
             "SELECT * FROM run WHERE id_first_station = ? AND time_departure = ?";
 
@@ -35,6 +53,7 @@ public class RunDaoImp implements RunDao {
 
     @Override
     public List<Run> selectAllRuns() throws SQLException {
+        // Executes the query to get all runs from the database
         List<Run> runs = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectAllRunsQuery);
@@ -50,6 +69,7 @@ public class RunDaoImp implements RunDao {
 
     @Override
     public boolean removeRun(int idLine, int idConvoy) throws SQLException {
+        // Executes the query to delete a specific run
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(deleteRunQuery)) {
             pstmt.setInt(1, idLine);
@@ -63,6 +83,7 @@ public class RunDaoImp implements RunDao {
 
     @Override
     public Run createRun(int idLine, int idConvoy, int idStaff, Time timeDeparture, Time timeArrival, int idFirstStation, int idLastStation) throws SQLException {
+        // Executes the query to insert a new run into the database
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(insertRunQuery)) {
             pstmt.setInt(1, idLine);
@@ -84,6 +105,7 @@ public class RunDaoImp implements RunDao {
 
     @Override
     public boolean updateRun(int idLine, int idConvoy, int idStaff, Time timeDeparture, Time timeArrival, int idFirstStation, int idLastStation) throws SQLException {
+        // Executes the query to update an existing run
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(updateRunQuery)) {
             pstmt.setInt(1, idStaff);
@@ -102,6 +124,7 @@ public class RunDaoImp implements RunDao {
 
     @Override
     public Run selectRunByLineAndConvoy(int idLine, int idConvoy) throws SQLException {
+        // Executes the query to get a run by line and convoy
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectRunQuery)) {
             pstmt.setInt(1, idLine);
@@ -117,6 +140,7 @@ public class RunDaoImp implements RunDao {
 
     @Override
     public Run selectRun(int idLine, int idConvoy, int idStaff) throws SQLException {
+        // Executes the query to get a run by line, convoy, and staff
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectRunByLineConvoyStaffQuery)) {
             pstmt.setInt(1, idLine);
@@ -133,6 +157,7 @@ public class RunDaoImp implements RunDao {
 
     @Override
     public Run selectRunByStaffAndConvoy(int idStaff, int idConvoy) throws SQLException {
+        // Executes the query to get a run by staff and convoy
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectRunByStaffAndConvoyQuery)) {
             pstmt.setInt(1, idStaff);
@@ -148,6 +173,7 @@ public class RunDaoImp implements RunDao {
 
     @Override
     public Run selectRunByStaffAndLine(int idStaff, int idLine) throws SQLException {
+        // Executes the query to get a run by staff and line
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectRunByStaffAndLineQuery)) {
             pstmt.setInt(1, idStaff);
@@ -162,6 +188,7 @@ public class RunDaoImp implements RunDao {
     }
 
     private List<Run> getRuns(int id, String query) throws SQLException {
+        // Utility method to execute queries that return multiple runs filtered by a parameter
         List<Run> runs = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -202,6 +229,7 @@ public class RunDaoImp implements RunDao {
 
     @Override
     public List<Run> selectRunsByFirstStationAndDeparture(int idFirstStation, Time timeDeparture) throws SQLException {
+        // Executes the query to get all runs that start from a station and have a specific departure time
         List<Run> runs = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectRunsByFirstStationAndDepartureQuery)) {

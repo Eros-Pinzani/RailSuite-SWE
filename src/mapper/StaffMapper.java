@@ -5,6 +5,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class StaffMapper {
+    /**
+     * Maps a ResultSet row to a Staff domain object.
+     * @param rs the ResultSet containing staff data
+     * @return a Staff domain object
+     * @throws SQLException if a database access error occurs
+     */
     public static Staff toDomain(ResultSet rs) throws SQLException {
         return Staff.of(
             rs.getInt("id_staff"),
@@ -17,4 +23,3 @@ public class StaffMapper {
         );
     }
 }
-

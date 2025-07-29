@@ -1,10 +1,20 @@
 package domain;
 
+/**
+ * Implementation of the ConvoyPool interface.
+ * Stores and manages the state of a convoy in the pool.
+ */
 class ConvoyPoolImp implements ConvoyPool{
     private final int idConvoy;
     private int idStation;
     private ConvoyStatus convoyStatus;
 
+    /**
+     * Constructs a ConvoyPoolImp with all properties.
+     * @param idConvoy the convoy id
+     * @param idStation the station id
+     * @param convoyStatus the status of the convoy
+     */
     public ConvoyPoolImp(int idConvoy, int idStation, ConvoyStatus convoyStatus) {
         this.idConvoy = idConvoy;
         this.idStation = idStation;

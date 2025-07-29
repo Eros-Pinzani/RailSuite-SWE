@@ -5,13 +5,21 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementation of the CarriageDepotDao interface.
+ * Contains SQL queries and logic for accessing carriage depot data.
+ */
 class CarriageDepotDaoImp implements CarriageDepotDao {
+    /**
+     * Maps a ResultSet row to a CarriageDepot domain object using the mapper.
+     */
     private static CarriageDepot mapResultSetToCarriageDepot(ResultSet rs) throws SQLException {
         return mapper.CarriageDepotMapper.toDomain(rs);
     }
 
     @Override
     public CarriageDepot getCarriageDepot(int idDepot, int idCarriage) throws SQLException {
+        // SQL query to select a carriage_depot by depot and carriage id.
         String sql = "SELECT * FROM carriage_depot WHERE id_depot = ? AND id_carriage = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -29,6 +37,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
 
     @Override
     public List<CarriageDepot> getCarriagesByDepot(int idDepot) throws SQLException {
+        // SQL query to select all carriage_depot by depot id.
         String sql = "SELECT * FROM carriage_depot WHERE id_depot = ?";
         try {
             return getCarriageDepots(sql, idDepot);
@@ -37,6 +46,9 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
         }
     }
 
+    /**
+     * Helper method to execute a query and return a list of CarriageDepot objects.
+     */
     private List<CarriageDepot> getCarriageDepots(String sql, int idDepot) throws SQLException {
         List<CarriageDepot> carriages = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection();
@@ -54,6 +66,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
 
     @Override
     public void insertCarriageDepot(CarriageDepot carriageDepot) throws SQLException {
+        // SQL query to insert a new carriage_depot record.
         String sql = "INSERT INTO carriage_depot (id_depot, id_carriage, time_entered, time_exited, status_of_carriage) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -70,6 +83,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
 
     @Override
     public void updateCarriageDepot(CarriageDepot carriageDepot) throws SQLException {
+        // SQL query to update an existing carriage_depot record.
         String sql = "UPDATE carriage_depot SET time_entered = ?, time_exited = ?, status_of_carriage = ? WHERE id_depot = ? AND id_carriage = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -86,6 +100,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
 
     @Override
     public void deleteCarriageDepot(CarriageDepot carriageDepot) throws SQLException {
+        // SQL query to delete a carriage_depot record.
         String sql = "DELETE FROM carriage_depot WHERE id_depot = ? AND id_carriage = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -99,6 +114,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
 
     @Override
     public void deleteCarriageDepotByCarriage(int idCarriage) throws SQLException {
+        // SQL query to delete carriage_depot records by carriage id.
         String sql = "DELETE FROM carriage_depot WHERE id_carriage = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -109,6 +125,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
 
     @Override
     public void deleteCarriageDepotByCarriageIfAvailable(int idCarriage) throws SQLException {
+        // SQL query to delete available carriage_depot records by carriage id.
         String sql = "DELETE FROM carriage_depot WHERE id_carriage = ? AND status_of_carriage = 'AVAILABLE'";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -120,6 +137,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
     @Override
     public List<domain.CarriageDepotDTO> findCarriagesWithDepotStatusByConvoy(int idConvoy) throws SQLException {
         List<domain.CarriageDepotDTO> result = new ArrayList<>();
+        // SQL query to find carriages with their depot status by convoy id.
         String sql = "SELECT c.id_carriage, c.model, c.year_produced, c.capacity, cd.status_of_carriage, cd.time_exited " +
                 "FROM carriage c " +
                 "LEFT JOIN carriage_depot cd ON c.id_carriage = cd.id_carriage AND cd.time_exited IS NULL " +
@@ -145,6 +163,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
     @Override
     public List<domain.Carriage> findAvailableCarriagesForConvoyAdd(int idStation, String modelType) throws SQLException {
         List<domain.Carriage> result = new ArrayList<>();
+        // SQL query to find available carriages for adding to a convoy.
         String sql = "SELECT c.* FROM carriage_depot cd " +
                 "JOIN depot d ON cd.id_depot = d.id_depot " +
                 "JOIN carriage c ON cd.id_carriage = c.id_carriage " +
@@ -164,6 +183,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
     @Override
     public List<domain.Carriage> findAvailableCarriagesForConvoy(int idStation, String modelType) throws SQLException {
         List<domain.Carriage> result = new ArrayList<>();
+        // SQL query to find available carriages for a convoy, updating their status if needed.
         String sql =
                 // Aggiorna lo stato delle vetture in CLEANING e MAINTENANCE se scaduto il tempo
                 "WITH updated AS (\n" +
@@ -202,6 +222,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
     @Override
     public List<String> findAvailableCarriageTypesForConvoy(int idStation) throws SQLException {
         List<String> result = new ArrayList<>();
+        // SQL query to find available carriage types for a convoy, updating their status if needed.
         String sql =
                 // Aggiorna lo stato delle vetture in CLEANING e MAINTENANCE se scaduto il tempo
                 "WITH updated AS (\n" +
@@ -237,6 +258,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
 
     @Override
     public CarriageDepot findActiveDepotByCarriage(int idCarriage) throws SQLException {
+        // SQL query to find the active depot for a carriage.
         String sql = "SELECT * FROM carriage_depot WHERE id_carriage = ? AND time_exited IS NULL";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -254,6 +276,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
     @Override
     public List<String> findAvailableCarriageModelsForConvoy(int idStation, String modelType) throws SQLException {
         List<String> models = new ArrayList<>();
+        // SQL query to find available carriage models for a convoy.
         String sql = "SELECT DISTINCT c.model FROM carriage_depot cd " +
                 "JOIN carriage c ON cd.id_carriage = c.id_carriage " +
                 "JOIN depot d ON cd.id_depot = d.id_depot " +

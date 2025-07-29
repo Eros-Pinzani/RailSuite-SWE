@@ -1,5 +1,9 @@
 package businessLogic.service;
 
+/**
+ * Service for retrieving and processing convoy details.
+ * Provides methods to fetch convoy, carriage, and station information for display.
+ */
 import businessLogic.RailSuiteFacade;
 import domain.Carriage;
 import java.util.List;
@@ -45,6 +49,12 @@ public class ConvoyDetailsService {
         }
     }
 
+    /**
+     * Retrieves detailed information about a convoy, including its carriages and stations.
+     * This method is used to provide all the details needed for the convoy details view.
+     * @param convoyInfo The assigned convoy info to look up.
+     * @return A ConvoyDetailsDTO with all details, or null if not found or on error.
+     */
     public ConvoyDetailsDTO getConvoyDetailsDTO(AssignedConvoyInfo convoyInfo) {
         if (convoyInfo == null) return null;
         try {

@@ -1,5 +1,10 @@
 package businessLogic.controller;
 
+/**
+ * Controller for the Manage Carriages screen.
+ * Handles the display and management of carriages in a convoy,
+ * including adding, removing, and updating carriage information.
+ */
 import businessLogic.service.ConvoyService;
 import businessLogic.service.ManageCarriagesService;
 import businessLogic.RailSuiteFacade;
@@ -43,6 +48,13 @@ public class ManageCarriagesController {
     private ConvoyTableDTO selectedConvoy;
     private final javafx.collections.ObservableList<domain.CarriageDepotDTO> manageCarriageList = FXCollections.observableArrayList();
 
+    /**
+     * Sets the current session for the controller, including staff, station, and convoy.
+     * Updates the UI with the selected station and convoy, loads carriages, and reloads types.
+     * @param staff The staff member currently logged in.
+     * @param station The selected station.
+     * @param convoy The selected convoy.
+     */
     public void setSession(Staff staff, Station station, ConvoyTableDTO convoy) {
         this.selectedStation = station;
         this.selectedConvoy = convoy;
@@ -53,6 +65,10 @@ public class ManageCarriagesController {
         reloadAddCarriageTypes();
     }
 
+    /**
+     * Initializes the controller after its root element has been completely processed.
+     * Sets up UI bindings, event handlers, and prepares the table and combo boxes.
+     */
     @FXML
     public void initialize() {
         supervisorNameLabel.setOnMouseClicked(e -> businessLogic.controller.SceneManager.getInstance().switchScene("/businessLogic/fxml/SupervisorHome.fxml"));
@@ -87,12 +103,20 @@ public class ManageCarriagesController {
         backButton.setOnAction(e -> businessLogic.controller.SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageConvoy.fxml"));
     }
 
+    /**
+     * Loads the carriages for the selected convoy and updates the table view.
+     */
     private void loadCarriages() {
         if (selectedConvoy == null) return;
         manageCarriageList.setAll(manageCarriagesService.getCarriagesWithDepotStatusByConvoy(selectedConvoy.getIdConvoy()));
         manageCarriageTableView.setItems(manageCarriageList);
     }
 
+    /**
+     * Removes a carriage from the selected convoy and reloads the table.
+     * Shows an error dialog if the operation fails.
+     * @param dto The CarriageDepotDTO representing the carriage to remove.
+     */
     private void removeCarriageFromConvoy(domain.CarriageDepotDTO dto) {
         try {
             manageCarriagesService.removeCarriageFromConvoy(dto.getIdCarriage(), selectedConvoy.getIdConvoy());
@@ -102,10 +126,17 @@ public class ManageCarriagesController {
         }
     }
 
+    /**
+     * Navigates back to the Manage Convoy screen.
+     */
     private void goBackToManageConvoy() {
         businessLogic.controller.SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageConvoy.fxml");
     }
 
+    /**
+     * Displays an error dialog with the given message.
+     * @param message The error message to display.
+     */
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Errore");
@@ -114,6 +145,10 @@ public class ManageCarriagesController {
         alert.showAndWait();
     }
 
+    /**
+     * Handles the event when a carriage type is selected for adding to the convoy.
+     * Updates the model combo box and its visibility based on the selected type.
+     */
     private void onAddCarriageTypeSelected() {
         if (selectedStation == null) {
             addCarriageModelComboBox.setVisible(false);
@@ -146,6 +181,9 @@ public class ManageCarriagesController {
         }
     }
 
+    /**
+     * Returns the model type of the first carriage in the convoy, or null if none.
+     */
     private String getConvoyModelType() {
         if (manageCarriageList.isEmpty()) return null;
         int idCarriage = manageCarriageList.getFirst().getIdCarriage();
@@ -157,11 +195,17 @@ public class ManageCarriagesController {
         }
     }
 
+    /**
+     * Returns the model of the first carriage in the convoy, or null if none.
+     */
     private String getConvoyModel() {
         if (manageCarriageList.isEmpty()) return null;
         return manageCarriageList.getFirst().getModel();
     }
 
+    /**
+     * Reloads the available carriage types for adding to the convoy, updating UI accordingly.
+     */
     private void reloadAddCarriageTypes() {
         if (selectedStation == null) return;
         String forcedType = getConvoyModelType();
@@ -207,6 +251,10 @@ public class ManageCarriagesController {
         }
     }
 
+    /**
+     * Opens a dialog to select and add available carriages to the convoy.
+     * Handles validation and updates the table after addition.
+     */
     private void openAddCarriagesDialog() {
         if (selectedStation == null || selectedConvoy == null) return;
         String type = addCarriageTypeComboBox.getValue();

@@ -5,6 +5,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class RunMapper {
+    /**
+     * Maps a ResultSet row to a Run domain object.
+     * @param rs the ResultSet containing run data
+     * @return a Run domain object
+     * @throws SQLException if a database access error occurs
+     */
     public static Run toDomain(ResultSet rs) throws SQLException {
         return Run.of(
             rs.getInt("id_line"),
@@ -17,4 +23,3 @@ public class RunMapper {
         );
     }
 }
-

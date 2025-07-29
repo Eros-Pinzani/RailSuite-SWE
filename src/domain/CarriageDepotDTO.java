@@ -2,6 +2,10 @@ package domain;
 
 import java.sql.Timestamp;
 
+/**
+ * Data Transfer Object for CarriageDepot.
+ * Used to transfer carriage and depot status information.
+ */
 public class CarriageDepotDTO {
     private final int idCarriage;
     private final String model;
@@ -10,6 +14,15 @@ public class CarriageDepotDTO {
     private final String depotStatus; // AVAILABLE, CLEANING, MAINTENANCE
     private final Timestamp timeExited; // Fine manutenzione, se presente
 
+    /**
+     * Constructs a CarriageDepotDTO with all properties.
+     * @param idCarriage the carriage id
+     * @param model the model name
+     * @param yearProduced the year produced
+     * @param capacity the carriage capacity
+     * @param depotStatus the status in the depot
+     * @param timeExited the exit time from depot (nullable)
+     */
     public CarriageDepotDTO(int idCarriage, String model, int yearProduced, int capacity, String depotStatus, Timestamp timeExited) {
         this.idCarriage = idCarriage;
         this.model = model;
@@ -19,11 +32,16 @@ public class CarriageDepotDTO {
         this.timeExited = timeExited;
     }
 
+    /** @return the carriage id */
     public int getIdCarriage() { return idCarriage; }
+    /** @return the model name */
     public String getModel() { return model; }
+    /** @return the year produced */
     public int getYearProduced() { return yearProduced; }
+    /** @return the carriage capacity */
     public int getCapacity() { return capacity; }
+    /** @return the depot status */
     public String getDepotStatus() { return depotStatus; }
+    /** @return the exit time from depot, or null if not present */
     public Timestamp getTimeExited() { return timeExited; }
 }
-

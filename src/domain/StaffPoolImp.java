@@ -2,6 +2,10 @@ package domain;
 
 import java.sql.Timestamp;
 
+/**
+ * Implementation of the StaffPool interface.
+ * Stores and manages the state of a staff member in the pool and their shift.
+ */
 class StaffPoolImp implements StaffPool {
     private final int idStaff;
     private int idStation;
@@ -10,6 +14,15 @@ class StaffPoolImp implements StaffPool {
     private Timestamp shiftEnd;
     private ShiftStatus shiftStatus;
 
+    /**
+     * Constructs a StaffPoolImp with all properties.
+     * @param idStaff the staff id
+     * @param idStation the station id
+     * @param idConvoy the convoy id
+     * @param shiftStart the shift start timestamp
+     * @param shiftEnd the shift end timestamp
+     * @param shiftStatus the shift status
+     */
     public StaffPoolImp(int idStaff, int idStation, int idConvoy, Timestamp shiftStart, Timestamp shiftEnd, ShiftStatus shiftStatus) {
         this.idStaff = idStaff;
         this.idStation = idStation;

@@ -1,5 +1,9 @@
 package businessLogic.service;
 
+/**
+ * Service for managing convoys.
+ * Provides business logic for creating, updating, deleting, and retrieving convoys and their carriages.
+ */
 import businessLogic.RailSuiteFacade;
 import dao.ConvoyPoolDao;
 import dao.ConvoyDao;
@@ -15,6 +19,11 @@ import java.util.List;
 public class ConvoyService {
     private final RailSuiteFacade facade = new RailSuiteFacade();
 
+    /**
+     * Returns a list of all convoys in the system.
+     * Used to display or manage all convoys from the controller.
+     * @return List of all Convoy objects.
+     */
     public List<Convoy> getAllConvoys() {
         try {
             return facade.selectAllConvoys();
@@ -23,6 +32,11 @@ public class ConvoyService {
         }
     }
 
+    /**
+     * Creates a new convoy with the given carriages, updates their status, and manages depot and pool information.
+     * Called when a new convoy is created from the UI.
+     * @param carriages List of carriages to include in the new convoy.
+     */
     public void createConvoy(List<Carriage> carriages) {
         try {
             ConvoyDao convoyDao = ConvoyDao.of();
@@ -52,6 +66,12 @@ public class ConvoyService {
         }
     }
 
+    /**
+     * Returns a list of convoys for a specific station, formatted for table display.
+     * Used to show convoys at a station in a table view.
+     * @param stationId The ID of the station.
+     * @return List of ConvoyTableDTO objects for the station.
+     */
     public List<ConvoyTableDTO> getConvoyTableByStation(int stationId) {
         try {
             dao.ConvoyPoolDao convoyPoolDao = dao.ConvoyPoolDao.of();
@@ -61,6 +81,13 @@ public class ConvoyService {
         }
     }
 
+    /**
+     * Returns available carriages in the depot for a given station and model type.
+     * Used to select carriages for convoy creation or management.
+     * @param idStation The station ID.
+     * @param modelType The type of carriage model (can be null for all types).
+     * @return List of available Carriage objects.
+     */
     public List<Carriage> getAvailableDepotCarriages(int idStation, String modelType) {
         try {
             CarriageDepotDao depotDao = CarriageDepotDao.of();
@@ -70,7 +97,12 @@ public class ConvoyService {
         }
     }
 
-
+    /**
+     * Returns the available carriage types in the depot for a given station.
+     * Used to filter or select carriage types in the UI.
+     * @param idStation The station ID.
+     * @return List of available carriage type names.
+     */
     public List<String> getAvailableDepotCarriageTypes(int idStation) {
         try {
             dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();
@@ -80,6 +112,12 @@ public class ConvoyService {
         }
     }
 
+    /**
+     * Deletes a convoy and returns its carriages to the depot, updating their status.
+     * Used when a convoy is removed from the system.
+     * @param idConvoy The ID of the convoy to delete.
+     * @param idStation The station ID for the depot.
+     */
     public void deleteConvoy(int idConvoy, int idStation) {
         try {
             dao.ConvoyDao convoyDao = dao.ConvoyDao.of();
@@ -99,6 +137,11 @@ public class ConvoyService {
         }
     }
 
+    /**
+     * Updates the availability of depot carriages for a given station.
+     * Used to refresh the list of available carriages in the UI.
+     * @param idStation The station ID.
+     */
     public void updateDepotCarriageAvailability(int idStation) {
         try {
             dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();
@@ -109,7 +152,12 @@ public class ConvoyService {
         }
     }
 
-
+    /**
+     * Returns all carriages in a convoy, including their depot status.
+     * Used to display the status of each carriage in a convoy.
+     * @param idConvoy The convoy ID.
+     * @return List of CarriageDepotDTO objects for the convoy.
+     */
     public List<domain.CarriageDepotDTO> getCarriagesWithDepotStatusByConvoy(int idConvoy) {
         try {
             dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();

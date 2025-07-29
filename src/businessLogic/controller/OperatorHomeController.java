@@ -1,5 +1,9 @@
 package businessLogic.controller;
 
+/**
+ * Controller for the Operator Home screen.
+ * Handles the display of assigned convoys and navigation for the operator user.
+ */
 import businessLogic.service.OperatorHomeService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -29,6 +33,10 @@ public class OperatorHomeController {
 
     private static final Logger logger = Logger.getLogger(OperatorHomeController.class.getName());
 
+    /**
+     * Initializes the controller after its root element has been completely processed.
+     * Sets up UI bindings, event handlers, and loads assigned convoys for the operator.
+     */
     @FXML
     public void initialize() {
         Staff staff = UserSession.getInstance().getStaff();
@@ -42,6 +50,9 @@ public class OperatorHomeController {
         exitMenuItem.setOnAction(_ -> handleExit());
     }
 
+    /**
+     * Configures the columns of the assigned trains table, including the details button.
+     */
     private void setupTableColumns() {
         convoyIdColumn.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().convoyId)));
         departureStationColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().departureStation));
@@ -74,15 +85,26 @@ public class OperatorHomeController {
         });
     }
 
+    /**
+     * Handles the logout action, clearing the user session and returning to the login screen.
+     */
     private void handleLogout() {
         UserSession.getInstance().clear();
         SceneManager.getInstance().switchScene("/businessLogic/fxml/LogIn.fxml");
     }
 
+    /**
+     * Handles the exit action, closing the application.
+     */
     private void handleExit() {
         Platform.exit();
     }
 
+    /**
+     * Populates the assigned trains table with convoys assigned to the operator.
+     * Shows or hides the table and no-convoy label based on results.
+     * @param staffId The ID of the operator staff.
+     */
     private void populateAssignedTrainsTable(int staffId) {
         OperatorHomeService service = new OperatorHomeService();
         try {
@@ -98,6 +120,10 @@ public class OperatorHomeController {
         }
     }
 
+    /**
+     * Opens the Convoy Details screen for the selected assigned convoy.
+     * @param info The AssignedConvoyInfo object containing convoy details.
+     */
     private void openConvoyDetailsScene(OperatorHomeService.AssignedConvoyInfo info) {
         businessLogic.controller.ConvoyDetailsController.setStaticConvoyInfo(info);
         SceneManager.getInstance().switchScene("/businessLogic/fxml/ConvoyDetails.fxml");

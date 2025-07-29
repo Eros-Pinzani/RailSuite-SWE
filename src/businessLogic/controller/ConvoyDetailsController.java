@@ -12,6 +12,11 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 
 
+/**
+ * Controller for the Convoy Details screen.
+ * Handles the display of convoy information, carriages, stations,
+ * and user actions related to convoy details.
+ */
 public class ConvoyDetailsController {
     @FXML private TableView<domain.Carriage> carriageTable;
     @FXML private TableColumn<domain.Carriage, Integer> carriageIdColumn;
@@ -41,10 +46,18 @@ public class ConvoyDetailsController {
     private AssignedConvoyInfo convoyInfo;
     private static AssignedConvoyInfo staticConvoyInfo;
 
+    /**
+     * Sets the static convoy info to be used when initializing the details view.
+     * @param info The AssignedConvoyInfo object containing convoy details.
+     */
     public static void setStaticConvoyInfo(AssignedConvoyInfo info) {
         staticConvoyInfo = info;
     }
 
+    /**
+     * Initializes the controller after its root element has been completely processed.
+     * Sets up UI bindings, event handlers, and loads convoy details if available.
+     */
     @FXML
     public void initialize() {
         Staff staff = UserSession.getInstance().getStaff();
@@ -128,11 +141,19 @@ public class ConvoyDetailsController {
         }
     }
 
+    /**
+     * Sets the convoy information to be displayed and populates the details.
+     * @param info The AssignedConvoyInfo object containing convoy details.
+     */
     public void setConvoyInfo(AssignedConvoyInfo info) {
         this.convoyInfo = info;
         populateDetails();
     }
 
+    /**
+     * Populates the UI fields with the details of the selected convoy.
+     * Fetches data from the service and updates the labels and tables.
+     */
     private void populateDetails() {
         ConvoyDetailsService.ConvoyDetailsDTO dto = convoyDetailsService.getConvoyDetailsDTO(convoyInfo);
         if (dto == null) {
@@ -150,10 +171,16 @@ public class ConvoyDetailsController {
         if (stationTable != null) stationTable.setItems(FXCollections.observableArrayList(dto.stationRows));
     }
 
+    /**
+     * Handles the logout action, clearing the user session and returning to the login screen.
+     */
     private void handleLogout() {
         UserSession.getInstance().clear();
         SceneManager.getInstance().switchScene("/businessLogic/fxml/LogIn.fxml");
     }
+    /**
+     * Handles the exit action, closing the application.
+     */
     private void handleExit() {
         javafx.application.Platform.exit();
     }

@@ -1,5 +1,10 @@
 package businessLogic.controller;
 
+/**
+ * Controller for the Create Convoy screen.
+ * Handles the selection of depot carriages, type/model filtering,
+ * and the confirmation of convoy creation.
+ */
 import businessLogic.service.CreateConvoyService;
 import domain.Carriage;
 import domain.Station;
@@ -35,6 +40,12 @@ public class CreateConvoyController {
     private Station selectedStation;
     private final javafx.collections.ObservableList<Carriage> selectedDepotCarriages = FXCollections.observableArrayList();
 
+    /**
+     * Sets the current session for the controller, including staff and selected station.
+     * Updates the UI with the selected station and supervisor name, and reloads depot types.
+     * @param staff The staff member currently logged in.
+     * @param station The station selected for convoy creation.
+     */
     public void setSession(Staff staff, Station station) {
         this.selectedStation = station;
         selectedStationLabel.setText(station != null ? station.getLocation() : "");
@@ -42,6 +53,10 @@ public class CreateConvoyController {
         reloadDepotTypes();
     }
 
+    /**
+     * Initializes the controller after its root element has been completely processed.
+     * Sets up UI bindings, event handlers, and prepares the table and combo boxes.
+     */
     @FXML
     public void initialize() {
         // Header
@@ -95,6 +110,10 @@ public class CreateConvoyController {
         backButton.setOnAction(e -> businessLogic.controller.SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageConvoy.fxml"));
     }
 
+    /**
+     * Reloads the available depot carriage types for the selected station.
+     * Clears selections and hides the table if no station is selected.
+     */
     private void reloadDepotTypes() {
         if (selectedStation == null) return;
         List<String> types = createConvoyService.getAvailableDepotCarriageTypes(selectedStation.getIdStation());
@@ -104,6 +123,10 @@ public class CreateConvoyController {
         selectedDepotCarriages.clear();
     }
 
+    /**
+     * Handles the event when a depot carriage type is selected.
+     * Updates the model combo box and table visibility based on the selected type.
+     */
     private void onDepotTypeSelected() {
         if (selectedStation == null) {
             depotCarriageTableView.setVisible(false);
@@ -147,6 +170,10 @@ public class CreateConvoyController {
         }
     }
 
+    /**
+     * Handles the event when a depot carriage model is selected.
+     * Filters the available carriages in the table by the selected model.
+     */
     private void onDepotModelSelected() {
         if (selectedStation == null) return;
         String type = depotCarriageTypeComboBox.getValue();
@@ -163,6 +190,11 @@ public class CreateConvoyController {
         selectedDepotCarriages.clear();
     }
 
+    /**
+     * Handles the confirmation of convoy creation.
+     * Validates the selected carriages and calls the service to create the convoy.
+     * Shows an error if validation fails or creation throws an exception.
+     */
     private void handleConfirmCreateConvoy() {
         if (selectedDepotCarriages.isEmpty()) {
             showError("Seleziona almeno una vettura per creare il convoglio.");
@@ -194,10 +226,17 @@ public class CreateConvoyController {
         }
     }
 
+    /**
+     * Navigates back to the Manage Convoy screen.
+     */
     private void goBackToManageConvoy() {
         businessLogic.controller.SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageConvoy.fxml");
     }
 
+    /**
+     * Displays an error dialog with the given message.
+     * @param message The error message to display.
+     */
     private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Errore");

@@ -7,11 +7,16 @@ import java.util.ArrayList;
 import java.util.List;
 import mapper.DepotMapper;
 
+/**
+ * Implementation of the DepotDao interface.
+ * Contains SQL queries and logic for accessing depot data.
+ */
 class DepotDaoImp implements DepotDao {
     DepotDaoImp() {}
 
     @Override
     public Depot getDepot(int idDepot) throws SQLException {
+        // SQL query to select a depot by id.
         String sql = "SELECT * FROM depot WHERE id_depot = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -34,6 +39,7 @@ class DepotDaoImp implements DepotDao {
 
     @Override
     public List<Depot> getAllDepots() throws SQLException {
+        // SQL query to select all depots.
         String sql = "SELECT * FROM depot";
         try {
             return getDepots(sql);
@@ -42,6 +48,9 @@ class DepotDaoImp implements DepotDao {
         }
     }
 
+    /**
+     * Helper method to execute a query and return a list of Depot objects.
+     */
     private List<Depot> getDepots(String sql) throws SQLException {
         List<Depot> depots = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection();

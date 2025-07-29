@@ -5,6 +5,10 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementation of the StaffDao interface.
+ * Contains SQL queries and logic for accessing staff data.
+ */
 class StaffDaoImp implements StaffDao {
     StaffDaoImp(){}
 
@@ -14,6 +18,7 @@ class StaffDaoImp implements StaffDao {
 
     @Override
     public Staff findById(int id) throws SQLException {
+        // SQL query to get a staff member by id
         String sql = "SELECT * FROM staff WHERE id_staff = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -30,6 +35,7 @@ class StaffDaoImp implements StaffDao {
 
     @Override
     public Staff findByEmail(String email) throws SQLException {
+        // SQL query to get a staff member by email
         String sql = "SELECT * FROM staff WHERE email = ? LIMIT 1";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -46,6 +52,7 @@ class StaffDaoImp implements StaffDao {
 
     @Override
     public List<Staff> findAll() throws SQLException {
+        // SQL query to get all staff members
         String sql = "SELECT * FROM staff";
         try {
             return getStaffList(sql);
@@ -56,6 +63,7 @@ class StaffDaoImp implements StaffDao {
 
     @Override
     public List<Staff> findByType(Staff.TypeOfStaff type) throws SQLException {
+        // SQL query to get all staff members by type
         String sql = "SELECT * FROM staff WHERE type_of_staff LIKE ?";
         try {
             return getStaffListWithType(sql, type);

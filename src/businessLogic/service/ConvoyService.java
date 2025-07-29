@@ -10,7 +10,6 @@ import domain.Carriage;
 import domain.ConvoyPool;
 import domain.ConvoyTableDTO;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ConvoyService {
@@ -31,16 +30,13 @@ public class ConvoyService {
             CarriageDepotDao depotDao = CarriageDepotDao.of();
             Convoy newConvoy = convoyDao.createConvoy(carriages);
             int newConvoyId = newConvoy.getId();
-            // Trova la stazione associata alle vetture selezionate (tutte dello stesso deposito)
-            // Recupera id_depot (stazione/deposito) dalla prima carriage selezionata tramite carriage_depot
             Integer idStation = null;
             if (!carriages.isEmpty()) {
-                domain.CarriageDepot depot = depotDao.findActiveDepotByCarriage(carriages.get(0).getId());
+                domain.CarriageDepot depot = depotDao.findActiveDepotByCarriage(carriages.getFirst().getId());
                 if (depot != null) {
                     idStation = depot.getIdDepot();
                 }
             }
-            // Inserisci in convoy_pool
             if (idStation != null) {
                 ConvoyPoolDao convoyPoolDao = ConvoyPoolDao.of();
                 ConvoyPool pool = ConvoyPool.of(newConvoyId, idStation, ConvoyPool.ConvoyStatus.WAITING);
@@ -49,11 +45,6 @@ public class ConvoyService {
             for (Carriage carriage : carriages) {
                 carriage.setIdConvoy(newConvoyId);
                 carriageDao.updateCarriageConvoy(carriage.getId(), newConvoyId);
-                // Rimuovi la relazione dal deposito SOLO se la vettura non è in CLEANING o MAINTENANCE
-                // Se la vettura è in depot con stato CLEANING o MAINTENANCE, NON cancellare la riga
-                // ma aggiorna solo id_convoy della carriage
-                // (così la manutenzione/cleaning resta tracciata)
-                // Quindi: elimina solo se la vettura è in depot con stato AVAILABLE
                 depotDao.deleteCarriageDepotByCarriageIfAvailable(carriage.getId());
             }
         } catch (Exception e) {
@@ -70,10 +61,6 @@ public class ConvoyService {
         }
     }
 
-    /**
-     * Restituisce tutte le vetture disponibili per la creazione convoglio (in depot, AVAILABLE, senza id_convoy)
-     * per una stazione e tipo specifici, aggiornando lo stato in una sola query.
-     */
     public List<Carriage> getAvailableDepotCarriages(int idStation, String modelType) {
         try {
             CarriageDepotDao depotDao = CarriageDepotDao.of();
@@ -83,10 +70,7 @@ public class ConvoyService {
         }
     }
 
-    /**
-     * Restituisce tutti i model_type delle vetture disponibili (in depot, AVAILABLE, senza id_convoy)
-     * per una stazione, in UNA sola query.
-     */
+
     public List<String> getAvailableDepotCarriageTypes(int idStation) {
         try {
             dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();
@@ -101,14 +85,11 @@ public class ConvoyService {
             dao.ConvoyDao convoyDao = dao.ConvoyDao.of();
             dao.CarriageDao carriageDao = dao.CarriageDao.of();
             dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();
-            // Recupera tutte le vetture associate al convoglio
             List<Carriage> carriages = carriageDao.selectCarriagesByConvoyId(idConvoy);
             java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
             for (Carriage carriage : carriages) {
-                // Aggiorna la reference del convoglio
                 carriage.setIdConvoy(null);
                 carriageDao.updateCarriageConvoy(carriage.getId(), null);
-                // Inserisci la vettura nel deposito della stazione con stato AVAILABLE
                 domain.CarriageDepot cd = domain.CarriageDepot.of(idStation, carriage.getId(), now, null, domain.CarriageDepot.StatusOfCarriage.AVAILABLE);
                 depotDao.insertCarriageDepot(cd);
             }
@@ -118,10 +99,6 @@ public class ConvoyService {
         }
     }
 
-    /**
-     * Aggiorna lo stato delle vetture in deposito per la stazione specificata (observer pull)
-     */
-    // Metodo non più usato nell'interfaccia, lasciato per eventuale uso futuro o test
     public void updateDepotCarriageAvailability(int idStation) {
         try {
             dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();
@@ -132,9 +109,7 @@ public class ConvoyService {
         }
     }
 
-    /**
-     * Restituisce tutte le vetture associate a un convoglio, con info sullo stato in deposito (e fine manutenzione se presente)
-     */
+
     public List<domain.CarriageDepotDTO> getCarriagesWithDepotStatusByConvoy(int idConvoy) {
         try {
             dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();

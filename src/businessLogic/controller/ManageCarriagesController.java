@@ -30,10 +30,15 @@ public class ManageCarriagesController {
     @FXML private TableColumn<domain.CarriageDepotDTO, Void> removeManageCarriageColumn;
     @FXML private Button closeManageCarriagesButton;
     @FXML private Button openAddCarriageDialogButton;
+    @FXML private ComboBox<String> addCarriageTypeComboBox;
+    @FXML private ComboBox<String> addCarriageModelComboBox;
+    @FXML private Label addCarriageModelLabel;
+    @FXML private Label addCarriageTypeLabel;
+    @FXML private Label addCarriageTypeValueLabel;
+    @FXML private Label addCarriageModelValueLabel;
+    @FXML private Button backButton;
 
-    private final ConvoyService convoyService = new ConvoyService();
     private final ManageCarriagesService manageCarriagesService = new ManageCarriagesService();
-    private final RailSuiteFacade facade = new RailSuiteFacade();
     private Station selectedStation;
     private ConvoyTableDTO selectedConvoy;
     private final javafx.collections.ObservableList<domain.CarriageDepotDTO> manageCarriageList = FXCollections.observableArrayList();
@@ -45,6 +50,7 @@ public class ManageCarriagesController {
         selectedConvoyLabel.setText(convoy != null ? String.valueOf(convoy.getIdConvoy()) : "");
         if (staff != null) supervisorNameLabel.setText(staff.getName() + " " + staff.getSurname());
         loadCarriages();
+        reloadAddCarriageTypes();
     }
 
     @FXML
@@ -76,6 +82,9 @@ public class ManageCarriagesController {
         });
         openAddCarriageDialogButton.setOnAction(e -> openAddCarriagesDialog());
         closeManageCarriagesButton.setOnAction(e -> goBackToManageConvoy());
+        backButton.setOnAction(e -> goBackToManageConvoy());
+        addCarriageTypeComboBox.setOnAction(e -> onAddCarriageTypeSelected());
+        backButton.setOnAction(e -> businessLogic.controller.SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageConvoy.fxml"));
     }
 
     private void loadCarriages() {
@@ -105,10 +114,112 @@ public class ManageCarriagesController {
         alert.showAndWait();
     }
 
+    private void onAddCarriageTypeSelected() {
+        if (selectedStation == null) {
+            addCarriageModelComboBox.setVisible(false);
+            addCarriageModelComboBox.setManaged(false);
+            addCarriageModelLabel.setVisible(false);
+            addCarriageModelLabel.setManaged(false);
+            return;
+        }
+        String type = addCarriageTypeComboBox.getValue();
+        if (type == null) {
+            addCarriageModelComboBox.setVisible(false);
+            addCarriageModelComboBox.setManaged(false);
+            addCarriageModelLabel.setVisible(false);
+            addCarriageModelLabel.setManaged(false);
+            return;
+        }
+        if (type.equalsIgnoreCase("passeggeri")) {
+            List<String> models = manageCarriagesService.getAvailableDepotCarriageModels(selectedStation.getIdStation(), type);
+            addCarriageModelComboBox.setItems(FXCollections.observableArrayList(models));
+            addCarriageModelComboBox.setVisible(true);
+            addCarriageModelComboBox.setManaged(true);
+            addCarriageModelComboBox.getSelectionModel().clearSelection();
+            addCarriageModelLabel.setVisible(true);
+            addCarriageModelLabel.setManaged(true);
+        } else {
+            addCarriageModelComboBox.setVisible(false);
+            addCarriageModelComboBox.setManaged(false);
+            addCarriageModelLabel.setVisible(false);
+            addCarriageModelLabel.setManaged(false);
+        }
+    }
+
+    private String getConvoyModelType() {
+        if (manageCarriageList.isEmpty()) return null;
+        int idCarriage = manageCarriageList.getFirst().getIdCarriage();
+        try {
+            domain.Carriage carriage = dao.CarriageDao.of().selectCarriage(idCarriage);
+            return carriage != null ? carriage.getModelType() : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String getConvoyModel() {
+        if (manageCarriageList.isEmpty()) return null;
+        return manageCarriageList.getFirst().getModel();
+    }
+
+    private void reloadAddCarriageTypes() {
+        if (selectedStation == null) return;
+        String forcedType = getConvoyModelType();
+        if (forcedType != null) {
+            addCarriageTypeComboBox.setVisible(false);
+            addCarriageTypeComboBox.setManaged(false);
+            addCarriageTypeLabel.setVisible(true);
+            addCarriageTypeLabel.setManaged(true);
+            addCarriageTypeValueLabel.setText(forcedType);
+            addCarriageTypeValueLabel.setVisible(true);
+            addCarriageTypeValueLabel.setManaged(true);
+            if (forcedType.equalsIgnoreCase("passeggeri")) {
+                String forcedModel = getConvoyModel();
+                addCarriageModelComboBox.setVisible(false);
+                addCarriageModelComboBox.setManaged(false);
+                addCarriageModelLabel.setVisible(true);
+                addCarriageModelLabel.setManaged(true);
+                addCarriageModelValueLabel.setText(forcedModel);
+                addCarriageModelValueLabel.setVisible(true);
+                addCarriageModelValueLabel.setManaged(true);
+            } else {
+                addCarriageModelComboBox.setVisible(false);
+                addCarriageModelComboBox.setManaged(false);
+                addCarriageModelLabel.setVisible(false);
+                addCarriageModelLabel.setManaged(false);
+                addCarriageModelValueLabel.setVisible(false);
+                addCarriageModelValueLabel.setManaged(false);
+            }
+        } else {
+            addCarriageTypeComboBox.setVisible(true);
+            addCarriageTypeComboBox.setManaged(true);
+            addCarriageTypeLabel.setVisible(false);
+            addCarriageTypeLabel.setManaged(false);
+            addCarriageTypeValueLabel.setVisible(false);
+            addCarriageTypeValueLabel.setManaged(false);
+            addCarriageModelValueLabel.setVisible(false);
+            addCarriageModelValueLabel.setManaged(false);
+            List<String> types = manageCarriagesService.getAvailableDepotCarriageTypes(selectedStation.getIdStation());
+            addCarriageTypeComboBox.setItems(FXCollections.observableArrayList(types));
+            addCarriageTypeComboBox.getSelectionModel().clearSelection();
+            addCarriageTypeComboBox.setDisable(false);
+            addCarriageModelComboBox.setDisable(false);
+        }
+    }
+
     private void openAddCarriagesDialog() {
         if (selectedStation == null || selectedConvoy == null) return;
-        String type = selectedConvoy.getType();
+        String type = addCarriageTypeComboBox.getValue();
+        String model = addCarriageModelComboBox.isVisible() ? addCarriageModelComboBox.getValue() : null;
+        String forcedType = getConvoyModelType();
+        String forcedModel = getConvoyModel();
+        if (forcedType != null) type = forcedType;
+        if (forcedModel != null && type != null && type.equalsIgnoreCase("passeggeri")) model = forcedModel;
         List<Carriage> available = manageCarriagesService.getAvailableDepotCarriages(selectedStation.getIdStation(), type);
+        final String modelFinal = model;
+        if (modelFinal != null) {
+            available = available.stream().filter(c -> modelFinal.equals(c.getModel())).toList();
+        }
         Dialog<List<Carriage>> dialog = new Dialog<>();
         dialog.setTitle("Seleziona vetture da aggiungere");
         dialog.setHeaderText("Seleziona una o più vetture disponibili da aggiungere al convoglio");
@@ -140,6 +251,23 @@ public class ManageCarriagesController {
 
         dialog.showAndWait().ifPresent(selected -> {
             if (!selected.isEmpty()) {
+                String selectedType = null;
+                String selectedModel = null;
+                for (Carriage c : selected) {
+                    if (selectedType == null) {
+                        selectedType = c.getModelType();
+                        selectedModel = c.getModel();
+                    } else {
+                        if (!selectedType.equals(c.getModelType())) {
+                            showError("Tutte le vetture devono essere dello stesso tipo per aggiunta.");
+                            return;
+                        }
+                        if (selectedType.equalsIgnoreCase("passeggeri") && !selectedModel.equals(c.getModel())) {
+                            showError("Per i passeggeri, tutte le vetture devono essere dello stesso modello.");
+                            return;
+                        }
+                    }
+                }
                 for (Carriage c : selected) {
                     manageCarriagesService.addCarriageToConvoy(c.getId(), selectedConvoy.getIdConvoy());
                 }

@@ -64,4 +64,22 @@ public class ManageCarriagesService {
             throw new RuntimeException(e);
         }
     }
+
+    public List<String> getAvailableDepotCarriageTypes(int idStation) {
+        try {
+            CarriageDepotDao depotDao = CarriageDepotDao.of();
+            return depotDao.findAvailableCarriageTypesForConvoy(idStation);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public List<String> getAvailableDepotCarriageModels(int idStation, String modelType) {
+        try {
+            CarriageDepotDao depotDao = CarriageDepotDao.of();
+            return depotDao.findAvailableCarriageModelsForConvoy(idStation, modelType);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

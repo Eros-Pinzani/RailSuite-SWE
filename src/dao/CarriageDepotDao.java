@@ -45,6 +45,12 @@ public interface CarriageDepotDao {
     List<String> findAvailableCarriageTypesForConvoy(int idStation) throws java.sql.SQLException;
 
     /**
+     * Restituisce tutti i modelli delle vetture disponibili (in depot, AVAILABLE, senza id_convoy)
+     * per una stazione e tipo, in UNA sola query.
+     */
+    List<String> findAvailableCarriageModelsForConvoy(int idStation, String modelType) throws java.sql.SQLException;
+
+    /**
      * Restituisce la riga attiva di carriage_depot (cioè con time_exited IS NULL) per una carriage.
      */
     CarriageDepot findActiveDepotByCarriage(int idCarriage) throws SQLException;

@@ -4,6 +4,7 @@
 <VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="businessLogic.controller.ManageConvoyController" spacing="0">
     <children>
         <HBox alignment="CENTER_RIGHT" minHeight="50.0" prefHeight="50.0" spacing="15.0" style="-fx-background-color: #1976d2; -fx-padding: 0 0 0 24;" VBox.vgrow="NEVER">
+            <Button fx:id="backButton" text="← Indietro" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-border-width: 0; -fx-padding: 4 12;" />
             <Label text="Gestione Convogli" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white;" alignment="CENTER_LEFT" />
             <Pane HBox.hgrow="ALWAYS" />
             <Label fx:id="supervisorNameLabel" alignment="CENTER" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white; -fx-cursor: hand;" />

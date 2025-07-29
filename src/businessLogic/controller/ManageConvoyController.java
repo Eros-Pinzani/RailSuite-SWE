@@ -1,9 +1,6 @@
 package businessLogic.controller;
 
 import businessLogic.service.ConvoyService;
-import businessLogic.RailSuiteFacade;
-import domain.Carriage;
-import domain.Convoy;
 import domain.ConvoyTableDTO;
 import domain.Station;
 import dao.StationDao;
@@ -11,15 +8,10 @@ import domain.Staff;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.collections.FXCollections;
-import javafx.scene.control.cell.CheckBoxTableCell;
-
-
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ManageConvoyController {
     @FXML private Button createConvoyButton;
-    @FXML private ComboBox<Convoy> deleteConvoyComboBox;
     @FXML private Button deleteConvoyButton;
     @FXML private ComboBox<Station> stationComboBox;
     @FXML private TableView<ConvoyTableDTO> convoyTableView;
@@ -32,16 +24,14 @@ public class ManageConvoyController {
     @FXML private javafx.scene.control.MenuItem logoutMenuItem;
     @FXML private javafx.scene.control.MenuItem exitMenuItem;
     @FXML private javafx.scene.control.MenuButton menuButton;
+    @FXML private Button backButton;
 
     private final ConvoyService convoyService = new ConvoyService();
-    private final RailSuiteFacade facade = new RailSuiteFacade();
-    private List<Carriage> allCarriagesFinal = List.of();
-    private final javafx.collections.ObservableList<Carriage> selectedDepotCarriages = FXCollections.observableArrayList();
-    private javafx.collections.ObservableList<domain.CarriageDepotDTO> manageCarriageList = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
         header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
+        backButton.setOnAction(e -> businessLogic.controller.SceneManager.getInstance().switchScene("/businessLogic/fxml/SupervisorHome.fxml"));
 
         // Imposta la visualizzazione del nome stazione nel ComboBox
         stationComboBox.setCellFactory(lv -> new ListCell<>() {

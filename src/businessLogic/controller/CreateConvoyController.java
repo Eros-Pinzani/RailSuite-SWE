@@ -1,8 +1,6 @@
 package businessLogic.controller;
 
-import businessLogic.service.ConvoyService;
 import businessLogic.service.CreateConvoyService;
-import businessLogic.RailSuiteFacade;
 import domain.Carriage;
 import domain.Station;
 import domain.Staff;
@@ -10,7 +8,7 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.CheckBoxTableCell;
-import javafx.stage.Stage;
+
 
 import java.util.List;
 
@@ -21,6 +19,7 @@ public class CreateConvoyController {
     @FXML private MenuItem exitMenuItem;
     @FXML private Label selectedStationLabel;
     @FXML private ComboBox<String> depotCarriageTypeComboBox;
+    @FXML private ComboBox<String> depotCarriageModelComboBox;
     @FXML private TableView<Carriage> depotCarriageTableView;
     @FXML private TableColumn<Carriage, Boolean> selectCarriageColumn;
     @FXML private TableColumn<Carriage, Number> idCarriageColumn;
@@ -30,10 +29,9 @@ public class CreateConvoyController {
     @FXML private Button confirmCreateConvoyButton;
     @FXML private Button cancelCreateConvoyButton;
     @FXML private Button backButton;
+    @FXML private Label depotCarriageModelLabel;
 
-    private final ConvoyService convoyService = new ConvoyService();
     private final CreateConvoyService createConvoyService = new CreateConvoyService();
-    private final RailSuiteFacade facade = new RailSuiteFacade();
     private Station selectedStation;
     private final javafx.collections.ObservableList<Carriage> selectedDepotCarriages = FXCollections.observableArrayList();
 
@@ -51,9 +49,9 @@ public class CreateConvoyController {
         logoutMenuItem.setOnAction(_ -> businessLogic.controller.UserSession.getInstance().clear());
         exitMenuItem.setOnAction(_ -> javafx.application.Platform.exit());
 
-        // ComboBox tipi disponibili
+        // ComboBox and TableView
         depotCarriageTypeComboBox.setOnAction(e -> onDepotTypeSelected());
-        // Colonne tabella
+        depotCarriageModelComboBox.setOnAction(e -> onDepotModelSelected());
         selectCarriageColumn.setCellValueFactory(cellData -> {
             Carriage carriage = cellData.getValue();
             return new javafx.beans.property.SimpleBooleanProperty(selectedDepotCarriages.contains(carriage));
@@ -66,9 +64,8 @@ public class CreateConvoyController {
                     TableRow<Carriage> row = getTableRow();
                     if (row != null) {
                         Carriage carriage = row.getItem();
+                        this.setGraphic(null);
                         if (carriage != null) {
-                            // Usa il valore del checkbox per la selezione
-                            this.setGraphic(null);
                             CheckBox checkBox = new CheckBox();
                             checkBox.setSelected(selectedDepotCarriages.contains(carriage));
                             checkBox.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
@@ -79,8 +76,6 @@ public class CreateConvoyController {
                                 }
                             });
                             setGraphic(checkBox);
-                        } else {
-                            setGraphic(null);
                         }
                     } else {
                         setGraphic(null);
@@ -97,7 +92,7 @@ public class CreateConvoyController {
         depotCarriageTableView.setVisible(false);
         confirmCreateConvoyButton.setOnAction(e -> handleConfirmCreateConvoy());
         cancelCreateConvoyButton.setOnAction(e -> goBackToManageConvoy());
-        backButton.setOnAction(e -> goBackToManageConvoy());
+        backButton.setOnAction(e -> businessLogic.controller.SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageConvoy.fxml"));
     }
 
     private void reloadDepotTypes() {
@@ -113,10 +108,56 @@ public class CreateConvoyController {
         if (selectedStation == null) {
             depotCarriageTableView.setVisible(false);
             selectedDepotCarriages.clear();
+            depotCarriageModelComboBox.setVisible(false);
+            depotCarriageModelComboBox.setManaged(false);
+            depotCarriageModelLabel.setVisible(false);
+            depotCarriageModelLabel.setManaged(false);
             return;
         }
         String type = depotCarriageTypeComboBox.getValue();
-        List<Carriage> available = createConvoyService.getAvailableDepotCarriages(selectedStation.getIdStation(), type);
+        if (type == null) {
+            depotCarriageTableView.setVisible(false);
+            selectedDepotCarriages.clear();
+            depotCarriageModelComboBox.setVisible(false);
+            depotCarriageModelComboBox.setManaged(false);
+            depotCarriageModelLabel.setVisible(false);
+            depotCarriageModelLabel.setManaged(false);
+            return;
+        }
+        // Se il tipo è passeggeri, mostra e popola la comboBox dei modelli e la label
+        if (type.equalsIgnoreCase("passeggeri")) {
+            List<String> models = createConvoyService.getAvailableDepotCarriageModels(selectedStation.getIdStation(), type);
+            depotCarriageModelComboBox.setItems(FXCollections.observableArrayList(models));
+            depotCarriageModelComboBox.setVisible(true);
+            depotCarriageModelComboBox.setManaged(true);
+            depotCarriageModelComboBox.getSelectionModel().clearSelection();
+            depotCarriageModelLabel.setVisible(true);
+            depotCarriageModelLabel.setManaged(true);
+            depotCarriageTableView.setVisible(false);
+            selectedDepotCarriages.clear();
+        } else {
+            depotCarriageModelComboBox.setVisible(false);
+            depotCarriageModelComboBox.setManaged(false);
+            depotCarriageModelLabel.setVisible(false);
+            depotCarriageModelLabel.setManaged(false);
+            List<Carriage> available = createConvoyService.getAvailableDepotCarriages(selectedStation.getIdStation(), type);
+            depotCarriageTableView.setItems(FXCollections.observableArrayList(available));
+            depotCarriageTableView.setVisible(true);
+            selectedDepotCarriages.clear();
+        }
+    }
+
+    private void onDepotModelSelected() {
+        if (selectedStation == null) return;
+        String type = depotCarriageTypeComboBox.getValue();
+        String model = depotCarriageModelComboBox.getValue();
+        if (type == null || model == null) {
+            depotCarriageTableView.setVisible(false);
+            selectedDepotCarriages.clear();
+            return;
+        }
+        List<Carriage> available = createConvoyService.getAvailableDepotCarriages(selectedStation.getIdStation(), type)
+            .stream().filter(c -> model.equals(c.getModel())).toList();
         depotCarriageTableView.setItems(FXCollections.observableArrayList(available));
         depotCarriageTableView.setVisible(true);
         selectedDepotCarriages.clear();
@@ -127,14 +168,22 @@ public class CreateConvoyController {
             showError("Seleziona almeno una vettura per creare il convoglio.");
             return;
         }
-        // Controllo che tutte le carriage selezionate abbiano lo stesso model_type
         String selectedType = null;
+        String selectedModel = null;
         for (Carriage c : selectedDepotCarriages) {
             if (selectedType == null) {
                 selectedType = c.getModelType();
-            } else if (!selectedType.equals(c.getModelType())) {
-                showError("Tutte le vetture devono essere dello stesso tipo per creare un convoglio.");
-                return;
+                selectedModel = c.getModel();
+            } else {
+                if (!selectedType.equals(c.getModelType())) {
+                    showError("Tutte le vetture devono essere dello stesso tipo per creare un convoglio.");
+                    return;
+                }
+                // Se tipo passeggeri, controlla anche il modello
+                if (selectedType.equalsIgnoreCase("passeggeri") && !selectedModel.equals(c.getModel())) {
+                    showError("Per i passeggeri, tutte le vetture devono essere dello stesso modello.");
+                    return;
+                }
             }
         }
         try {

@@ -250,4 +250,25 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
         }
         return null;
     }
+
+    @Override
+    public List<String> findAvailableCarriageModelsForConvoy(int idStation, String modelType) throws SQLException {
+        List<String> models = new ArrayList<>();
+        String sql = "SELECT DISTINCT c.model FROM carriage_depot cd " +
+                "JOIN carriage c ON cd.id_carriage = c.id_carriage " +
+                "JOIN depot d ON cd.id_depot = d.id_depot " +
+                "WHERE d.id_depot = ? AND c.model_type = ? AND cd.status_of_carriage = 'AVAILABLE' AND c.id_convoy IS NULL AND cd.time_exited IS NULL";
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, idStation);
+            stmt.setString(2, modelType);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                models.add(rs.getString("model"));
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Error retrieving available carriage models for station: " + idStation + ", type: " + modelType, e);
+        }
+        return models;
+    }
 }

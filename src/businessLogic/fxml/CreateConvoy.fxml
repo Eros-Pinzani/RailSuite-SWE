@@ -5,7 +5,7 @@
     <children>
         <!-- HEADER (riutilizzato da ManageConvoy) -->
         <HBox alignment="CENTER_RIGHT" minHeight="50.0" prefHeight="50.0" spacing="15.0" style="-fx-background-color: #1976d2; -fx-padding: 0 0 0 24;" VBox.vgrow="NEVER">
-            <Button fx:id="backButton" text="← Indietro" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold;" />
+            <Button fx:id="backButton" text="← Indietro" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-border-width: 0; -fx-padding: 4 12;" />
             <Label text="Nuovo convoglio" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white;" alignment="CENTER_LEFT" />
             <Pane HBox.hgrow="ALWAYS" />
             <Label fx:id="supervisorNameLabel" alignment="CENTER" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white; -fx-cursor: hand;" />
@@ -30,6 +30,10 @@
                     <VBox spacing="8">
                         <Label text="Tipo vettura:" />
                         <ComboBox fx:id="depotCarriageTypeComboBox" />
+                    </VBox>
+                    <VBox spacing="8">
+                        <Label fx:id="depotCarriageModelLabel" text="Modello:" visible="false" managed="false" />
+                        <ComboBox fx:id="depotCarriageModelComboBox" visible="false" managed="false" />
                     </VBox>
                 </HBox>
                 <TableView fx:id="depotCarriageTableView" prefHeight="200" visible="false">

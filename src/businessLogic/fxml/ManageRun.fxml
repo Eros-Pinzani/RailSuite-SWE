@@ -3,7 +3,9 @@
 <?import javafx.scene.layout.*?>
 <VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="businessLogic.controller.ManageRunController" spacing="0">
     <children>
+        <!--Header-->
         <HBox alignment="CENTER_RIGHT" minHeight="50.0" prefHeight="50.0" spacing="15.0" style="-fx-background-color: #1976d2; -fx-padding: 0 0 0 24;" VBox.vgrow="NEVER">
+            <Button fx:id="backButton" text="← Indietro" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-border-width: 0; -fx-padding: 4 12;" />
             <Label text="Gestione Corse" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white;" alignment="CENTER_LEFT" />
             <Pane HBox.hgrow="ALWAYS" />
             <Label fx:id="supervisorNameLabel" alignment="CENTER" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white; -fx-cursor: hand;" />
@@ -17,38 +19,47 @@
                 </items>
             </MenuButton>
         </HBox>
+        <!-- Main-->
         <VBox spacing="16" style="-fx-padding: 32;">
             <children>
-                <Label text="Gestione corse" style="-fx-font-size: 22px; -fx-font-weight: bold;" />
-                <HBox spacing="16" alignment="BOTTOM_LEFT">
-                    <VBox spacing="8">
-                        <Label text="Linea:" />
-                        <ComboBox fx:id="lineComboBox" />
-                    </VBox>
-                    <VBox spacing="8">
-                        <Label text="Convoglio:" />
-                        <ComboBox fx:id="convoyComboBox" />
-                    </VBox>
-                    <VBox spacing="8">
-                        <Label text="Operatore:" />
-                        <ComboBox fx:id="operatorComboBox" />
-                    </VBox>
-                    <Pane HBox.hgrow="ALWAYS" />
-                    <Button fx:id="assignButton" text="Assegna" style="-fx-font-weight: bold; -fx-padding: 0 32 0 32; -fx-min-height: 40px; -fx-max-height: 40px;" />
+                <!-- Sezione filtri (unica, in alto) -->
+                <HBox spacing="16" alignment="CENTER_LEFT" style="-fx-padding: 16 0 16 0;">
+                    <children>
+                        <VBox spacing="4">
+                            <Label text="Linea:" />
+                            <ComboBox fx:id="filterLineComboBox" prefWidth="160" />
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Convoglio:" />
+                            <ComboBox fx:id="filterConvoyComboBox" prefWidth="160" />
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Operatore:" />
+                            <ComboBox fx:id="filterOperatorComboBox" prefWidth="160" />
+                        </VBox>
+                        <Button fx:id="searchButton" text="Cerca" alignment="BASELINE_CENTER"/>
+                    </children>
                 </HBox>
+                <!-- Fine sezione filtri -->
                 <Label text="Riepilogo corse" style="-fx-font-size: 16px; -fx-font-weight: bold;" />
                 <TableView fx:id="summaryTable" VBox.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="summaryLineColumn" text="Linea" reorderable="false" />
-                        <TableColumn fx:id="summaryConvoyColumn" text="Convoglio" reorderable="false" />
-                        <TableColumn fx:id="summaryOperatorColumn" text="Operatore" reorderable="false" />
-                        <TableColumn fx:id="summaryCarriagesColumn" text="Carrozze" reorderable="false" />
-                        <TableColumn fx:id="summaryDeleteColumn" text="Elimina" reorderable="false" />
+                        <TableColumn fx:id="operatorColumn" text="Operatore" reorderable="false" />
+                        <TableColumn fx:id="convoyIdColumn" text="ID Convoglio" reorderable="false" />
+                        <TableColumn fx:id="lineIdColumn" text="ID Linea" reorderable="false" />
+                        <TableColumn fx:id="startTimeColumn" text="Ora Inizio" reorderable="false" />
+                        <TableColumn fx:id="endTimeColumn" text="Ora Fine" reorderable="false"/>
+                        <TableColumn fx:id="startStationColumn" text="Origine" reorderable="false" />
+                        <TableColumn fx:id="endStationColumn" text="Destinazione" reorderable="false" />
+                        <TableColumn fx:id="statusColumn" text="Stato" reorderable="false" />
                     </columns>
-                    <columnResizePolicy>
-                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-                    </columnResizePolicy>
                 </TableView>
+                <HBox spacing="16" alignment="CENTER_RIGHT" style="-fx-padding: 16 0 0 0;">
+                    <children>
+                        <Button text="Nuova associazione" fx:id="newRunButton" style="-fx-font-weight: bold; -fx-padding: 0 32 0 32; -fx-min-height: 40px; -fx-max-height: 40px;" />
+                        <Button text="Visualizza dettagli" fx:id="detailsButton" style="-fx-font-weight: bold; -fx-padding: 0 32 0 32; -fx-min-height: 40px; -fx-max-height: 40px;" />
+                    </children>
+                </HBox>
             </children>
         </VBox>
     </children>

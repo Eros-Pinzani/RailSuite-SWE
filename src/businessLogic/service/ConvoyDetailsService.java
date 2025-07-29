@@ -1,19 +1,19 @@
 package businessLogic.service;
 
+import java.util.logging.Logger;
+
 /**
  * Service for retrieving and processing convoy details.
  * Provides methods to fetch convoy, carriage, and station information for display.
  */
-import businessLogic.RailSuiteFacade;
 import domain.Carriage;
 import java.util.List;
 import businessLogic.service.OperatorHomeService.AssignedConvoyInfo;
-import domain.Run;
-import domain.Line;
+
 
 
 public class ConvoyDetailsService {
-    private final RailSuiteFacade facade = new RailSuiteFacade();
+    private static final Logger logger = Logger.getLogger(ConvoyDetailsService.class.getName());
 
     public static class ConvoyDetailsDTO {
         public final String convoyId;
@@ -72,7 +72,7 @@ public class ConvoyDetailsService {
                 raw.stationRows
             );
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.severe("Error updating convoy details: " + e.getMessage());
             return null;
         }
     }

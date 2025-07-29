@@ -15,9 +15,11 @@ import domain.ConvoyPool;
 import domain.ConvoyTableDTO;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class ConvoyService {
     private final RailSuiteFacade facade = new RailSuiteFacade();
+    private static final Logger logger = Logger.getLogger(ConvoyService.class.getName());
 
     /**
      * Returns a list of all convoys in the system.
@@ -28,6 +30,7 @@ public class ConvoyService {
         try {
             return facade.selectAllConvoys();
         } catch (SQLException e) {
+            logger.severe("Error getting all convoys: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -62,6 +65,7 @@ public class ConvoyService {
                 depotDao.deleteCarriageDepotByCarriageIfAvailable(carriage.getId());
             }
         } catch (Exception e) {
+            logger.severe("Error creating convoy: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -77,6 +81,7 @@ public class ConvoyService {
             dao.ConvoyPoolDao convoyPoolDao = dao.ConvoyPoolDao.of();
             return convoyPoolDao.getConvoyTableDataByStation(stationId);
         } catch (Exception e) {
+            logger.severe("Error getting convoy table by station: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -93,6 +98,7 @@ public class ConvoyService {
             CarriageDepotDao depotDao = CarriageDepotDao.of();
             return depotDao.findAvailableCarriagesForConvoy(idStation, modelType);
         } catch (Exception e) {
+            logger.severe("Error getting available depot carriages: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -108,6 +114,7 @@ public class ConvoyService {
             dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();
             return depotDao.findAvailableCarriageTypesForConvoy(idStation);
         } catch (Exception e) {
+            logger.severe("Error getting available depot carriage types: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -133,6 +140,7 @@ public class ConvoyService {
             }
             convoyDao.removeConvoy(idConvoy);
         } catch (Exception e) {
+            logger.severe("Error deleting convoy: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -145,9 +153,10 @@ public class ConvoyService {
     public void updateDepotCarriageAvailability(int idStation) {
         try {
             dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();
-            // Aggiorna tutte le vetture in deposito della stazione (senza filtrare per tipo)
+            // Update all depot carriages for the station (no type filter)
             depotDao.findAvailableCarriagesForConvoy(idStation, null);
         } catch (Exception e) {
+            logger.severe("Error updating depot carriage availability: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
@@ -163,6 +172,7 @@ public class ConvoyService {
             dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();
             return depotDao.findCarriagesWithDepotStatusByConvoy(idConvoy);
         } catch (Exception e) {
+            logger.severe("Error getting carriages with depot status by convoy: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }

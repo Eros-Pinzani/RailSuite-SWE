@@ -243,4 +243,35 @@ public class RunDaoImp implements RunDao {
         }
         return runs;
     }
+
+    @Override
+    public List<Run> selectRunsFiltered(Integer idLine, Integer idConvoy, Integer idStaff) throws Exception {
+        StringBuilder query = new StringBuilder("SELECT * FROM run WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+        if (idLine != null) {
+            query.append(" AND id_line = ?");
+            params.add(idLine);
+        }
+        if (idConvoy != null) {
+            query.append(" AND id_convoy = ?");
+            params.add(idConvoy);
+        }
+        if (idStaff != null) {
+            query.append(" AND id_staff = ?");
+            params.add(idStaff);
+        }
+        if (params.isEmpty()) return new ArrayList<>();
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            List<Run> runs = new ArrayList<>();
+            while (rs.next()) {
+                runs.add(mapResultSetToRun(rs));
+            }
+            return runs;
+        }
+    }
 }

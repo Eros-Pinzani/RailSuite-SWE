@@ -28,7 +28,6 @@ class LineDaoImp implements LineDao {
             stmtLine.setInt(1, idLine);
             ResultSet rsLine = stmtLine.executeQuery();
             if (!rsLine.next()) return null;
-            String name = rsLine.getString("name");
             stmtStations.setInt(1, idLine);
             ResultSet rsStations = stmtStations.executeQuery();
             List<LineStation> stations = new ArrayList<>();
@@ -41,7 +40,20 @@ class LineDaoImp implements LineDao {
                     duration = (Duration) intervalObj;
                 } else if (intervalObj != null) {
                     String intervalStr = rsStations.getString("time_to_next_station");
-                    if (intervalStr != null) duration = Duration.parse(intervalStr);
+                    if (intervalStr != null) {
+                        if (intervalStr.startsWith("P")) {
+                            duration = Duration.parse(intervalStr);
+                        } else {
+                            // Gestione formato hh:mm:ss
+                            String[] parts = intervalStr.split(":");
+                            if (parts.length == 3) {
+                                int hours = Integer.parseInt(parts[0]);
+                                int minutes = Integer.parseInt(parts[1]);
+                                int seconds = (int) Double.parseDouble(parts[2]);
+                                duration = Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds);
+                            }
+                        }
+                    }
                 }
                 stations.add(LineStation.of(stationId, order, duration));
             }

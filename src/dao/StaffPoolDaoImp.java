@@ -103,4 +103,53 @@ public class StaffPoolDaoImp implements StaffPoolDao {
         }
     }
 
+    @Override
+    public List<domain.Staff> findAvailableOperatorsForRun(int idLine, String direction, java.time.LocalDate date, String time) {
+        List<domain.Staff> result = new java.util.ArrayList<>();
+        try {
+            // Calcolo la stazione di testa in base a linea/direzione
+            java.util.List<domain.LineStation> stations = dao.LineStationDao.of().findByLine(idLine);
+            if (stations == null || stations.isEmpty()) return result;
+            int headStationId = direction.equalsIgnoreCase("Andata") ? stations.getFirst().getStationId() : stations.getLast().getStationId();
+            // Query ottimizzata: operatori OPERATOR, nella stazione di testa, status AVAILABLE, senza run sovrapposte, rispetto limiti temporali
+            String sql = "SELECT s.* FROM staff_pool sp " +
+                    "JOIN staff s ON s.id_staff = sp.id_staff " +
+                    "WHERE sp.id_station = ? " +
+                    "AND sp.status = 'AVAILABLE' " +
+                    "AND s.type_of_staff = 'OPERATOR' " +
+                    // Esclude operatori con run sovrapposte
+                    "AND s.id_staff NOT IN ( " +
+                    "    SELECT r.id_staff FROM run r " +
+                    "    WHERE r.time_departure <= ?::time AND r.time_arrival >= ?::time AND r.id_staff = sp.id_staff " +
+                    "    AND r.time_departure::date = ?::date " +
+                    ") " +
+                    // Limite: almeno 15 minuti tra servizi e max 12h totali nella giornata
+                    "AND ( " +
+                    "    (SELECT COALESCE(SUM(EXTRACT(EPOCH FROM (r.time_arrival - r.time_departure))/3600),0) FROM run r WHERE r.id_staff = sp.id_staff AND r.time_departure::date = ?::date) < 12 " +
+                    "    AND NOT EXISTS ( " +
+                    "        SELECT 1 FROM run r WHERE r.id_staff = sp.id_staff AND r.time_departure::date = ?::date " +
+                    "        AND (ABS(EXTRACT(EPOCH FROM (?::time - r.time_arrival))/60) < 15 OR ABS(EXTRACT(EPOCH FROM (r.time_departure - ?::time))/60) < 15) " +
+                    "    ) " +
+                    ") ";
+            try (Connection conn = dao.PostgresConnection.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, headStationId);
+                ps.setString(2, time);
+                ps.setString(3, time);
+                ps.setDate(4, java.sql.Date.valueOf(date));
+                ps.setDate(5, java.sql.Date.valueOf(date));
+                ps.setDate(6, java.sql.Date.valueOf(date));
+                ps.setString(7, time);
+                ps.setString(8, time);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        result.add(mapper.StaffMapper.toDomain(rs));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            java.util.logging.Logger.getLogger(StaffPoolDaoImp.class.getName()).severe("Errore ricerca operatori disponibili: " + e.getMessage());
+        }
+        return result;
+    }
 }

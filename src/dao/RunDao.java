@@ -144,4 +144,16 @@ public interface RunDao {
      */
     List<Run> selectRunsByFirstStationAndDeparture(int idFirstStation, Time timeDeparture) throws SQLException;
 
+    /**
+     * Returns the filtered runs based on the provided parameters.
+     * If a parameter is null, it is not used as a filter.
+     * If all are null, an empty list is returned.
+     * @param idLine the line id, can be null
+     * @param idConvoy the convoy id, can be null
+     * @param idStaff the staff id, can be null
+     * @return list of filtered Run objects
+     * @throws Exception if a database access error occurs
+     */
+    List<Run> selectRunsFiltered(Integer idLine, Integer idConvoy, Integer idStaff) throws Exception;
+
 }

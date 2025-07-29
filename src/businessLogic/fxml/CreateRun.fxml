@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="businessLogic.controller.CreateRunController" spacing="0">
+    <children>
+        <!--Header-->
+        <HBox alignment="CENTER_RIGHT" minHeight="50.0" prefHeight="50.0" spacing="15.0" style="-fx-background-color: #1976d2; -fx-padding: 0 0 0 24;" VBox.vgrow="NEVER">
+            <Button fx:id="backButton" text="← Indietro" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-border-width: 0; -fx-padding: 4 12;" />
+            <Label text="Crea Nuova Associazione Run" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white;" alignment="CENTER_LEFT" />
+            <Pane HBox.hgrow="ALWAYS" />
+            <Label fx:id="supervisorNameLabel" alignment="CENTER" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white; -fx-cursor: hand;" />
+            <MenuButton fx:id="menuButton" graphicTextGap="0" style="-fx-background-color: transparent;">
+                <graphic>
+                    <Label style="-fx-font-size: 22px; -fx-text-fill: white; -fx-padding: 0 0 0 8;" text="≡" />
+                </graphic>
+                <items>
+                    <MenuItem fx:id="logoutMenuItem" text="Logout" />
+                    <MenuItem fx:id="exitMenuItem" text="Chiudi App" />
+                </items>
+            </MenuButton>
+        </HBox>
+        <!-- Main-->
+        <VBox spacing="16" style="-fx-padding: 32;">
+            <children>
+                <HBox spacing="16" alignment="CENTER_LEFT">
+                    <children>
+                        <VBox spacing="4">
+                            <Label text="Linea:" />
+                            <ComboBox fx:id="lineComboBox" prefWidth="180" />
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Direzione:" />
+                            <ComboBox fx:id="directionComboBox" prefWidth="140" />
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Stazione di testa:" />
+                            <Label fx:id="headStationLabel" style="-fx-font-weight: bold;" />
+                        </VBox>
+                    </children>
+                </HBox>
+                <HBox spacing="16" alignment="CENTER_LEFT">
+                    <children>
+                        <VBox spacing="4">
+                            <Label text="Data partenza:" />
+                            <DatePicker fx:id="datePicker" />
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Ora partenza:" />
+                            <ComboBox fx:id="departureTimePicker" prefWidth="120" />
+                        </VBox>
+                    </children>
+                </HBox>
+                <HBox spacing="16" alignment="CENTER_LEFT">
+                    <children>
+                        <VBox spacing="4">
+                            <Label text="Convoglio disponibile:" />
+                            <ComboBox fx:id="convoyComboBox" prefWidth="180" />
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Operatore disponibile:" />
+                            <ComboBox fx:id="operatorComboBox" prefWidth="180" />
+                        </VBox>
+                    </children>
+                </HBox>
+                <HBox spacing="16" alignment="CENTER_RIGHT">
+                    <children>
+                        <Button text="Crea associazione" fx:id="createRunButton" />
+                    </children>
+                </HBox>
+                <Label fx:id="errorLabel" style="-fx-text-fill: red; -fx-font-weight: bold;" />
+            </children>
+        </VBox>
+    </children>
+</VBox>

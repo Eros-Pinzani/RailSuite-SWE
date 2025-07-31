@@ -78,8 +78,8 @@ public class CreateRunService {
             java.sql.Time timeDeparture = java.sql.Time.valueOf(time);
             // Per ora, stimiamo timeArrival come +1h (da calcolare correttamente)
             java.sql.Time timeArrival = java.sql.Time.valueOf(java.time.LocalTime.parse(time).plusHours(1));
-            Run run = runDao.createRun(line.getIdLine(), convoy.getId(), operator.getIdStaff(), timeDeparture, timeArrival, idFirstStation, idLastStation);
-            return run != null ? null : "Errore durante la creazione della run";
+            boolean success = runDao.createRun(line.getIdLine(), convoy.getId(), operator.getIdStaff(), timeDeparture, timeArrival, idFirstStation, idLastStation);
+            return success ? null : "Errore durante la creazione della run";
         } catch (Exception e) {
             return "Errore: " + e.getMessage();
         }

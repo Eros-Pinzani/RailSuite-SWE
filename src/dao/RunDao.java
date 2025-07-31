@@ -10,6 +10,10 @@ import java.util.List;
  * Defines methods for CRUD operations and queries on runs.
  */
 public interface RunDao {
+    /**
+     * Factory method to create a RunDao instance.
+     * @return a new RunDao instance
+     */
     static RunDao of() {
         return new RunDaoImp();
     }
@@ -21,7 +25,7 @@ public interface RunDao {
      * @return the corresponding Run object, or null if not found
      * @throws SQLException if a database access error occurs
      */
-    Run selectRunByLineAndConvoy(int idLine, int idConvoy) throws SQLException;
+    List<Run> selectRunsByLineAndConvoy(int idLine, int idConvoy) throws SQLException;
 
     /**
      * Returns the run identified by line, convoy, and staff.
@@ -31,41 +35,35 @@ public interface RunDao {
      * @return the corresponding Run object, or null if not found
      * @throws SQLException if a database access error occurs
      */
-    Run selectRun(int idLine, int idConvoy, int idStaff) throws SQLException;
+    Run selectRunByLineConvoyAndStaff(int idLine, int idConvoy, int idStaff) throws SQLException;
 
     /**
      * Returns the run associated with a specific staff and convoy.
-     * @param idStaff the staff id
+     * @param idStaff  the staff id
      * @param idConvoy the convoy id
      * @return the corresponding Run object, or null if not found
      * @throws SQLException if a database access error occurs
      */
-    Run selectRunByStaffAndConvoy(int idStaff, int idConvoy) throws SQLException;
+    List<Run> selectRunsByStaffAndConvoy(int idStaff, int idConvoy) throws SQLException;
 
     /**
      * Returns the run associated with a specific staff and line.
      * @param idStaff the staff id
-     * @param idLine the line id
+     * @param idLine  the line id
      * @return the corresponding Run object, or null if not found
      * @throws SQLException if a database access error occurs
      */
-    Run selectRunByStaffAndLine(int idStaff, int idLine) throws SQLException;
-
-    /**
-     * Returns all runs in the system.
-     * @return list of Run objects
-     * @throws SQLException if a database access error occurs
-     */
-    List<Run> selectAllRuns() throws SQLException;
+    List<Run> selectRunsByStaffAndLine(int idStaff, int idLine) throws SQLException;
 
     /**
      * Removes a run identified by line and convoy.
      * @param idLine the line id
      * @param idConvoy the convoy id
+     * @param idStaff the staff id
      * @return true if the removal was successful, false otherwise
      * @throws SQLException if a database access error occurs
      */
-    boolean removeRun(int idLine, int idConvoy) throws SQLException;
+    boolean removeRun(int idLine, int idConvoy, int idStaff) throws SQLException;
 
     /**
      * Creates a new run with the specified parameters.
@@ -76,10 +74,10 @@ public interface RunDao {
      * @param timeArrival arrival time
      * @param idFirstStation first station id
      * @param idLastStation last station id
-     * @return the created Run object
+     * @return true if the creation was successful, false otherwise
      * @throws SQLException if a database access error occurs
      */
-    Run createRun(int idLine, int idConvoy, int idStaff, Time timeDeparture, Time timeArrival, int idFirstStation, int idLastStation) throws SQLException;
+    boolean createRun(int idLine, int idConvoy, int idStaff, Time timeDeparture, Time timeArrival, int idFirstStation, int idLastStation) throws SQLException;
 
     /**
      * Updates an existing run with the specified parameters.
@@ -145,15 +143,15 @@ public interface RunDao {
     List<Run> selectRunsByFirstStationAndDeparture(int idFirstStation, Time timeDeparture) throws SQLException;
 
     /**
-     * Returns the filtered runs based on the provided parameters.
-     * If a parameter is null, it is not used as a filter.
-     * If all are null, an empty list is returned.
-     * @param idLine the line id, can be null
-     * @param idConvoy the convoy id, can be null
-     * @param idStaff the staff id, can be null
-     * @return list of filtered Run objects
-     * @throws Exception if a database access error occurs
+     * Searches for runs based on the provided filters (all optional) and a date range.
+     * @param lineName line name
+     * @param convoyId convoy id (string)
+     * @param staffNameSurname staff name and surname
+     * @param firstStationName first station name
+     * @param dayStart start day (inclusive)
+     * @param dayEnd end day (inclusive)
+     * @return list of Run objects matching the filters
+     * @throws SQLException if a database access error occurs
      */
-    List<Run> selectRunsFiltered(Integer idLine, Integer idConvoy, Integer idStaff) throws Exception;
-
+    List<Run> searchRunsByDay(String lineName, String convoyId, String staffNameSurname, String firstStationName, java.sql.Timestamp dayStart, java.sql.Timestamp dayEnd) throws SQLException;
 }

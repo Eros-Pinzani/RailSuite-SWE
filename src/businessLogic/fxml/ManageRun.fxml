@@ -37,6 +37,14 @@
                             <Label text="Operatore:" />
                             <ComboBox fx:id="filterOperatorComboBox" prefWidth="160" />
                         </VBox>
+                        <VBox spacing="4">
+                            <Label text="Stazione di partenza:" />
+                            <ComboBox fx:id="filterFirstStationComboBox" prefWidth="160" />
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="Data partenza:" />
+                            <DatePicker fx:id="filterDatePicker" prefWidth="130" />
+                        </VBox>
                         <Button fx:id="searchButton" text="Cerca" alignment="BASELINE_CENTER"/>
                     </children>
                 </HBox>
@@ -46,7 +54,7 @@
                     <columns>
                         <TableColumn fx:id="operatorColumn" text="Operatore" reorderable="false" />
                         <TableColumn fx:id="convoyIdColumn" text="ID Convoglio" reorderable="false" />
-                        <TableColumn fx:id="lineIdColumn" text="ID Linea" reorderable="false" />
+                        <TableColumn fx:id="lineNameColumn" text="ID Linea" reorderable="false" />
                         <TableColumn fx:id="startTimeColumn" text="Ora Inizio" reorderable="false" />
                         <TableColumn fx:id="endTimeColumn" text="Ora Fine" reorderable="false"/>
                         <TableColumn fx:id="startStationColumn" text="Origine" reorderable="false" />

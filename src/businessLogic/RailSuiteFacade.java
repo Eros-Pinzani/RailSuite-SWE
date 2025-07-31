@@ -368,52 +368,45 @@ public class RailSuiteFacade {
 
     // Run
     /**
-     * Retrieves a run by line and convoy ID.
+     * Retrieves runs by line and convoy ID.
      * Used to get run information for a specific line and convoy.
      */
-    public Run selectRunByLineAndConvoy(int idLine, int idConvoy) throws SQLException {
-        return runDao.selectRunByLineAndConvoy(idLine, idConvoy);
+    public List<Run> selectRunsByLineAndConvoy(int idLine, int idConvoy) throws SQLException {
+        return runDao.selectRunsByLineAndConvoy(idLine, idConvoy);
     }
     /**
      * Retrieves a run by line, convoy, and staff ID.
      * Used to get run information for a specific line, convoy, and staff.
      */
     public Run selectRun(int idLine, int idConvoy, int idStaff) throws SQLException {
-        return runDao.selectRun(idLine, idConvoy, idStaff);
+        return runDao.selectRunByLineConvoyAndStaff(idLine, idConvoy, idStaff);
     }
     /**
-     * Retrieves a run by staff and convoy ID.
+     * Retrieves runs by staff and convoy ID.
      * Used to get run information for a specific staff and convoy.
      */
-    public Run selectRunByStaffAndConvoy(int idStaff, int idConvoy) throws SQLException {
-        return runDao.selectRunByStaffAndConvoy(idStaff, idConvoy);
+    public List<Run> selectRunsByStaffAndConvoy(int idStaff, int idConvoy) throws SQLException {
+        return runDao.selectRunsByStaffAndConvoy(idStaff, idConvoy);
     }
     /**
-     * Retrieves a run by staff and line ID.
+     * Retrieves runs by staff and line ID.
      * Used to get run information for a specific staff and line.
      */
-    public Run selectRunByStaffAndLine(int idStaff, int idLine) throws SQLException {
-        return runDao.selectRunByStaffAndLine(idStaff, idLine);
+    public List<Run> selectRunsByStaffAndLine(int idStaff, int idLine) throws SQLException {
+        return runDao.selectRunsByStaffAndLine(idStaff, idLine);
     }
     /**
-     * Retrieves all runs in the system.
-     * Used to list or manage all runs.
-     */
-    public List<Run> selectAllRuns() throws SQLException {
-        return runDao.selectAllRuns();
-    }
-    /**
-     * Removes a run from the system by line and convoy ID.
+     * Removes a run from the system by line, convoy and staff ID.
      * Used to delete a run.
      */
-    public boolean removeRun(int idLine, int idConvoy) throws SQLException {
-        return runDao.removeRun(idLine, idConvoy);
+    public boolean removeRun(int idLine, int idConvoy, int idStaff) throws SQLException {
+        return runDao.removeRun(idLine, idConvoy, idStaff);
     }
     /**
      * Creates a new run with the given parameters.
      * Used to add a new run to the system.
      */
-    public Run createRun(int idLine, int idConvoy, int idStaff, java.sql.Time timeDeparture, java.sql.Time timeArrival, int idFirstStation, int idLastStation) throws SQLException {
+    public boolean createRun(int idLine, int idConvoy, int idStaff, java.sql.Time timeDeparture, java.sql.Time timeArrival, int idFirstStation, int idLastStation) throws SQLException {
         return runDao.createRun(idLine, idConvoy, idStaff, timeDeparture, timeArrival, idFirstStation, idLastStation);
     }
     /**

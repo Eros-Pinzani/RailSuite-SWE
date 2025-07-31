@@ -21,6 +21,8 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -102,16 +104,20 @@ public class ManageRunController {
     @FXML
     public void initialize() {
         ManageConvoyController.header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
+        // Carica le liste una sola volta
+        allLines = manageRunService.getAllLines();
+        allConvoys = manageRunService.getAllConvoys();
+        allOperators = manageRunService.getAllOperators();
         try {
-            filterLineComboBox.setItems(FXCollections.observableArrayList(getLineFilterItems()));
-            filterConvoyComboBox.setItems(FXCollections.observableArrayList(getConvoyFilterItems()));
-            filterOperatorComboBox.setItems(FXCollections.observableArrayList(getOperatorFilterItems()));
+            updateAllFilters();
         } catch (Exception e) {
             logger.severe("Error initializing combo boxes: " + e.getMessage());
         }
+        filterLineComboBox.setOnAction(e -> updateFiltersFromLine());
+        filterConvoyComboBox.setOnAction(e -> updateFiltersFromConvoy());
+        filterOperatorComboBox.setOnAction(e -> updateFiltersFromOperator());
         searchButton.setOnAction(e -> refreshRunSummaryTable());
         newRunButton.setOnAction(e -> businessLogic.controller.SceneManager.getInstance().switchScene("/businessLogic/fxml/CreateRun.fxml"));
-        // Listener solo per il tasto cerca
         // Table columns setup
         operatorColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getName() + " " + data.getValue().getSurname()));
         convoyIdColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleObjectProperty<>(data.getValue().getConvoyId()));
@@ -127,41 +133,120 @@ public class ManageRunController {
         refreshRunSummaryTable();
     }
 
-    private List<String> getLineFilterItems() {
+    private boolean isUpdatingFilters = false;
+
+    private void updateAllFilters() {
+        if (isUpdatingFilters) return;
+        isUpdatingFilters = true;
         try {
-            List<String> items = facade.findAllLines().stream().map(Line::getName).toList();
-            List<String> withAll = new java.util.ArrayList<>();
-            withAll.add("-------");
-            withAll.addAll(items);
-            return withAll;
-        } catch (Exception e) {
-            logger.severe("Errore caricamento linee: " + e.getMessage());
-            return java.util.Collections.singletonList("-------");
+            String selectedLineName = filterLineComboBox.getValue();
+            String selectedConvoyIdStr = filterConvoyComboBox.getValue();
+            String selectedOperatorName = filterOperatorComboBox.getValue();
+
+            Integer idLine = null;
+            Integer idConvoy = null;
+            Integer idStaff = null;
+            if (selectedLineName != null && !selectedLineName.equals("-------")) {
+                Line line = allLines.stream().filter(l -> l.getName().equals(selectedLineName)).findFirst().orElse(null);
+                if (line != null) idLine = line.getIdLine();
+            }
+            if (selectedConvoyIdStr != null && !selectedConvoyIdStr.equals("-------")) {
+                try { idConvoy = Integer.parseInt(selectedConvoyIdStr); } catch (Exception ignored) {}
+            }
+            if (selectedOperatorName != null && !selectedOperatorName.equals("-------")) {
+                Staff staff = allOperators.stream().filter(s -> (s.getName() + " " + s.getSurname()).equals(selectedOperatorName)).findFirst().orElse(null);
+                if (staff != null) idStaff = staff.getIdStaff();
+            }
+
+            List<String> filteredLines = new ArrayList<>();
+            filteredLines.add("-------");
+            for (Line l : allLines) {
+                boolean match = true;
+                if (idConvoy != null && idStaff != null) {
+                    match = !manageRunService.getAssociationsByLineConvoyAndStaff(l.getIdLine(), idConvoy, idStaff).isEmpty();
+                } else if (idConvoy != null) {
+                    match = !manageRunService.getAssociationsByLineAndConvoy(l.getIdLine(), idConvoy).isEmpty();
+                } else if (idStaff != null) {
+                    match = !manageRunService.getAssociationsByLineAndStaff(l.getIdLine(), idStaff).isEmpty();
+                }
+                if (match) filteredLines.add(l.getName());
+            }
+            filterLineComboBox.setItems(FXCollections.observableArrayList(filteredLines));
+            if (!filteredLines.contains(selectedLineName)) {
+                filterLineComboBox.setValue("-------");
+            } else {
+                filterLineComboBox.setValue(selectedLineName);
+            }
+
+            List<String> filteredConvoys = new ArrayList<>();
+            filteredConvoys.add("-------");
+            for (Convoy c : allConvoys) {
+                boolean match = true;
+                if (idLine != null && idStaff != null) {
+                    match = !manageRunService.getAssociationsByLineConvoyAndStaff(idLine, c.getId(), idStaff).isEmpty();
+                } else if (idLine != null) {
+                    match = !manageRunService.getAssociationsByLineAndConvoy(idLine, c.getId()).isEmpty();
+                } else if (idStaff != null) {
+                    match = !manageRunService.getAssociationsByConvoyAndStaff(c.getId(), idStaff).isEmpty();
+                }
+                if (match) filteredConvoys.add(Integer.toString(c.getId()));
+            }
+            filterConvoyComboBox.setItems(FXCollections.observableArrayList(filteredConvoys));
+            if (!filteredConvoys.contains(selectedConvoyIdStr)) {
+                filterConvoyComboBox.setValue("-------");
+            } else {
+                filterConvoyComboBox.setValue(selectedConvoyIdStr);
+            }
+
+            List<String> filteredOperators = new ArrayList<>();
+            filteredOperators.add("-------");
+            for (Staff s : allOperators) {
+                boolean match = true;
+                if (idLine != null && idConvoy != null) {
+                    match = !manageRunService.getAssociationsByLineConvoyAndStaff(idLine, idConvoy, s.getIdStaff()).isEmpty();
+                } else if (idLine != null) {
+                    match = !manageRunService.getAssociationsByLineAndStaff(idLine, s.getIdStaff()).isEmpty();
+                } else if (idConvoy != null) {
+                    match = !manageRunService.getAssociationsByConvoyAndStaff(idConvoy, s.getIdStaff()).isEmpty();
+                }
+                if (match) filteredOperators.add(s.getName() + " " + s.getSurname());
+            }
+            filterOperatorComboBox.setItems(FXCollections.observableArrayList(filteredOperators));
+            if (!filteredOperators.contains(selectedOperatorName)) {
+                filterOperatorComboBox.setValue("-------");
+            } else {
+                filterOperatorComboBox.setValue(selectedOperatorName);
+            }
+        } finally {
+            isUpdatingFilters = false;
         }
+    }
+
+    // Liste caricate una sola volta all'avvio
+    private List<Line> allLines;
+    private List<Convoy> allConvoys;
+    private List<Staff> allOperators;
+
+    private List<String> getLineFilterItems() {
+        List<String> items = allLines.stream().map(Line::getName).toList();
+        List<String> withAll = new java.util.ArrayList<>();
+        withAll.add("-------");
+        withAll.addAll(items);
+        return withAll;
     }
     private List<String> getConvoyFilterItems() {
-        try {
-            List<String> items = facade.selectAllConvoys().stream().map(c -> Integer.toString(c.getId())).toList();
-            List<String> withAll = new java.util.ArrayList<>();
-            withAll.add("-------");
-            withAll.addAll(items);
-            return withAll;
-        } catch (Exception e) {
-            logger.severe("Errore caricamento convogli: " + e.getMessage());
-            return java.util.Collections.singletonList("-------");
-        }
+        List<String> items = allConvoys.stream().map(c -> Integer.toString(c.getId())).toList();
+        List<String> withAll = new java.util.ArrayList<>();
+        withAll.add("-------");
+        withAll.addAll(items);
+        return withAll;
     }
     private List<String> getOperatorFilterItems() {
-        try {
-            List<String> items = facade.findAllOperators().stream().map(s -> s.getName() + " " + s.getSurname()).toList();
-            List<String> withAll = new java.util.ArrayList<>();
-            withAll.add("-------");
-            withAll.addAll(items);
-            return withAll;
-        } catch (Exception e) {
-            logger.severe("Errore caricamento operatori: " + e.getMessage());
-            return java.util.Collections.singletonList("-------");
-        }
+        List<String> items = allOperators.stream().map(s -> s.getName() + " " + s.getSurname()).toList();
+        List<String> withAll = new java.util.ArrayList<>();
+        withAll.add("-------");
+        withAll.addAll(items);
+        return withAll;
     }
 
     private String getStationNameById(int idStation) {
@@ -215,5 +300,107 @@ public class ManageRunController {
             rows.add(new RunSummaryRow(name, surname, convoyId, lineId, departureTime, arrivalTime, origin, destination, status));
         }
         summaryTable.setItems(rows);
+    }
+
+    // Aggiorna i ComboBox in base alla selezione della linea
+    private void updateFiltersFromLine() {
+        if (isUpdatingFilters) return;
+        isUpdatingFilters = true;
+        try {
+            String selectedLineName = filterLineComboBox.getValue();
+            if (selectedLineName == null || selectedLineName.equals("-------")) {
+                filterConvoyComboBox.setItems(FXCollections.observableArrayList(getConvoyFilterItems()));
+                filterOperatorComboBox.setItems(FXCollections.observableArrayList(getOperatorFilterItems()));
+                return;
+            }
+            Line line = manageRunService.getAllLines().stream().filter(l -> l.getName().equals(selectedLineName)).findFirst().orElse(null);
+            if (line == null) return;
+            // Convogli associati a questa linea
+            List<String> convoysList = new ArrayList<>();
+            convoysList.add("-------");
+            manageRunService.getAllConvoys().forEach(c -> {
+                if (!manageRunService.getAssociationsByLineAndConvoy(line.getIdLine(), c.getId()).isEmpty())
+                    convoysList.add(Integer.toString(c.getId()));
+            });
+            filterConvoyComboBox.setItems(FXCollections.observableArrayList(convoysList));
+            // Operatori associati a questa linea
+            List<String> operatorsList = new ArrayList<>();
+            operatorsList.add("-------");
+            manageRunService.getAllOperators().forEach(s -> {
+                if (!manageRunService.getAssociationsByLineAndStaff(line.getIdLine(), s.getIdStaff()).isEmpty())
+                    operatorsList.add(s.getName() + " " + s.getSurname());
+            });
+            filterOperatorComboBox.setItems(FXCollections.observableArrayList(operatorsList));
+        } finally {
+            isUpdatingFilters = false;
+        }
+    }
+
+    // Aggiorna i ComboBox in base alla selezione del convoglio
+    private void updateFiltersFromConvoy() {
+        if (isUpdatingFilters) return;
+        isUpdatingFilters = true;
+        try {
+            String selectedConvoyIdStr = filterConvoyComboBox.getValue();
+            if (selectedConvoyIdStr == null || selectedConvoyIdStr.equals("-------")) {
+                filterLineComboBox.setItems(FXCollections.observableArrayList(getLineFilterItems()));
+                filterOperatorComboBox.setItems(FXCollections.observableArrayList(getOperatorFilterItems()));
+                return;
+            }
+            int idConvoy;
+            try { idConvoy = Integer.parseInt(selectedConvoyIdStr); } catch (Exception ex) { return; }
+            // Linee associate a questo convoglio
+            List<String> linesList = new ArrayList<>();
+            linesList.add("-------");
+            manageRunService.getAllLines().forEach(l -> {
+                if (!manageRunService.getAssociationsByLineAndConvoy(l.getIdLine(), idConvoy).isEmpty())
+                    linesList.add(l.getName());
+            });
+            filterLineComboBox.setItems(FXCollections.observableArrayList(linesList));
+            // Operatori associati a questo convoglio
+            List<String> operatorsList = new ArrayList<>();
+            operatorsList.add("-------");
+            manageRunService.getAllOperators().forEach(s -> {
+                if (!manageRunService.getAssociationsByConvoyAndStaff(idConvoy, s.getIdStaff()).isEmpty())
+                    operatorsList.add(s.getName() + " " + s.getSurname());
+            });
+            filterOperatorComboBox.setItems(FXCollections.observableArrayList(operatorsList));
+        } finally {
+            isUpdatingFilters = false;
+        }
+    }
+
+    // Aggiorna i ComboBox in base alla selezione dell'operatore
+    private void updateFiltersFromOperator() {
+        if (isUpdatingFilters) return;
+        isUpdatingFilters = true;
+        try {
+            String selectedOperatorName = filterOperatorComboBox.getValue();
+            if (selectedOperatorName == null || selectedOperatorName.equals("-------")) {
+                filterLineComboBox.setItems(FXCollections.observableArrayList(getLineFilterItems()));
+                filterConvoyComboBox.setItems(FXCollections.observableArrayList(getConvoyFilterItems()));
+                return;
+            }
+            Staff staff = manageRunService.getAllOperators().stream().filter(s -> (s.getName() + " " + s.getSurname()).equals(selectedOperatorName)).findFirst().orElse(null);
+            if (staff == null) return;
+            // Linee associate a questo operatore
+            List<String> linesList = new ArrayList<>();
+            linesList.add("-------");
+            manageRunService.getAllLines().forEach(l -> {
+                if (!manageRunService.getAssociationsByLineAndStaff(l.getIdLine(), staff.getIdStaff()).isEmpty())
+                    linesList.add(l.getName());
+            });
+            filterLineComboBox.setItems(FXCollections.observableArrayList(linesList));
+            // Convogli associati a questo operatore
+            List<String> convoysList = new ArrayList<>();
+            convoysList.add("-------");
+            manageRunService.getAllConvoys().forEach(c -> {
+                if (!manageRunService.getAssociationsByConvoyAndStaff(c.getId(), staff.getIdStaff()).isEmpty())
+                    convoysList.add(Integer.toString(c.getId()));
+            });
+            filterConvoyComboBox.setItems(FXCollections.observableArrayList(convoysList));
+        } finally {
+            isUpdatingFilters = false;
+        }
     }
 }

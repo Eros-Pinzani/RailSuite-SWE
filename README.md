@@ -7,7 +7,7 @@
 ### Useful Links
 
 - [Project documentation](https://www.overleaf.com/project/6878e189fb54376e984e33a9)
-- [Project DB](https://console.neon.tech/app/projects/blue-credit-23563491?branchId=br-polished-water-a20antqu)
+- [Project DB](https://console.neon.tech/app/projects/blue-cherry-81746859?branchId=br-still-violet-a2kvxop1)
 - [JavaFX for gui](https://youtube.com/playlist?list=PLZPZq0r_RZOM-8vJA3NQFZB7JroDcMwev&si=EZBrWkfVWXSPGsL3)
 
 ---

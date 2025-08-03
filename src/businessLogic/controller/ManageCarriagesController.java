@@ -5,17 +5,16 @@ package businessLogic.controller;
  * Handles the display and management of carriages in a convoy,
  * including adding, removing, and updating carriage information.
  */
-import businessLogic.service.ConvoyService;
 import businessLogic.service.ManageCarriagesService;
-import businessLogic.RailSuiteFacade;
 import domain.Carriage;
-import domain.ConvoyTableDTO;
+import domain.DTO.ConvoyTableDTO;
+import domain.DTO.CarriageDepotDTO;
 import domain.Station;
 import domain.Staff;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.stage.Stage;
+
 import java.util.List;
 
 public class ManageCarriagesController {
@@ -25,14 +24,14 @@ public class ManageCarriagesController {
     @FXML private MenuItem exitMenuItem;
     @FXML private Label selectedStationLabel;
     @FXML private Label selectedConvoyLabel;
-    @FXML private TableView<domain.CarriageDepotDTO> manageCarriageTableView;
-    @FXML private TableColumn<domain.CarriageDepotDTO, Number> idManageCarriageColumn;
-    @FXML private TableColumn<domain.CarriageDepotDTO, String> modelManageCarriageColumn;
-    @FXML private TableColumn<domain.CarriageDepotDTO, Number> yearManageCarriageColumn;
-    @FXML private TableColumn<domain.CarriageDepotDTO, Number> capacityManageCarriageColumn;
-    @FXML private TableColumn<domain.CarriageDepotDTO, String> statusManageCarriageColumn;
-    @FXML private TableColumn<domain.CarriageDepotDTO, String> exitTimeManageCarriageColumn;
-    @FXML private TableColumn<domain.CarriageDepotDTO, Void> removeManageCarriageColumn;
+    @FXML private TableView<CarriageDepotDTO> manageCarriageTableView;
+    @FXML private TableColumn<CarriageDepotDTO, Number> idManageCarriageColumn;
+    @FXML private TableColumn<CarriageDepotDTO, String> modelManageCarriageColumn;
+    @FXML private TableColumn<CarriageDepotDTO, Number> yearManageCarriageColumn;
+    @FXML private TableColumn<CarriageDepotDTO, Number> capacityManageCarriageColumn;
+    @FXML private TableColumn<CarriageDepotDTO, String> statusManageCarriageColumn;
+    @FXML private TableColumn<CarriageDepotDTO, String> exitTimeManageCarriageColumn;
+    @FXML private TableColumn<CarriageDepotDTO, Void> removeManageCarriageColumn;
     @FXML private Button closeManageCarriagesButton;
     @FXML private Button openAddCarriageDialogButton;
     @FXML private ComboBox<String> addCarriageTypeComboBox;
@@ -46,7 +45,7 @@ public class ManageCarriagesController {
     private final ManageCarriagesService manageCarriagesService = new ManageCarriagesService();
     private Station selectedStation;
     private ConvoyTableDTO selectedConvoy;
-    private final javafx.collections.ObservableList<domain.CarriageDepotDTO> manageCarriageList = FXCollections.observableArrayList();
+    private final javafx.collections.ObservableList<CarriageDepotDTO> manageCarriageList = FXCollections.observableArrayList();
 
     /**
      * Sets the current session for the controller, including staff, station, and convoy.
@@ -117,7 +116,7 @@ public class ManageCarriagesController {
      * Shows an error dialog if the operation fails.
      * @param dto The CarriageDepotDTO representing the carriage to remove.
      */
-    private void removeCarriageFromConvoy(domain.CarriageDepotDTO dto) {
+    private void removeCarriageFromConvoy(CarriageDepotDTO dto) {
         try {
             manageCarriagesService.removeCarriageFromConvoy(dto.getIdCarriage(), selectedConvoy.getIdConvoy());
             loadCarriages();

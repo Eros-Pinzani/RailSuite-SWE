@@ -1,4 +1,4 @@
-package domain;
+package domain.DTO;
 
 import java.sql.Timestamp;
 
@@ -11,8 +11,8 @@ public class CarriageDepotDTO {
     private final String model;
     private final int yearProduced;
     private final int capacity;
-    private final String depotStatus; // AVAILABLE, CLEANING, MAINTENANCE
-    private final Timestamp timeExited; // Fine manutenzione, se presente
+    private final String depotStatus;
+    private final Timestamp timeExited;
 
     /**
      * Constructs a CarriageDepotDTO with all properties.

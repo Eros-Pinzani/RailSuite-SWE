@@ -8,7 +8,7 @@ import dao.CarriageDepotDao;
 import dao.CarriageDao;
 import dao.ConvoyPoolDao;
 import domain.Carriage;
-import domain.CarriageDepotDTO;
+import domain.DTO.CarriageDepotDTO;
 import java.util.List;
 
 public class ManageCarriagesService {

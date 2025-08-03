@@ -7,6 +7,7 @@ package businessLogic.controller;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import domain.DTO.ConvoyTableDTO;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -79,7 +80,7 @@ public class SceneManager {
      * @param station the selected station
      * @param convoy the selected convoy
      */
-    public void openManageCarriagesScene(domain.Staff staff, domain.Station station, domain.ConvoyTableDTO convoy) {
+    public void openManageCarriagesScene(domain.Staff staff, domain.Station station, ConvoyTableDTO convoy) {
         try {
             FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/businessLogic/fxml/ManageCarriages.fxml"));
             Parent root = loader.load();

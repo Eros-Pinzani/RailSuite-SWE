@@ -3,6 +3,7 @@ package dao;
 import domain.Carriage;
 import domain.Convoy;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import businessLogic.service.ConvoyDetailsService;
 
@@ -93,6 +94,7 @@ public interface ConvoyDao {
         public final String departureTime;
         public final String arrivalStation;
         public final String arrivalTime;
+
         public ConvoyAssignedRow(int convoyId, String departureStation, String departureTime, String arrivalStation, String arrivalTime) {
             this.convoyId = convoyId;
             this.departureStation = departureStation;
@@ -109,4 +111,15 @@ public interface ConvoyDao {
      * @throws SQLException if a database access error occurs
      */
     List<ConvoyAssignedRow> selectAssignedConvoysRowsByStaff(int staffId) throws SQLException;
+
+    /**
+     * Retrieves all convoys available for a new run for a station, time, date, and line.
+     * @param idStation the station id
+     * @param timeDeparture the departure time
+     * @param dateDeparture the departure date
+     * @param idLine the line id
+     * @return a list of Convoy objects
+     * @throws SQLException if a database access error occurs
+     */
+    List<Convoy> getConvoysForNewRun(int idStation, String timeDeparture, LocalDate dateDeparture, int idLine) throws SQLException;
 }

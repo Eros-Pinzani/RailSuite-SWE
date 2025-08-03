@@ -1,6 +1,8 @@
 package dao;
 
 import domain.CarriageDepot;
+import domain.DTO.CarriageDepotDTO;
+
 import java.sql.SQLException;
 import java.util.List;
 
@@ -85,7 +87,7 @@ public interface CarriageDepotDao {
      * @return a list of CarriageDepotDTO objects
      * @throws SQLException if a database access error occurs
      */
-    List<domain.CarriageDepotDTO> findCarriagesWithDepotStatusByConvoy(int idConvoy) throws SQLException;
+    List<CarriageDepotDTO> findCarriagesWithDepotStatusByConvoy(int idConvoy) throws SQLException;
 
     /**
      * Returns all carriages available for addition to a convoy (same type, in depot, AVAILABLE, without id_convoy).
@@ -97,19 +99,27 @@ public interface CarriageDepotDao {
     List<domain.Carriage> findAvailableCarriagesForConvoyAdd(int idStation, String modelType) throws SQLException;
 
     /**
-     * Restituisce tutti i model_type delle vetture disponibili (in depot, AVAILABLE, senza id_convoy)
-     * per una stazione, in UNA sola query.
+     * Returns all model types of available carriages (in depot, AVAILABLE, without id_convoy) for a station, in a single query.
+     * @param idStation the station id
+     * @return a list of model type names
+     * @throws SQLException if a database access error occurs
      */
     List<String> findAvailableCarriageTypesForConvoy(int idStation) throws java.sql.SQLException;
 
     /**
-     * Restituisce tutti i modelli delle vetture disponibili (in depot, AVAILABLE, senza id_convoy)
-     * per una stazione e tipo, in UNA sola query.
+     * Returns all models of available carriages (in depot, AVAILABLE, without id_convoy) for a station and type, in a single query.
+     * @param idStation the station id
+     * @param modelType the model type
+     * @return a list of model names
+     * @throws SQLException if a database access error occurs
      */
     List<String> findAvailableCarriageModelsForConvoy(int idStation, String modelType) throws java.sql.SQLException;
 
     /**
-     * Restituisce la riga attiva di carriage_depot (cioè con time_exited IS NULL) per una carriage.
+     * Returns the active row of carriage_depot (with time_exited IS NULL) for a carriage.
+     * @param idCarriage the carriage id
+     * @return the CarriageDepot object, or null if not found
+     * @throws SQLException if a database access error occurs
      */
     CarriageDepot findActiveDepotByCarriage(int idCarriage) throws SQLException;
 }

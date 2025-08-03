@@ -1,4 +1,4 @@
-package domain;
+package domain.DTO;
 
 /**
  * Data Transfer Object for Convoy table views.

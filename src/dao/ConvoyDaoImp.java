@@ -2,7 +2,9 @@ package dao;
 
 import domain.Carriage;
 import domain.Convoy;
+
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,13 +54,44 @@ class ConvoyDaoImp implements ConvoyDao {
     private static final String insertConvoyQuery =
             "INSERT INTO convoy DEFAULT VALUES RETURNING id_convoy";
 
+    private static final String convyForNewRunQuery = """
+            SELECT
+              c.id_convoy,
+              cp.id_station,
+              cp.status,
+              ca.id_carriage,
+              ca.model,
+              ca.model_type,
+              ca.year_produced,
+              ca.capacity
+            FROM convoy_pool cp
+            JOIN convoy c ON c.id_convoy = cp.id_convoy
+            LEFT JOIN carriage ca ON ca.id_convoy = c.id_convoy
+            WHERE cp.id_station = ?
+              AND cp.status IN ('DEPOT', 'WAITING')
+              AND c.id_convoy NOT IN (
+                  SELECT r.id_convoy
+                  FROM run r
+                  WHERE r.time_departure <= ?::time
+                    AND r.time_arrival >= ?::time
+                    AND r.id_line = ?
+              )
+              AND c.id_convoy NOT IN (
+                  SELECT ca2.id_convoy
+                  FROM carriage ca2
+                  JOIN carriage_depot cd ON ca2.id_carriage = cd.id_carriage
+                  WHERE cd.status_of_carriage = 'MAINTENANCE'
+                    AND cd.time_exited IS NULL
+              )
+            ORDER BY c.id_convoy, ca.id_carriage;""";
+
     @Override
     public Convoy selectConvoy(int id) throws SQLException {
         List<Carriage> carriages = new java.util.ArrayList<>();
         try (
-            java.sql.Connection conn = PostgresConnection.getConnection();
-            java.sql.PreparedStatement convoyStmt = conn.prepareStatement(selectConvoyQuery);
-            java.sql.PreparedStatement carriageStmt = conn.prepareStatement(selectCarriagesByConvoyIdQuery)
+                java.sql.Connection conn = PostgresConnection.getConnection();
+                java.sql.PreparedStatement convoyStmt = conn.prepareStatement(selectConvoyQuery);
+                java.sql.PreparedStatement carriageStmt = conn.prepareStatement(selectCarriagesByConvoyIdQuery)
         ) {
             convoyStmt.setInt(1, id);
             try (java.sql.ResultSet convoyRs = convoyStmt.executeQuery()) {
@@ -80,9 +113,9 @@ class ConvoyDaoImp implements ConvoyDao {
     public List<Convoy> selectAllConvoys() throws SQLException {
         List<Convoy> convoys = new java.util.ArrayList<>();
         try (
-            java.sql.Connection conn = PostgresConnection.getConnection();
-            java.sql.PreparedStatement convoyIdsStmt = conn.prepareStatement(selectAllConvoyIdsQuery);
-            java.sql.ResultSet convoyIdsRs = convoyIdsStmt.executeQuery()
+                java.sql.Connection conn = PostgresConnection.getConnection();
+                java.sql.PreparedStatement convoyIdsStmt = conn.prepareStatement(selectAllConvoyIdsQuery);
+                java.sql.ResultSet convoyIdsRs = convoyIdsStmt.executeQuery()
         ) {
             while (convoyIdsRs.next()) {
                 int convoyId = convoyIdsRs.getInt("id_convoy");
@@ -97,9 +130,9 @@ class ConvoyDaoImp implements ConvoyDao {
     @Override
     public boolean removeConvoy(int id) throws SQLException {
         try (
-            java.sql.Connection conn = PostgresConnection.getConnection();
-            java.sql.PreparedStatement updateCarriageStmt = conn.prepareStatement("UPDATE carriage SET id_convoy = NULL WHERE id_convoy = ?");
-            java.sql.PreparedStatement deleteConvoyStmt = conn.prepareStatement(deleteConvoyQuery)
+                java.sql.Connection conn = PostgresConnection.getConnection();
+                java.sql.PreparedStatement updateCarriageStmt = conn.prepareStatement("UPDATE carriage SET id_convoy = NULL WHERE id_convoy = ?");
+                java.sql.PreparedStatement deleteConvoyStmt = conn.prepareStatement(deleteConvoyQuery)
         ) {
             updateCarriageStmt.setInt(1, id);
             updateCarriageStmt.executeUpdate();
@@ -114,8 +147,8 @@ class ConvoyDaoImp implements ConvoyDao {
     @Override
     public boolean addCarriageToConvoy(int convoyId, Carriage carriage) throws SQLException {
         try (
-            java.sql.Connection conn = PostgresConnection.getConnection();
-            java.sql.PreparedStatement pstmt = conn.prepareStatement(updateCarriageConvoyQuery)
+                java.sql.Connection conn = PostgresConnection.getConnection();
+                java.sql.PreparedStatement pstmt = conn.prepareStatement(updateCarriageConvoyQuery)
         ) {
             pstmt.setInt(1, convoyId);
             pstmt.setInt(2, carriage.getId());
@@ -129,8 +162,8 @@ class ConvoyDaoImp implements ConvoyDao {
     @Override
     public boolean removeCarriageFromConvoy(int convoyId, Carriage carriage) throws SQLException {
         try (
-            java.sql.Connection conn = PostgresConnection.getConnection();
-            java.sql.PreparedStatement pstmt = conn.prepareStatement(removeCarriageFromConvoyQuery)
+                java.sql.Connection conn = PostgresConnection.getConnection();
+                java.sql.PreparedStatement pstmt = conn.prepareStatement(removeCarriageFromConvoyQuery)
         ) {
             pstmt.setInt(1, carriage.getId());
             int affectedRows = pstmt.executeUpdate();
@@ -143,8 +176,8 @@ class ConvoyDaoImp implements ConvoyDao {
     @Override
     public Integer findConvoyIdByCarriageId(int carriageId) throws SQLException {
         try (
-            java.sql.Connection conn = PostgresConnection.getConnection();
-            java.sql.PreparedStatement pstmt = conn.prepareStatement(findConvoyIdByCarriageIdQuery)
+                java.sql.Connection conn = PostgresConnection.getConnection();
+                java.sql.PreparedStatement pstmt = conn.prepareStatement(findConvoyIdByCarriageIdQuery)
         ) {
             pstmt.setInt(1, carriageId);
             try (java.sql.ResultSet rs = pstmt.executeQuery()) {
@@ -162,8 +195,8 @@ class ConvoyDaoImp implements ConvoyDao {
     public Convoy createConvoy(List<Carriage> carriages) throws SQLException {
         int generatedId;
         try (
-            java.sql.Connection conn = PostgresConnection.getConnection();
-            java.sql.PreparedStatement insertConvoyStmt = conn.prepareStatement(insertConvoyQuery)
+                java.sql.Connection conn = PostgresConnection.getConnection();
+                java.sql.PreparedStatement insertConvoyStmt = conn.prepareStatement(insertConvoyQuery)
         ) {
             try (java.sql.ResultSet rs = insertConvoyStmt.executeQuery()) {
                 if (rs.next()) {
@@ -207,24 +240,24 @@ class ConvoyDaoImp implements ConvoyDao {
         java.util.Set<Integer> carriageIds = new java.util.HashSet<>();
         java.util.List<businessLogic.service.ConvoyDetailsService.StationRow> stationRows = new java.util.ArrayList<>();
         try (
-            java.sql.Connection conn = PostgresConnection.getConnection();
-            java.sql.PreparedStatement stmt = conn.prepareStatement(
-                "SELECT ca.id_carriage, ca.model, ca.model_type, ca.year_produced, ca.capacity, " +
-                "l.id_line, l.name AS line_name, s.id_station, s.location AS station_name, ls.station_order, " +
-                "r.time_departure, r.time_arrival, stf.name AS staff_name, stf.surname AS staff_surname, " +
-                "r.id_first_station, r.id_last_station, s2.location AS departure_station, s3.location AS arrival_station " +
-                "FROM convoy c " +
-                "LEFT JOIN carriage ca ON ca.id_convoy = c.id_convoy " +
-                "LEFT JOIN run r ON r.id_convoy = c.id_convoy " +
-                "LEFT JOIN staff stf ON stf.id_staff = r.id_staff " +
-                "LEFT JOIN line l ON l.id_line = r.id_line " +
-                "LEFT JOIN line_station ls ON ls.id_line = l.id_line " +
-                "LEFT JOIN station s ON s.id_station = ls.id_station " +
-                "LEFT JOIN station s2 ON s2.id_station = r.id_first_station " +
-                "LEFT JOIN station s3 ON s3.id_station = r.id_last_station " +
-                "WHERE c.id_convoy = ? " +
-                "ORDER BY ls.station_order"
-            )
+                java.sql.Connection conn = PostgresConnection.getConnection();
+                java.sql.PreparedStatement stmt = conn.prepareStatement(
+                        "SELECT ca.id_carriage, ca.model, ca.model_type, ca.year_produced, ca.capacity, " +
+                                "l.id_line, l.name AS line_name, s.id_station, s.location AS station_name, ls.station_order, " +
+                                "r.time_departure, r.time_arrival, stf.name AS staff_name, stf.surname AS staff_surname, " +
+                                "r.id_first_station, r.id_last_station, s2.location AS departure_station, s3.location AS arrival_station " +
+                                "FROM convoy c " +
+                                "LEFT JOIN carriage ca ON ca.id_convoy = c.id_convoy " +
+                                "LEFT JOIN run r ON r.id_convoy = c.id_convoy " +
+                                "LEFT JOIN staff stf ON stf.id_staff = r.id_staff " +
+                                "LEFT JOIN line l ON l.id_line = r.id_line " +
+                                "LEFT JOIN line_station ls ON ls.id_line = l.id_line " +
+                                "LEFT JOIN station s ON s.id_station = ls.id_station " +
+                                "LEFT JOIN station s2 ON s2.id_station = r.id_first_station " +
+                                "LEFT JOIN station s3 ON s3.id_station = r.id_last_station " +
+                                "WHERE c.id_convoy = ? " +
+                                "ORDER BY ls.station_order"
+                )
         ) {
             stmt.setInt(1, id);
             try (java.sql.ResultSet rs = stmt.executeQuery()) {
@@ -232,12 +265,12 @@ class ConvoyDaoImp implements ConvoyDao {
                     int carriageId = rs.getInt("id_carriage");
                     if (carriageId > 0 && !carriageIds.contains(carriageId)) {
                         carriages.add(Carriage.of(
-                            carriageId,
-                            rs.getString("model"),
-                            rs.getString("model_type"),
-                            rs.getInt("year_produced"),
-                            rs.getInt("capacity"),
-                            id
+                                carriageId,
+                                rs.getString("model"),
+                                rs.getString("model_type"),
+                                rs.getInt("year_produced"),
+                                rs.getInt("capacity"),
+                                id
                         ));
                         carriageIds.add(carriageId);
                     }
@@ -263,7 +296,7 @@ class ConvoyDaoImp implements ConvoyDao {
                     String stationName = rs.getString("station_name");
                     if (stationId > 0 && stationName != null && stationRows.stream().noneMatch(s -> s.stationName.equals(stationName))) {
                         stationRows.add(new businessLogic.service.ConvoyDetailsService.StationRow(
-                            stationName, "", ""
+                                stationName, "", ""
                         ));
                     }
                 }
@@ -283,8 +316,8 @@ class ConvoyDaoImp implements ConvoyDao {
                 "JOIN station s2 ON r.id_last_station = s2.id_station " +
                 "WHERE r.id_staff = ?";
         try (
-            java.sql.Connection conn = PostgresConnection.getConnection();
-            java.sql.PreparedStatement stmt = conn.prepareStatement(sql)
+                java.sql.Connection conn = PostgresConnection.getConnection();
+                java.sql.PreparedStatement stmt = conn.prepareStatement(sql)
         ) {
             stmt.setInt(1, staffId);
             try (java.sql.ResultSet rs = stmt.executeQuery()) {
@@ -295,15 +328,53 @@ class ConvoyDaoImp implements ConvoyDao {
                     String arrivalStation = rs.getString("arrival_station");
                     String arrivalTime = rs.getString("time_arrival");
                     result.add(new ConvoyDao.ConvoyAssignedRow(
-                        convoyId,
-                        departureStation != null ? departureStation : "",
-                        departureTime != null ? departureTime : "",
-                        arrivalStation != null ? arrivalStation : "",
-                        arrivalTime != null ? arrivalTime : ""
+                            convoyId,
+                            departureStation != null ? departureStation : "",
+                            departureTime != null ? departureTime : "",
+                            arrivalStation != null ? arrivalStation : "",
+                            arrivalTime != null ? arrivalTime : ""
                     ));
                 }
             }
         }
         return result;
+    }
+
+    @Override
+    public List<Convoy> getConvoysForNewRun(int idStation, String timeDeparture, LocalDate dateDeparture, int idLine) throws SQLException {
+        List<Convoy> convoys = new ArrayList<>();
+        try (java.sql.Connection conn = PostgresConnection.getConnection();
+             java.sql.PreparedStatement stmt = conn.prepareStatement(convyForNewRunQuery)) {
+            stmt.setInt(1, idStation);
+            stmt.setString(2, timeDeparture);
+            stmt.setString(3, timeDeparture);
+            stmt.setInt(4, idLine);
+            try (java.sql.ResultSet rs = stmt.executeQuery()) {
+                int lastConvoyId = -1;
+                List<Carriage> carriages = new ArrayList<>();
+                while (rs.next()) {
+                    int convoyId = rs.getInt("id_convoy");
+                    if (convoyId != lastConvoyId && lastConvoyId != -1) {
+                        convoys.add(domain.Convoy.of(lastConvoyId, new ArrayList<>(carriages)));
+                        carriages.clear();
+                    }
+                    lastConvoyId = convoyId;
+                    if (rs.getInt("id_carriage") != 0) {
+                        carriages.add(domain.Carriage.of(
+                                rs.getInt("id_carriage"),
+                                rs.getString("model"),
+                                rs.getString("model_type"),
+                                rs.getInt("year_produced"),
+                                rs.getInt("capacity"),
+                                convoyId
+                        ));
+                    }
+                }
+                if (lastConvoyId != -1) {
+                    convoys.add(domain.Convoy.of(lastConvoyId, carriages));
+                }
+            }
+        }
+        return convoys;
     }
 }

@@ -5,7 +5,7 @@ package businessLogic.controller;
  * Handles the display, creation, and removal of convoys for a selected station.
  */
 import businessLogic.service.ConvoyService;
-import domain.ConvoyTableDTO;
+import domain.DTO.ConvoyTableDTO;
 import domain.Station;
 import dao.StationDao;
 import domain.Staff;
@@ -89,9 +89,7 @@ public class ManageConvoyController {
 
         // Disabilita il pulsante "Crea Convoglio" se non è selezionata una stazione
         createConvoyButton.setDisable(true);
-        stationComboBox.valueProperty().addListener((obs, oldVal, newVal) -> {
-            createConvoyButton.setDisable(newVal == null);
-        });
+        stationComboBox.valueProperty().addListener((obs, oldVal, newVal) -> createConvoyButton.setDisable(newVal == null));
     }
 
     /**

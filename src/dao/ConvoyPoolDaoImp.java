@@ -1,6 +1,8 @@
 package dao;
 
 import domain.ConvoyPool;
+import domain.DTO.ConvoyTableDTO;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +11,7 @@ import java.util.List;
  * Implementation of the ConvoyPoolDao interface.
  * Contains SQL queries and logic for accessing convoy pool data.
  */
-public class ConvoyPoolDaoImp implements ConvoyPoolDao {
+class ConvoyPoolDaoImp implements ConvoyPoolDao {
     /**
      * SQL query to select a convoy pool by id.
      */
@@ -143,8 +145,8 @@ public class ConvoyPoolDaoImp implements ConvoyPoolDao {
     }
 
     @Override
-    public List<domain.ConvoyTableDTO> getConvoyTableDataByStation(int idStation) throws SQLException {
-        List<domain.ConvoyTableDTO> result = new ArrayList<>();
+    public List<ConvoyTableDTO> getConvoyTableDataByStation(int idStation) throws SQLException {
+        List<ConvoyTableDTO> result = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_TABLE_DATA_BY_STATION)) {
             ps.setInt(1, idStation);
@@ -154,7 +156,7 @@ public class ConvoyPoolDaoImp implements ConvoyPoolDao {
                     String status = rs.getString("status");
                     int carriageCount = rs.getInt("carriage_count");
                     String type = rs.getString("types");
-                    result.add(new domain.ConvoyTableDTO(idConvoy, type, status, carriageCount));
+                    result.add(new ConvoyTableDTO(idConvoy, type, status, carriageCount));
                 }
             }
         }
@@ -172,46 +174,4 @@ public class ConvoyPoolDaoImp implements ConvoyPoolDao {
         }
     }
 
-    @Override
-    public List<domain.Convoy> findAvailableConvoysForRun(int idLine, String direction, java.time.LocalDate date, String time) {
-        List<domain.Convoy> result = new ArrayList<>();
-        try {
-            // Calcolo la stazione di testa in base a linea/direzione
-            List<domain.LineStation> stations = dao.LineStationDao.of().findByLine(idLine);
-            if (stations == null || stations.isEmpty()) return result;
-            int headStationId = direction.equalsIgnoreCase("Andata") ? stations.get(0).getStationId() : stations.get(stations.size() - 1).getStationId();
-            // Query ottimizzata: convogli nella stazione di testa, status DEPOT o WAITING, non assegnati a run sovrapposte, non in manutenzione
-            String sql = "SELECT DISTINCT c.id_convoy FROM convoy_pool cp " +
-                    "JOIN convoy c ON c.id_convoy = cp.id_convoy " +
-                    "WHERE cp.id_station = ? " +
-                    "AND cp.status IN ('DEPOT', 'WAITING') " +
-                    "AND c.id_convoy NOT IN ( " +
-                    "    SELECT r.id_convoy FROM run r " +
-                    "    WHERE r.id_line = ? AND r.time_departure <= ?::time AND r.time_arrival >= ?::time AND r.id_convoy = cp.id_convoy " +
-                    ") " +
-                    "AND c.id_convoy NOT IN ( " +
-                    "    SELECT ca.id_convoy FROM carriage ca " +
-                    "    JOIN carriage_depot cd ON ca.id_carriage = cd.id_carriage " +
-                    "    WHERE cd.status_of_carriage = 'MAINTENANCE' AND cd.time_exited IS NULL " +
-                    ")";
-            try (Connection conn = dao.PostgresConnection.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1, headStationId);
-                ps.setInt(2, idLine);
-                ps.setString(3, time);
-                ps.setString(4, time);
-                try (ResultSet rs = ps.executeQuery()) {
-                    while (rs.next()) {
-                        int idConvoy = rs.getInt("id_convoy");
-                        // Recupera le carriages associate
-                        List<domain.Carriage> carriages = dao.CarriageDao.of().selectCarriagesByConvoyId(idConvoy);
-                        result.add(mapper.ConvoyMapper.toDomain(rs, carriages));
-                    }
-                }
-            }
-        } catch (Exception e) {
-            java.util.logging.Logger.getLogger(ConvoyPoolDaoImp.class.getName()).severe("Errore ricerca convogli disponibili: " + e.getMessage());
-        }
-        return result;
-    }
 }

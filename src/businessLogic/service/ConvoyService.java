@@ -12,7 +12,9 @@ import dao.CarriageDepotDao;
 import domain.Convoy;
 import domain.Carriage;
 import domain.ConvoyPool;
-import domain.ConvoyTableDTO;
+import domain.DTO.ConvoyTableDTO;
+import domain.DTO.CarriageDepotDTO;
+
 import java.sql.SQLException;
 import java.util.List;
 import java.util.logging.Logger;
@@ -153,7 +155,6 @@ public class ConvoyService {
     public void updateDepotCarriageAvailability(int idStation) {
         try {
             dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();
-            // Update all depot carriages for the station (no type filter)
             depotDao.findAvailableCarriagesForConvoy(idStation, null);
         } catch (Exception e) {
             logger.severe("Error updating depot carriage availability: " + e.getMessage());
@@ -163,11 +164,11 @@ public class ConvoyService {
 
     /**
      * Returns all carriages in a convoy, including their depot status.
-     * Used to display the status of each carriage in a convoy.
      * @param idConvoy The convoy ID.
+     * Used to display the status of each carriage in a convoy.
      * @return List of CarriageDepotDTO objects for the convoy.
      */
-    public List<domain.CarriageDepotDTO> getCarriagesWithDepotStatusByConvoy(int idConvoy) {
+    public List<CarriageDepotDTO> getCarriagesWithDepotStatusByConvoy(int idConvoy) {
         try {
             dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();
             return depotDao.findCarriagesWithDepotStatusByConvoy(idConvoy);

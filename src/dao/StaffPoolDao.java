@@ -61,13 +61,11 @@ public interface StaffPoolDao {
     List<StaffPool> findByStatusAndStation(ShiftStatus status, int idStation) throws SQLException;
 
     /**
-     * Returns a list of operators available for a new run on a specific line, direction, date, and time.
-     * The query must:
-     * - Return only operators of type OPERATOR
-     * - Be at the head station of the line/direction
-     * - Status = 'AVAILABLE'
-     * - Not have overlapping runs on the same date
-     * - Comply with service limits (max 12h, min 15min between services)
+     * Finds available operators for a run at a specific station on a given date and time.
+     * @param idStation the station id
+     * @param date the date of the run
+     * @param time the time of the run
+     * @return list of available StaffDTO objects
      */
-    List<domain.Staff> findAvailableOperatorsForRun(int idLine, String direction, java.time.LocalDate date, String time);
+    List<domain.DTO.StaffDTO> findAvailableOperatorsForRun(int idStation, java.time.LocalDate date, String time);
 }

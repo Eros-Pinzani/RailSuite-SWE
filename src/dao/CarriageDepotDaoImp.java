@@ -1,6 +1,8 @@
 package dao;
 
+import domain.DTO.CarriageDepotDTO;
 import domain.CarriageDepot;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -135,8 +137,8 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
     }
 
     @Override
-    public List<domain.CarriageDepotDTO> findCarriagesWithDepotStatusByConvoy(int idConvoy) throws SQLException {
-        List<domain.CarriageDepotDTO> result = new ArrayList<>();
+    public List<CarriageDepotDTO> findCarriagesWithDepotStatusByConvoy(int idConvoy) throws SQLException {
+        List<CarriageDepotDTO> result = new ArrayList<>();
         // SQL query to find carriages with their depot status by convoy id.
         String sql = "SELECT c.id_carriage, c.model, c.year_produced, c.capacity, cd.status_of_carriage, cd.time_exited " +
                 "FROM carriage c " +
@@ -147,7 +149,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
             stmt.setInt(1, idConvoy);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                result.add(new domain.CarriageDepotDTO(
+                result.add(new CarriageDepotDTO(
                     rs.getInt("id_carriage"),
                     rs.getString("model"),
                     rs.getInt("year_produced"),
@@ -185,7 +187,6 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
         List<domain.Carriage> result = new ArrayList<>();
         // SQL query to find available carriages for a convoy, updating their status if needed.
         String sql =
-                // Aggiorna lo stato delle vetture in CLEANING e MAINTENANCE se scaduto il tempo
                 "WITH updated AS (\n" +
                 "    UPDATE carriage_depot cd\n" +
                 "    SET status_of_carriage = 'AVAILABLE'\n" +
@@ -197,7 +198,6 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
                 "      AND cd.time_exited IS NULL\n" +
                 "    RETURNING cd.id_carriage\n" +
                 ")\n" +
-                // Seleziona tutte le vetture disponibili
                 "SELECT c.* FROM carriage_depot cd\n" +
                 "JOIN depot d ON cd.id_depot = d.id_depot\n" +
                 "JOIN carriage c ON cd.id_carriage = c.id_carriage\n" +
@@ -208,8 +208,8 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
                 "  AND cd.time_exited IS NULL";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idStation); // per l'UPDATE
-            stmt.setInt(2, idStation); // per la SELECT
+            stmt.setInt(1, idStation);
+            stmt.setInt(2, idStation);
             stmt.setString(3, modelType);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
@@ -224,7 +224,6 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
         List<String> result = new ArrayList<>();
         // SQL query to find available carriage types for a convoy, updating their status if needed.
         String sql =
-                // Aggiorna lo stato delle vetture in CLEANING e MAINTENANCE se scaduto il tempo
                 "WITH updated AS (\n" +
                 "    UPDATE carriage_depot cd\n" +
                 "    SET status_of_carriage = 'AVAILABLE'\n" +
@@ -236,7 +235,6 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
                 "      AND cd.time_exited IS NULL\n" +
                 "    RETURNING cd.id_carriage\n" +
                 ")\n" +
-                // Seleziona tutti i model_type disponibili
                 "SELECT DISTINCT c.model_type FROM carriage_depot cd\n" +
                 "JOIN depot d ON cd.id_depot = d.id_depot\n" +
                 "JOIN carriage c ON cd.id_carriage = c.id_carriage\n" +
@@ -246,8 +244,8 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
                 "  AND cd.time_exited IS NULL";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idStation); // per l'UPDATE
-            stmt.setInt(2, idStation); // per la SELECT
+            stmt.setInt(1, idStation);
+            stmt.setInt(2, idStation);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 result.add(rs.getString("model_type"));

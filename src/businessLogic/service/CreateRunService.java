@@ -22,6 +22,8 @@ public class CreateRunService {
     private final List<Convoy> convoysPoolAvailable = new ArrayList<>();
     private final List<Convoy> convoysPoolAvailableFilteredByType = new ArrayList<>();
 
+    private Duration travelTime;
+
     public void setConvoysPoolAvailable(List<Convoy> convoysPoolAvailable) {
         this.convoysPoolAvailable.clear();
         if (convoysPoolAvailable != null) {
@@ -135,56 +137,66 @@ public class CreateRunService {
             throw new RuntimeException("Errore nel calcolo della tabella orari: " + e.getMessage(), e);
         }
     }
+
+    public void createRun(LineRaw lineRaw, LocalDate date, String time, Convoy convoy, StaffDTO operator) {
+        try{
+            if (travelTime == null) {
+                travelTime = waitForTravelTime(lineRaw);
+            }
+            RunDao runDao = RunDao.of();
+            java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(date, java.time.LocalTime.parse(time));
+            java.sql.Timestamp departureTimestamp = java.sql.Timestamp.valueOf(dateTime);
+            java.sql.Timestamp arrivalTimestamp = java.sql.Timestamp.valueOf(dateTime.plus(travelTime));
+            runDao.createRun(
+                lineRaw.getIdLine(),
+                convoy.getId(),
+                operator.getIdStaff(),
+                departureTimestamp,
+                arrivalTimestamp,
+                lineRaw.getIdFirstStation(),
+                lineRaw.getIdLastStation()
+            );
+        }catch (Exception e) {
+            throw new RuntimeException("Error while creating run: " + e.getMessage(), e);
+        }
+    }
+
+    public void setTravelTime(Duration travelTime) {
+        this.travelTime = travelTime;
+    }
+
+    public Duration getTravelTime() {
+        return travelTime;
+    }
+
+    /**
+     * * Waits for the travel time to be calculated for the selected line.
+     * This method starts a new thread to calculate the travel time and waits for it to complete.
+     * If the travel time is not calculated within a certain number of tries, it throws an
+     * IllegalStateException.
+     * @param selectedLine the line for which to calculate the travel time
+     * @return the calculated travel time
+     * @throws IllegalStateException if the travel time is not calculated within the maximum number of tries
+     */
+    public Duration waitForTravelTime(LineRaw selectedLine) {
+        setTravelTime(null);
+        new Thread(() -> {
+            Duration duration = calculateTravelTime(selectedLine);
+            setTravelTime(duration);
+        }).start();
+        int maxTries = 50;
+        int tries = 0;
+        while (getTravelTime() == null && tries < maxTries) {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Interrupted while waiting for travelTime", e);
+            }
+            tries++;
+        }
+        if (getTravelTime() == null) {
+            throw new IllegalStateException("travelTime not calculated: cannot continue without duration.");
+        }
+        return getTravelTime();
+    }
 }
-
-/*
-    private final ConvoyPoolDao convoyPoolDao = ConvoyPoolDao.of();
-    private final StaffPoolDao staffPoolDao = StaffPoolDao.of();
-    private final RunDao runDao = RunDao.of();
-    private final StationDao stationDao = StationDao.of();
-
-    // Restituisce "Andata" o "Ritorno" in base alle stazioni di testa
-    public String getHeadStationName(Line line, String direction) {
-        try {
-            List<LineStation> stations = lineStationDao.findByLine(line.getIdLine());
-            if (stations.isEmpty()) return "-";
-            int idStation = direction.equals("Andata") ? stations.getFirst().getStationId() : stations.getLast().getStationId();
-            Station s = stationDao.findById(idStation);
-            return s != null ? s.getLocation() : "-";
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-
-    // Query unica per trovare convogli disponibili per linea, direzione, data, ora
-    public List<Convoy> getAvailableConvoys(Line line, String direction, LocalDate date, String time) {
-        // Implementare una query JOIN tra convoy_pool, convoy, run per filtrare solo i convogli disponibili
-        return convoyPoolDao.findAvailableConvoysForRun(line.getIdLine(), direction, date, time);
-    }
-
-    // Query unica per trovare operatori disponibili per linea, direzione, data, ora
-    public List<Staff> getAvailableOperators(Line line, String direction, LocalDate date, String time) {
-        // Implementare una query JOIN tra staff_pool, staff, run per filtrare solo gli operatori disponibili
-        return staffPoolDao.findAvailableOperatorsForRun(line.getIdLine(), direction, date, time);
-    }
-
-    // Crea la run (inserimento in tabella run)
-    public String createRun(Line line, String direction, LocalDate date, String time, Convoy convoy, Staff operator) {
-        try {
-            List<LineStation> stations = lineStationDao.findByLine(line.getIdLine());
-            if (stations.isEmpty()) return "Linea senza stazioni";
-            int idFirstStation = direction.equals("Andata") ? stations.getFirst().getStationId() : stations.getLast().getStationId();
-            int idLastStation = direction.equals("Andata") ? stations.getLast().getStationId() : stations.getFirst().getStationId();
-            // TODO: calcolo orari arrivo/partenza per tutte le stazioni
-            java.sql.Time timeDeparture = java.sql.Time.valueOf(time);
-            // Per ora, stimiamo timeArrival come +1h (da calcolare correttamente)
-            java.sql.Time timeArrival = java.sql.Time.valueOf(java.time.LocalTime.parse(time).plusHours(1));
-            boolean success = runDao.createRun(line.getIdLine(), convoy.getId(), operator.getIdStaff(), timeDeparture, timeArrival, idFirstStation, idLastStation);
-            return success ? null : "Errore durante la creazione della run";
-        } catch (Exception e) {
-            return "Errore: " + e.getMessage();
-        }
-    }
-*/

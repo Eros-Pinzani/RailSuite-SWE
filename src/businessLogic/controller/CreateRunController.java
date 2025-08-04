@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import domain.DTO.StaffDTO;
+import javafx.scene.layout.VBox;
 
 /**
  * Controller for the Create Run view.
@@ -30,7 +31,6 @@ public class CreateRunController {
     private DatePicker datePicker;
     @FXML
     private ComboBox<String> departureTimePicker;
-    private Duration travelTime;
     @FXML
     private ComboBox<String> typeOfConvoyComboBox;
     private EventHandler<ActionEvent> typeOfConvoyComboHandler;
@@ -39,15 +39,14 @@ public class CreateRunController {
     private EventHandler<ActionEvent> convoyComboHandler;
     @FXML
     private ComboBox<StaffDTO> operatorComboBox;
-
-
+    @FXML
+    private Button recapButton;
     @FXML
     private Button createRunButton;
-
-    @FXML
-    private Label supervisorNameLabel;
     @FXML
     private MenuButton menuButton;
+    @FXML
+    private Label supervisorNameLabel;
     @FXML
     private MenuItem logoutMenuItem;
     @FXML
@@ -138,14 +137,15 @@ public class CreateRunController {
 
         // Second set of filters
         typeOfConvoyComboHandler = e -> updateConvoyAvailability();
-        convoyComboHandler = e -> updateRecapLabels();
+        convoyComboHandler = e -> {};
         convoyComboBox.setOnAction(convoyComboHandler);
         typeOfConvoyComboBox.setOnAction(typeOfConvoyComboHandler);
-        operatorComboBox.setOnAction(e -> updateRecapLabels());
+        operatorComboBox.setOnAction(e -> {});
 
         typeOfConvoyComboBox.setDisable(true);
         convoyComboBox.setDisable(true);
         operatorComboBox.setDisable(true);
+        backButton.setOnAction(e -> businessLogic.controller.SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageRun.fxml"));
     }
 
     private void onLineSelected() {
@@ -160,7 +160,7 @@ public class CreateRunController {
             startStationComboBox.setDisable(true);
             convoyComboBox.getItems().clear();
             operatorComboBox.getItems().clear();
-            travelTime = null;
+            createRunService.setTravelTime(null);
         }
         startStationComboBox.setOnAction(startStationComboHandler);
     }
@@ -183,7 +183,7 @@ public class CreateRunController {
 
             @Override
             protected void succeeded() {
-                travelTime = getValue();
+                createRunService.setTravelTime(getValue());
             }
         };
         new Thread(task).start();
@@ -327,5 +327,76 @@ public class CreateRunController {
             return false;
         }
         return true;
+    }
+
+    @FXML
+    private void recapButton(ActionEvent event) {
+        updateRecapLabels();
+    }
+
+    private void calculateTravelTimeAndCreateRun(LineRaw selectedLine, LocalDate date, String time, Convoy convoy, StaffDTO operator, ProgressBar progressBar, Dialog<Void> dialog) {
+        javafx.concurrent.Task<Void> task = new javafx.concurrent.Task<>() {
+            @Override
+            protected Void call() {
+                updateProgress(0.2, 1.0);
+                createRunService.waitForTravelTime(selectedLine);
+                updateProgress(0.7, 1.0);
+                createRunService.createRun(selectedLine, date, time, convoy, operator);
+                updateProgress(1.0, 1.0);
+                return null;
+            }
+        };
+        progressBar.progressProperty().bind(task.progressProperty());
+        task.setOnSucceeded(e -> {
+            VBox resultBox = new VBox(10);
+            resultBox.setPadding(new javafx.geometry.Insets(20));
+            resultBox.getChildren().add(new Label("Corsa creata con successo!"));
+            Button btn1 = new Button("Visualizza riepilogo");
+            // TODO implementarea dettagli corsa
+            Button btn2 = new Button("Torna alla home");
+            btn2.setOnAction(ev -> {
+                dialog.close();
+                businessLogic.controller.SceneManager.getInstance().switchScene("/businessLogic/fxml/SupervisorHome.fxml");
+            });
+            Button btn3 = new Button("Torna alla gestione corse");
+            btn3.setOnAction(ev -> {
+                dialog.close();
+                businessLogic.controller.SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageRun.fxml");
+            });
+            resultBox.getChildren().addAll(btn1, btn2, btn3);
+            dialog.getDialogPane().setContent(resultBox);
+        });
+        task.setOnFailed(e -> {
+            VBox errorBox = new VBox(10);
+            errorBox.setPadding(new javafx.geometry.Insets(20));
+            errorBox.getChildren().add(new Label("Errore durante la creazione della corsa: " + task.getException().getMessage()));
+            Button closeBtn = new Button("Chiudi");
+            closeBtn.setOnAction(ev -> dialog.close());
+            errorBox.getChildren().add(closeBtn);
+            dialog.getDialogPane().setContent(errorBox);
+        });
+        new Thread(task).start();
+    }
+
+    @FXML
+    private void handleCreateRun(ActionEvent event) {
+        LineRaw selectedLine = lineComboBox.getValue();
+        LocalDate date = datePicker.getValue();
+        String time = departureTimePicker.getValue();
+        Convoy convoy = convoyComboBox.getValue();
+        StaffDTO operator = operatorComboBox.getValue();
+        ProgressBar progressBar = new ProgressBar();
+        progressBar.setPrefWidth(250);
+        Label loadingLabel = new Label("Creazione corsa in corso...");
+        VBox vbox = new VBox(10, loadingLabel, progressBar);
+        vbox.setPadding(new javafx.geometry.Insets(20));
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Creazione corsa");
+        dialog.getDialogPane().setContent(vbox);
+        dialog.getDialogPane().getButtonTypes().clear();
+        dialog.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        dialog.setResizable(false);
+        calculateTravelTimeAndCreateRun(selectedLine, date, time, convoy, operator, progressBar, dialog);
+        dialog.show();
     }
 }

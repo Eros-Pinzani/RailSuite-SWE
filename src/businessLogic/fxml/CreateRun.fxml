@@ -44,7 +44,7 @@
                         </VBox>
                         <VBox spacing="4">
                             <Label text="Stazione di partenza:" />
-                            <ComboBox fx:id="directionComboBox" prefWidth="200.0" />
+                            <ComboBox fx:id="startStationComboBox" prefWidth="200.0" />
                         </VBox>
                         <VBox spacing="4">
                             <Label text="Data partenza:" />
@@ -72,7 +72,7 @@
                             <Label text="Convoglio disponibile:" />
                             <ComboBox fx:id="convoyComboBox" prefWidth="200.0" />
                         </VBox>
-                  <Button mnemonicParsing="false" text="Conferma&#10;Preferenze&#10;" />
+                  <Button mnemonicParsing="false" fx:id="recapButton" text="Conferma&#10;Preferenze&#10;" onAction="#recapButton"/>
                     </children>
                 </HBox>
             <HBox prefHeight="100.0" prefWidth="200.0" style="-fx-border-color: Black;" />
@@ -150,7 +150,7 @@
                               <Label fx:id="timeRecap" />
                            </children>
                         </HBox>
-                        <Button mnemonicParsing="false" prefWidth="200.0" text="Conferma e crea la corsa" textAlignment="CENTER">
+                        <Button mnemonicParsing="false" prefWidth="200.0" text="Conferma e crea la corsa" textAlignment="CENTER" onAction="#handleCreateRun">
                            <VBox.margin>
                               <Insets top="20.0" />
                            </VBox.margin>

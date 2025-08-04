@@ -406,14 +406,14 @@ public class RailSuiteFacade {
      * Creates a new run with the given parameters.
      * Used to add a new run to the system.
      */
-    public boolean createRun(int idLine, int idConvoy, int idStaff, java.sql.Time timeDeparture, java.sql.Time timeArrival, int idFirstStation, int idLastStation) throws SQLException {
+    public boolean createRun(int idLine, int idConvoy, int idStaff, java.sql.Timestamp timeDeparture, java.sql.Timestamp timeArrival, int idFirstStation, int idLastStation) throws SQLException {
         return runDao.createRun(idLine, idConvoy, idStaff, timeDeparture, timeArrival, idFirstStation, idLastStation);
     }
     /**
      * Updates an existing run with new parameters.
      * Used to modify run details.
      */
-    public boolean updateRun(int idLine, int idConvoy, int idStaff, java.sql.Time timeDeparture, java.sql.Time timeArrival, int idFirstStation, int idLastStation) throws SQLException {
+    public boolean updateRun(int idLine, int idConvoy, int idStaff, java.sql.Timestamp timeDeparture, java.sql.Timestamp timeArrival, int idFirstStation, int idLastStation) throws SQLException {
         return runDao.updateRun(idLine, idConvoy, idStaff, timeDeparture, timeArrival, idFirstStation, idLastStation);
     }
     /**
@@ -455,7 +455,7 @@ public class RailSuiteFacade {
      * Retrieves all runs that start at a specific station and have a specific departure time.
      * Used to filter runs by station and departure time.
      */
-    public List<Run> selectRunsByFirstStationAndDeparture(int idFirstStation, java.sql.Time timeDeparture) throws SQLException {
+    public List<Run> selectRunsByFirstStationAndDeparture(int idFirstStation, java.sql.Timestamp timeDeparture) throws SQLException {
         return runDao.selectRunsByFirstStationAndDeparture(idFirstStation, timeDeparture);
     }
 }

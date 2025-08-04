@@ -2,7 +2,7 @@ package dao;
 
 import domain.Run;
 import java.sql.SQLException;
-import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
@@ -77,7 +77,7 @@ public interface RunDao {
      * @return true if the creation was successful, false otherwise
      * @throws SQLException if a database access error occurs
      */
-    boolean createRun(int idLine, int idConvoy, int idStaff, Time timeDeparture, Time timeArrival, int idFirstStation, int idLastStation) throws SQLException;
+    boolean createRun(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture, Timestamp timeArrival, int idFirstStation, int idLastStation) throws SQLException;
 
     /**
      * Updates an existing run with the specified parameters.
@@ -91,7 +91,7 @@ public interface RunDao {
      * @return true if the update was successful, false otherwise
      * @throws SQLException if a database access error occurs
      */
-    boolean updateRun(int idLine, int idConvoy, int idStaff, Time timeDeparture, Time timeArrival, int idFirstStation, int idLastStation) throws SQLException;
+    boolean updateRun(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture, Timestamp timeArrival, int idFirstStation, int idLastStation) throws SQLException;
 
     /**
      * Returns all runs associated with a specific staff.
@@ -140,7 +140,7 @@ public interface RunDao {
      * @return list of Run objects
      * @throws SQLException if a database access error occurs
      */
-    List<Run> selectRunsByFirstStationAndDeparture(int idFirstStation, Time timeDeparture) throws SQLException;
+    List<Run> selectRunsByFirstStationAndDeparture(int idFirstStation, Timestamp timeDeparture) throws SQLException;
 
     /**
      * Searches for runs based on the provided filters (all optional) and a date range.

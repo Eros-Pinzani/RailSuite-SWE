@@ -223,15 +223,15 @@ public class RunDaoImp implements RunDao {
     }
 
     @Override
-    public boolean createRun(int idLine, int idConvoy, int idStaff, Time timeDeparture, Time timeArrival, int idFirstStation, int idLastStation) throws SQLException {
+    public boolean createRun(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture, Timestamp timeArrival, int idFirstStation, int idLastStation) throws SQLException {
         // Executes the query to insert a new run into the database
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(insertRunQuery)) {
             pstmt.setInt(1, idLine);
             pstmt.setInt(2, idConvoy);
             pstmt.setInt(3, idStaff);
-            pstmt.setTime(4, timeDeparture);
-            pstmt.setTime(5, timeArrival);
+            pstmt.setTimestamp(4, timeDeparture);
+            pstmt.setTimestamp(5, timeArrival);
             pstmt.setInt(6, idFirstStation);
             pstmt.setInt(7, idLastStation);
             int affectedRows = pstmt.executeUpdate();
@@ -245,13 +245,13 @@ public class RunDaoImp implements RunDao {
     }
 
     @Override
-    public boolean updateRun(int idLine, int idConvoy, int idStaff, Time timeDeparture, Time timeArrival, int idFirstStation, int idLastStation) throws SQLException {
+    public boolean updateRun(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture, Timestamp timeArrival, int idFirstStation, int idLastStation) throws SQLException {
         // Executes the query to update an existing run
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(updateRunQuery)) {
             pstmt.setInt(1, idStaff);
-            pstmt.setTime(2, timeDeparture);
-            pstmt.setTime(3, timeArrival);
+            pstmt.setTimestamp(2, timeDeparture);
+            pstmt.setTimestamp(3, timeArrival);
             pstmt.setInt(4, idFirstStation);
             pstmt.setInt(5, idLastStation);
             pstmt.setInt(6, idLine);
@@ -300,12 +300,12 @@ public class RunDaoImp implements RunDao {
     }
 
     @Override
-    public List<Run> selectRunsByFirstStationAndDeparture(int idFirstStation, Time timeDeparture) throws SQLException {
+    public List<Run> selectRunsByFirstStationAndDeparture(int idFirstStation, Timestamp timeDeparture) throws SQLException {
         // Executes the query to get all runs that start from a station and have a specific departure time
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectRunsByFirstStationAndDepartureQuery)) {
             pstmt.setInt(1, idFirstStation);
-            pstmt.setTime(2, timeDeparture);
+            pstmt.setTimestamp(2, timeDeparture);
             try (ResultSet rs = pstmt.executeQuery()) {
                 return resultSetToRunList(rs);
             }

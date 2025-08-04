@@ -29,4 +29,14 @@ public interface LineStationDao {
      * @throws SQLException if a database access error occurs
      */
     List<LineStation> findByLine(int idLine) throws SQLException;
+
+    /**
+     * Returns the timetable for a run, including each station with arrival and departure times.
+     * @param idLine the line id
+     * @param idStartStation the starting station id
+     * @param departureTime the departure time in HH:mm format
+     * @return list of StationArrAndDepDTO objects representing the timetable
+     * @throws SQLException if a database access error occurs
+     */
+    List<domain.DTO.TimeTableDTO.StationArrAndDepDTO> findTimeTableForRun(int idLine, int idStartStation, String departureTime) throws SQLException;
 }

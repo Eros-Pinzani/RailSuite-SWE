@@ -127,6 +127,14 @@ public class CreateRunService {
         }
         return times;
     }
+
+    public List<domain.DTO.TimeTableDTO.StationArrAndDepDTO> getTimeTableForRun(int idLine, int idStartStation, String departureTime) {
+        try {
+            return lineStationDao.findTimeTableForRun(idLine, idStartStation, departureTime);
+        } catch (Exception e) {
+            throw new RuntimeException("Errore nel calcolo della tabella orari: " + e.getMessage(), e);
+        }
+    }
 }
 
 /*

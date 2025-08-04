@@ -35,6 +35,7 @@
         <!-- Main-->
         <VBox spacing="16" style="-fx-padding: 32;">
             <children>
+                <!-- Search Section -->
                 <HBox alignment="CENTER_LEFT" spacing="16">
                     <children>
                         <VBox spacing="4">
@@ -42,7 +43,7 @@
                             <ComboBox fx:id="lineComboBox" prefWidth="200.0" />
                         </VBox>
                         <VBox spacing="4">
-                            <Label text="Direzione:" />
+                            <Label text="Stazione di partenza:" />
                             <ComboBox fx:id="directionComboBox" prefWidth="200.0" />
                         </VBox>
                         <VBox spacing="4">
@@ -64,7 +65,7 @@
                   <VBox prefWidth="200.0" spacing="4.0">
                      <children>
                         <Label text="Tipo del Convoglio:" />
-                        <ComboBox fx:id="typeOfConvoyCombBox" prefWidth="200.0" />
+                        <ComboBox fx:id="typeOfConvoyComboBox" prefWidth="200.0" />
                      </children>
                   </VBox>
                         <VBox spacing="4">
@@ -75,6 +76,7 @@
                     </children>
                 </HBox>
             <HBox prefHeight="100.0" prefWidth="200.0" style="-fx-border-color: Black;" />
+            <!-- Recap  Section -->
             <Label text="Riepilogo">
                <font>
                   <Font name="System Bold" size="16.0" />
@@ -126,6 +128,26 @@
                                  </font>
                               </Label>
                               <Label fx:id="convoyIdRecap" />
+                           </children>
+                        </HBox>
+                        <HBox prefHeight="30.0" prefWidth="200.0" spacing="4.0">
+                           <children>
+                              <Label text="Data:">
+                                 <font>
+                                    <Font name="System Bold" size="12.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="dateRecap" />
+                           </children>
+                        </HBox>
+                        <HBox prefHeight="30.0" prefWidth="200.0" spacing="4.0">
+                           <children>
+                              <Label text="Orario di partenza:">
+                                 <font>
+                                    <Font name="System Bold" size="12.0" />
+                                 </font>
+                              </Label>
+                              <Label fx:id="timeRecap" />
                            </children>
                         </HBox>
                         <Button mnemonicParsing="false" prefWidth="200.0" text="Conferma e crea la corsa" textAlignment="CENTER">

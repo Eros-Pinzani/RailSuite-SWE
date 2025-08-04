@@ -13,6 +13,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.logging.Logger;
+
 import domain.DTO.StaffDTO;
 
 /**
@@ -23,8 +24,8 @@ public class CreateRunController {
     @FXML
     private ComboBox<LineRaw> lineComboBox;
     @FXML
-    private ComboBox<String> directionComboBox;
-    private EventHandler<ActionEvent> directionComboHandler;
+    private ComboBox<String> startStationComboBox;
+    private EventHandler<ActionEvent> startStationComboHandler;
     @FXML
     private DatePicker datePicker;
     @FXML
@@ -38,12 +39,11 @@ public class CreateRunController {
     private EventHandler<ActionEvent> convoyComboHandler;
     @FXML
     private ComboBox<StaffDTO> operatorComboBox;
-    @FXML
-    private Label headStationLabel;
+
+
     @FXML
     private Button createRunButton;
-    @FXML
-    private Label errorLabel;
+
     @FXML
     private Label supervisorNameLabel;
     @FXML
@@ -59,30 +59,35 @@ public class CreateRunController {
     @FXML
     private Label convoyIdRecap;
     @FXML
-    private TableView<?> percorsoTableView; // Da tipizzare se hai una classe per il percorso
+    private Label dateRecap;
     @FXML
-    private TableColumn<?, ?> stazioniColumn;
+    private Label timeRecap;
     @FXML
-    private TableColumn<?, ?> arrivoColumn;
+    private TableView<domain.DTO.TimeTableDTO.StationArrAndDepDTO> routeTableView;
     @FXML
-    private TableColumn<?, ?> partenzaColumn;
+    private TableColumn<domain.DTO.TimeTableDTO.StationArrAndDepDTO, String> stationColumn;
     @FXML
-    private TableView<?> carriagesTableView; // Da tipizzare se hai una classe per le carrozze
+    private TableColumn<domain.DTO.TimeTableDTO.StationArrAndDepDTO, String> arriveColumn;
     @FXML
-    private TableColumn<?, ?> carriageIdColumn;
+    private TableColumn<domain.DTO.TimeTableDTO.StationArrAndDepDTO, String> departureColumn;
     @FXML
-    private TableColumn<?, ?> carriageModelColumn;
+    private TableView<domain.Carriage> carriagesTableView;
     @FXML
-    private TableColumn<?, ?> carriageCapacityColumn;
+    private TableColumn<domain.Carriage, Number> carriageIdColumn;
+    @FXML
+    private TableColumn<domain.Carriage, String> carriageModelColumn;
+    @FXML
+    private TableColumn<domain.Carriage, Number> carriageCapacityColumn;
 
     private final CreateRunService createRunService = new CreateRunService();
     private static final Logger logger = Logger.getLogger(CreateRunController.class.getName());
 
     /**
      * Sets up the header and menu actions for the supervisor.
+     *
      * @param supervisorNameLabel the label for supervisor name
-     * @param logoutMenuItem the logout menu item
-     * @param exitMenuItem the exit menu item
+     * @param logoutMenuItem      the logout menu item
+     * @param exitMenuItem        the exit menu item
      */
     public static void header(Label supervisorNameLabel, MenuItem logoutMenuItem, MenuItem exitMenuItem) {
         if (businessLogic.controller.UserSession.getInstance().getStaff() != null) {
@@ -100,7 +105,7 @@ public class CreateRunController {
         header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
         try {
             lineComboBox.setItems(FXCollections.observableArrayList(createRunService.getAllLines()));
-            directionComboBox.setDisable(true);
+            startStationComboBox.setDisable(true);
             datePicker.setDayCellFactory(createRunService.getDateCellFactory());
             departureTimePicker.setItems(FXCollections.observableArrayList(createRunService.getAvailableDepartureTimes()));
             convoyComboBox.setCellFactory(lv -> new ListCell<Convoy>() {
@@ -116,18 +121,23 @@ public class CreateRunController {
                 }
             });
             convoyComboBox.setButtonCell(convoyComboBox.getCellFactory().call(null));
+            stationColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getStationName()));
+            arriveColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getArriveTime()));
+            departureColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDepartureTime()));
+            carriageIdColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleIntegerProperty(cellData.getValue().getId()));
+            carriageModelColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getModel()));
+            carriageCapacityColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleIntegerProperty(cellData.getValue().getCapacity()));
         } catch (Exception e) {
             logger.severe("Error initializing fields: " + e.getMessage());
         }
         lineComboBox.setOnAction(e -> onLineSelected());
-        directionComboHandler = e -> updatePoolsAvailability();
-        directionComboBox.setOnAction(directionComboHandler);
+        startStationComboHandler = e -> updatePoolsAvailability();
+        startStationComboBox.setOnAction(startStationComboHandler);
         datePicker.setOnAction(e -> updatePoolsAvailability());
         departureTimePicker.setOnAction(e -> updatePoolsAvailability());
 
         // Second set of filters
         typeOfConvoyComboHandler = e -> updateConvoyAvailability();
-        typeOfConvoyComboBox.setOnAction(typeOfConvoyComboHandler);
         convoyComboHandler = e -> updateRecapLabels();
         convoyComboBox.setOnAction(convoyComboHandler);
         typeOfConvoyComboBox.setOnAction(typeOfConvoyComboHandler);
@@ -139,21 +149,20 @@ public class CreateRunController {
     }
 
     private void onLineSelected() {
-        directionComboBox.setOnAction(null);
+        startStationComboBox.setOnAction(null);
         LineRaw selectedLine = lineComboBox.getValue();
         if (selectedLine != null) {
-            directionComboBox.setDisable(false);
-            directionComboBox.setItems(FXCollections.observableArrayList(selectedLine.getFirstStationLocation(), selectedLine.getLastStationLocation()));
-            directionComboBox.getSelectionModel().selectFirst();
+            startStationComboBox.setDisable(false);
+            startStationComboBox.setItems(FXCollections.observableArrayList(selectedLine.getFirstStationLocation(), selectedLine.getLastStationLocation()));
+            startStationComboBox.getSelectionModel().selectFirst();
             calculateTravelTimeAsync(selectedLine);
         } else {
-            directionComboBox.setDisable(true);
-            headStationLabel.setText("");
+            startStationComboBox.setDisable(true);
             convoyComboBox.getItems().clear();
             operatorComboBox.getItems().clear();
             travelTime = null;
         }
-        directionComboBox.setOnAction(directionComboHandler);
+        startStationComboBox.setOnAction(startStationComboHandler);
     }
 
     /**
@@ -181,20 +190,31 @@ public class CreateRunController {
     }
 
     /**
+     * Mostra un popup di errore con il messaggio specificato.
+     */
+    private void showErrorPopup(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Errore");
+        alert.setHeaderText("Si è verificato un errore");
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    /**
      * Updates the available pools and operators based on selected filters.
      */
     private void updatePoolsAvailability() {
         LineRaw selectedLine = lineComboBox.getValue();
-        String direction = directionComboBox.getValue();
+        String startStation = startStationComboBox.getValue();
         LocalDate date = datePicker.getValue();
         String time = departureTimePicker.getValue();
         int idStation;
-        if (selectedLine != null && direction != null && date != null && time != null) {
-            if (selectedLine.getFirstStationLocation().equals(direction)) idStation = selectedLine.getIdFirstStation();
-            else if (selectedLine.getLastStationLocation().equals(direction))
+        if (selectedLine != null && startStation != null && date != null && time != null) {
+            if (selectedLine.getFirstStationLocation().equals(startStation)) idStation = selectedLine.getIdFirstStation();
+            else if (selectedLine.getLastStationLocation().equals(startStation))
                 idStation = selectedLine.getIdLastStation();
             else {
-                errorLabel.setText("Direzione non valida per la linea selezionata.");
+                showErrorPopup("Server error - Seleziona una direzione valida.");
                 return;
             }
             createRunService.setConvoyPools(idStation, time, date, selectedLine.getIdLine());
@@ -235,10 +255,77 @@ public class CreateRunController {
      * Updates the recap labels for staff and convoy selection.
      */
     private void updateRecapLabels() {
-        //TODO: implementare recap
-        StaffDTO staff = operatorComboBox.getValue();
+        if (checkRecap()) {
+            StaffDTO staff = operatorComboBox.getValue();
+            Convoy convoy = convoyComboBox.getValue();
+            staffNameSurnameRecap.setText(staff != null ? staff.getStaffNameSurname() : "");
+            convoyIdRecap.setText(convoy != null ? String.valueOf(convoy.getId()) : "");
+            dateRecap.setText(datePicker.getValue() != null ? datePicker.getValue().toString() : "");
+            timeRecap.setText(departureTimePicker.getValue() != null ? departureTimePicker.getValue() : "");
+
+            LineRaw selectedLine = lineComboBox.getValue();
+            String startStation = startStationComboBox.getValue();
+            String time = departureTimePicker.getValue();
+            if (selectedLine != null && startStation != null && time != null) {
+                int idLine = selectedLine.getIdLine();
+                int idStartStation = selectedLine.getFirstStationLocation().equals(startStation) ? selectedLine.getIdFirstStation() : selectedLine.getIdLastStation();
+                List<domain.DTO.TimeTableDTO.StationArrAndDepDTO> rows = createRunService.getTimeTableForRun(idLine, idStartStation, time);
+                routeTableView.setItems(FXCollections.observableArrayList(rows));
+            } else {
+                routeTableView.getItems().clear();
+                showErrorPopup("Errore nel recupero della tabella del percorso. Assicurati di aver selezionato una linea, una stazione di partenza e un orario di partenza validi.");
+            }
+
+
+            if (convoy != null) {
+                carriagesTableView.setItems(FXCollections.observableArrayList(convoy.getCarriages()));
+            } else {
+                carriagesTableView.getItems().clear();
+                showErrorPopup("Errore nel recupero dei vagoni del convoglio. Assicurati di aver selezionato un convoglio valido.");
+            }
+        } else {
+            routeTableView.getItems().clear();
+            carriagesTableView.getItems().clear();
+        }
+    }
+
+    private boolean checkRecap() {
+        LineRaw selectedLine = lineComboBox.getValue();
+        String direction = startStationComboBox.getValue();
+        LocalDate date = datePicker.getValue();
+        String time = departureTimePicker.getValue();
+        String type = typeOfConvoyComboBox.getValue();
         Convoy convoy = convoyComboBox.getValue();
-        staffNameSurnameRecap.setText(staff != null ? staff.getStaffNameSurname() : "");
-        convoyIdRecap.setText(convoy != null ? String.valueOf(convoy.getId()) : "");
+        StaffDTO operator = operatorComboBox.getValue();
+
+        if (selectedLine == null) {
+            showErrorPopup("Seleziona una linea.");
+            return false;
+        }
+        if (direction == null) {
+            showErrorPopup("Seleziona una direzione.");
+            return false;
+        }
+        if (date == null) {
+            showErrorPopup("Seleziona una data di partenza.");
+            return false;
+        }
+        if (time == null) {
+            showErrorPopup("Seleziona un orario di partenza.");
+            return false;
+        }
+        if (type == null) {
+            showErrorPopup("Seleziona il tipo di convoglio.");
+            return false;
+        }
+        if (convoy == null) {
+            showErrorPopup("Seleziona un convoglio disponibile.");
+            return false;
+        }
+        if (operator == null) {
+            showErrorPopup("Seleziona un operatore disponibile.");
+            return false;
+        }
+        return true;
     }
 }

@@ -1,15 +1,15 @@
 package domain;
 
 class LineRawImp implements LineRaw {
-    private final int idline;
+    private final int idLine;
     private final String lineName;
     private final int idFirstStation;
     private final String firstStationLocation;
     private final int idLastStation;
     private final String lastStationLocation;
 
-    public LineRawImp(int idline, String lineName,int idFirstStation, String firstStationLocation,int idLastStation, String lastStationLocation) {
-        this.idline = idline;
+    public LineRawImp(int idLine, String lineName,int idFirstStation, String firstStationLocation,int idLastStation, String lastStationLocation) {
+        this.idLine = idLine;
         this.lineName = lineName;
         this.idFirstStation = idFirstStation;
         this.firstStationLocation = firstStationLocation;
@@ -19,7 +19,7 @@ class LineRawImp implements LineRaw {
 
     @Override
     public int getIdLine() {
-        return idline;
+        return idLine;
     }
 
     @Override

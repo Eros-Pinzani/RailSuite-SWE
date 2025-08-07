@@ -113,7 +113,8 @@ public class CreateRunService {
             public void updateItem(LocalDate item, boolean empty) {
                 super.updateItem(item, empty);
                 LocalDate today = LocalDate.now();
-                setDisable(empty || item.isBefore(today) || item.isAfter(today.plusDays(1)));
+                LocalDate tomorrow = today.plusDays(1);
+                setDisable(empty || (item.isBefore(today) || item.isAfter(tomorrow)));
             }
         };
     }

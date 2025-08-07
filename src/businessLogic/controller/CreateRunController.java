@@ -103,9 +103,46 @@ public class CreateRunController {
     public void initialize() {
         header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
         try {
-            lineComboBox.setItems(FXCollections.observableArrayList(createRunService.getAllLines()));
-            startStationComboBox.setDisable(true);
-            datePicker.setDayCellFactory(createRunService.getDateCellFactory());
+            // Line: mostra solo nomi unici, ma salva l'oggetto domain.LineRaw
+            List<LineRaw> allLines = createRunService.getAllLines();
+            List<String> uniqueLineNames = new java.util.ArrayList<>();
+            List<LineRaw> uniqueLines = new java.util.ArrayList<>();
+            for (LineRaw line : allLines) {
+                if (!uniqueLineNames.contains(line.getLineName())) {
+                    uniqueLineNames.add(line.getLineName());
+                    uniqueLines.add(line);
+                }
+            }
+            lineComboBox.setItems(FXCollections.observableArrayList(uniqueLines));
+            lineComboBox.setCellFactory(lv -> new ListCell<LineRaw>() {
+                @Override
+                protected void updateItem(LineRaw item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty || item == null ? null : item.getLineName());
+                }
+            });
+            lineComboBox.setButtonCell(new ListCell<LineRaw>() {
+                @Override
+                protected void updateItem(LineRaw item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty || item == null ? null : item.getLineName());
+                }
+            });
+            // Operatore disponibile: mostra domain.DTO.StaffDTO
+            operatorComboBox.setCellFactory(lv -> new ListCell<StaffDTO>() {
+                @Override
+                protected void updateItem(StaffDTO item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty || item == null ? null : item.getStaffNameSurname());
+                }
+            });
+            operatorComboBox.setButtonCell(new ListCell<StaffDTO>() {
+                @Override
+                protected void updateItem(StaffDTO item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setText(empty || item == null ? null : item.getStaffNameSurname());
+                }
+            });
             departureTimePicker.setItems(FXCollections.observableArrayList(createRunService.getAvailableDepartureTimes()));
             convoyComboBox.setCellFactory(lv -> new ListCell<Convoy>() {
                 @Override
@@ -220,8 +257,10 @@ public class CreateRunController {
             createRunService.setConvoyPools(idStation, time, date, selectedLine.getIdLine());
             typeOfConvoyComboBox.setItems(FXCollections.observableArrayList(
                     createRunService.getConvoyTypes(createRunService.getConvoysPoolAvailable())));
+            typeOfConvoyComboBox.setDisable(false);
             List<StaffDTO> operators = createRunService.getStaffPools(idStation, date, time);
             operatorComboBox.setItems(FXCollections.observableArrayList(operators));
+            operatorComboBox.setDisable(false);
         } else {
             typeOfConvoyComboBox.getItems().clear();
             convoyComboBox.getItems().clear();

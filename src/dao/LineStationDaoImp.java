@@ -44,6 +44,24 @@ class LineStationDaoImp implements LineStationDao {
         return stations;
     }
 
+    private static java.time.Duration parsePgInterval(String intervalStr) {
+        if (intervalStr == null) return null;
+        // Gestisce solo formato HH:mm:ss
+        String[] parts = intervalStr.split(":");
+        int hours = 0, minutes = 0, seconds = 0;
+        if (parts.length == 3) {
+            hours = Integer.parseInt(parts[0]);
+            minutes = Integer.parseInt(parts[1]);
+            seconds = Integer.parseInt(parts[2]);
+        } else if (parts.length == 2) {
+            hours = Integer.parseInt(parts[0]);
+            minutes = Integer.parseInt(parts[1]);
+        } else if (parts.length == 1) {
+            hours = Integer.parseInt(parts[0]);
+        }
+        return java.time.Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds);
+    }
+
     /**
      * Restituisce la tabella orari per una corsa: ogni stazione con orario di arrivo e partenza.
      * @param idLine id della linea
@@ -64,10 +82,10 @@ class LineStationDaoImp implements LineStationDao {
             while (rs.next()) {
                 int idStation = rs.getInt("id_station");
                 String stationName = rs.getString("location");
-                java.time.Duration timeToNext = rs.getObject("time_to_next_station") != null ? rs.getObject("time_to_next_station", java.time.Duration.class) : null;
+                String intervalStr = rs.getString("time_to_next_station");
+                java.time.Duration timeToNext = parsePgInterval(intervalStr);
                 String arr, dep;
                 if (!foundStart) {
-
                     arr = "------";
                     dep = currentTime.toString();
                     foundStart = (idStation == idStartStation);

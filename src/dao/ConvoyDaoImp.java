@@ -72,8 +72,8 @@ class ConvoyDaoImp implements ConvoyDao {
               AND c.id_convoy NOT IN (
                   SELECT r.id_convoy
                   FROM run r
-                  WHERE r.time_departure <= ?::time
-                    AND r.time_arrival >= ?::time
+                  WHERE r.time_departure <= ?::timestamp
+                    AND r.time_arrival >= ?::timestamp
                     AND r.id_line = ?
               )
               AND c.id_convoy NOT IN (
@@ -345,9 +345,11 @@ class ConvoyDaoImp implements ConvoyDao {
         List<Convoy> convoys = new ArrayList<>();
         try (java.sql.Connection conn = PostgresConnection.getConnection();
              java.sql.PreparedStatement stmt = conn.prepareStatement(convyForNewRunQuery)) {
+            java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(dateDeparture, java.time.LocalTime.parse(timeDeparture));
+            java.sql.Timestamp departureTimestamp = java.sql.Timestamp.valueOf(dateTime);
             stmt.setInt(1, idStation);
-            stmt.setString(2, timeDeparture);
-            stmt.setString(3, timeDeparture);
+            stmt.setTimestamp(2, departureTimestamp);
+            stmt.setTimestamp(3, departureTimestamp);
             stmt.setInt(4, idLine);
             try (java.sql.ResultSet rs = stmt.executeQuery()) {
                 int lastConvoyId = -1;

@@ -87,11 +87,11 @@
                   <VBox spacing="5.0">
                      <children>
                         <Label text="Percorso" />
-                        <TableView>
+                        <TableView fx:id="routeTableView">
                           <columns>
-                            <TableColumn prefWidth="150.0" text="Stazioni" />
-                            <TableColumn prefWidth="75.0" text="Arrivo" />
-                              <TableColumn prefWidth="75.0" text="Partenza" />
+                            <TableColumn fx:id="stationColumn" prefWidth="150.0" text="Stazioni" />
+                            <TableColumn fx:id="arriveColumn" prefWidth="75.0" text="Arrivo" />
+                              <TableColumn fx:id="departureColumn" prefWidth="75.0" text="Partenza" />
                           </columns>
                         </TableView>
                      </children>
@@ -99,11 +99,11 @@
                   <VBox spacing="5.0">
                      <children>
                         <Label text="Carrozze" />
-                        <TableView>
+                        <TableView fx:id="carriagesTableView">
                           <columns>
-                              <TableColumn prefWidth="40.0" text="Id" />
-                            <TableColumn prefWidth="104.0" text="Modello" />
-                            <TableColumn prefWidth="84.0" text="Capacità" />
+                              <TableColumn fx:id="carriageIdColumn" prefWidth="40.0" text="Id" />
+                            <TableColumn fx:id="carriageModelColumn" prefWidth="104.0" text="Modello" />
+                            <TableColumn fx:id="carriageCapacityColumn" prefWidth="84.0" text="Capacità" />
                           </columns>
                         </TableView>
                      </children>

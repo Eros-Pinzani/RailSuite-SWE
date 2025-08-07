@@ -40,20 +40,20 @@ public class StaffPoolDaoImp implements StaffPoolDao {
                     SELECT 1
                     FROM run r
                     WHERE r.id_staff = s.id_staff
-                      AND r.date = ?
+                      AND DATE(r.time_departure) = ?
                       AND (
-                            (r.time_departure <= (?::time + INTERVAL '15 minutes')
-                             AND r.time_arrival >= (?::time - INTERVAL '15 minutes'))
+                            (r.time_departure <= (?::timestamp + INTERVAL '15 minutes')
+                             AND r.time_arrival >= (?::timestamp - INTERVAL '15 minutes'))
                          OR
-                            (r.time_departure <= ((?::time + INTERVAL '1 hour') + INTERVAL '15 minutes')
-                             AND r.time_arrival >= ((?::time + INTERVAL '1 hour') - INTERVAL '15 minutes'))
+                            (r.time_departure <= ((?::timestamp + INTERVAL '1 hour') + INTERVAL '15 minutes')
+                             AND r.time_arrival >= ((?::timestamp + INTERVAL '1 hour') - INTERVAL '15 minutes'))
                       )
                 )
               AND (
                     SELECT COALESCE(SUM(EXTRACT(EPOCH FROM (r.time_arrival - r.time_departure)))/3600, 0)
                     FROM run r
                     WHERE r.id_staff = s.id_staff
-                      AND r.date = ?
+                      AND DATE(r.time_departure) = ?
                 ) < 12
             ORDER BY s.surname, s.name;
             """;
@@ -142,11 +142,14 @@ public class StaffPoolDaoImp implements StaffPoolDao {
         try (Connection conn = dao.PostgresConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_AVAILABLE_OPERATORS_FOR_RUN)) {
             ps.setInt(1, idStation);
-            ps.setObject(2, date);
-            ps.setString(3, time);
-            ps.setString(4, time);
-            ps.setString(5, time);
-            ps.setObject(6, date);
+            ps.setDate(2, java.sql.Date.valueOf(date));
+            java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(date, java.time.LocalTime.parse(time));
+            java.sql.Timestamp departureTimestamp = java.sql.Timestamp.valueOf(dateTime);
+            ps.setTimestamp(3, departureTimestamp);
+            ps.setTimestamp(4, departureTimestamp);
+            ps.setTimestamp(5, departureTimestamp);
+            ps.setDate(6, java.sql.Date.valueOf(date));
+            ps.setDate(7, java.sql.Date.valueOf(date));
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     result.add(

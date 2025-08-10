@@ -81,6 +81,7 @@ public class ManageRunController {
      */
     @FXML
     public void initialize() {
+         // TODO: Aggiornare lo stato di convogli, carrozze (manutenzione) e personale all'avvio della schermata ManageRun sotto forma di TASK
         ManageConvoyController.header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
         try {
             initFilters();

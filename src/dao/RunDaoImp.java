@@ -1,5 +1,6 @@
 package dao;
 
+import domain.DTO.RunDTO;
 import domain.Run;
 
 import java.sql.*;
@@ -122,6 +123,17 @@ public class RunDaoImp implements RunDao {
                 LEFT JOIN station fs ON r.id_first_station = fs.id_station
                 LEFT JOIN station ls ON r.id_last_station = ls.id_station
             WHERE r.id_first_station = ? AND time_departure = ?\s""";
+    private static final String selectRunDTOdetails = """
+            SELECT r.id_line, l.name,
+                r.id_convoy,
+                r.id_staff, s.name, s.surname, s.email,
+                r.time_departure,
+                st.location
+            FROM run r
+            INNER JOIN line l ON l.id_line = r.id_line
+            INNER JOIN staff s ON s.id_staff = r.id_staff
+            INNER JOIN station st ON st.id_station = r.id_first_station
+            """;
 
     private Run resultSetToRun(ResultSet rs) throws SQLException {
         return Run.of(
@@ -356,5 +368,29 @@ public class RunDaoImp implements RunDao {
                 return runs;
             }
         }
+    }
+
+    @Override
+    public RunDTO selectRunDTOdetails(int idLine, int idConvoy, int idStaff) throws SQLException {
+        // Executes the query to get run details as a RunDTO
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectRunDTOdetails)) {
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new RunDTO(
+                            rs.getInt("id_line"),
+                            rs.getString("name"),
+                            rs.getInt("id_convoy"),
+                            rs.getInt("id_staff"),
+                            rs.getString("name"),
+                            rs.getString("surname"),
+                            rs.getString("email"),
+                            rs.getTimestamp("time_departure"),
+                            rs.getString("location")
+                    );
+                }
+            }
+        }
+        return null;
     }
 }

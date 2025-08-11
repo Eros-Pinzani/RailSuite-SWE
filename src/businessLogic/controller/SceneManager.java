@@ -93,4 +93,25 @@ public class SceneManager {
             LOGGER.log(Level.SEVERE, "Error while opening ManageCarriages scene", e);
         }
     }
+
+    /**
+     * Opens the Run Details scene and sets the parameters for the controller.
+     * @param idLine the ID of the line
+     * @param idConvoy the ID of the convoy
+     * @param idStaff the ID of the staff member
+     * @param timeDeparture the departure time
+     */
+    public void openRunDetailsScene(int idLine, int idConvoy, int idStaff, java.sql.Timestamp timeDeparture, int idFirstStation) {
+        try {
+            FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/businessLogic/fxml/RunDetails.fxml"));
+            Parent root = loader.load();
+            businessLogic.controller.RunDetailsController controller = loader.getController();
+            controller.setRunParams(idLine, idConvoy, idStaff, timeDeparture,idFirstStation);
+            Scene scene = new Scene(root, 800, 600);
+            primaryStage.setScene(scene);
+            primaryStage.centerOnScreen();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error while opening RunDetails scene", e);
+        }
+    }
 }

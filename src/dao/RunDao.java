@@ -173,13 +173,16 @@ public interface RunDao {
     List<Run> searchRunsByDay(String lineName, String convoyId, String staffNameSurname, String firstStationName, java.sql.Timestamp dayStart, java.sql.Timestamp dayEnd) throws SQLException;
 
     /**
-     * Returns the run associated with a specific line, convoy, and staff.
+     * Returns a RunDTO object containing detailed information about a run.
      *
-     * @param idLine   the line id
-     * @param idConvoy the convoy id
-     * @param idStaff  the staff id
-     * @return the corresponding Run object, or null if not found
+     * @param idLine         the line id
+     * @param idConvoy       the convoy id
+     * @param idStaff        the staff id
+     * @param timeDeparture  the departure time
+     * @return a RunDTO object with run details, or null if not found
      * @throws SQLException if a database access error occurs
      */
-    RunDTO selectRunDTOdetails(int idLine, int idConvoy, int idStaff) throws SQLException;
+    RunDTO selectRunDTODetails(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException;
+
+    boolean findRunsByStaffAfterTime(int idStaff, Timestamp timeDeparture) throws SQLException;
 }

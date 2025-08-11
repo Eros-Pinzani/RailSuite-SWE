@@ -133,6 +133,12 @@ public class RunDaoImp implements RunDao {
             INNER JOIN line l ON l.id_line = r.id_line
             INNER JOIN staff s ON s.id_staff = r.id_staff
             INNER JOIN station st ON st.id_station = r.id_first_station
+            WHERE r.id_line = ? AND r.id_convoy = ? AND r.id_staff = ? AND time_departure = ?
+            """;
+    private static final String selectRunsForOperatorAfterTimeQuery = """
+            SELECT r.id_staff, r.time_departure
+            FROM run r
+            WHERE r.id_staff = ? AND r.time_departure > ?
             """;
 
     private Run resultSetToRun(ResultSet rs) throws SQLException {
@@ -371,13 +377,17 @@ public class RunDaoImp implements RunDao {
     }
 
     @Override
-    public RunDTO selectRunDTOdetails(int idLine, int idConvoy, int idStaff) throws SQLException {
+    public RunDTO selectRunDTODetails(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException {
         // Executes the query to get run details as a RunDTO
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectRunDTOdetails)) {
+            pstmt.setInt(1, idLine);
+            pstmt.setInt(2, idConvoy);
+            pstmt.setInt(3, idStaff);
+            pstmt.setTimestamp(4, timeDeparture);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return new RunDTO(
+                    return new RunDTO (
                             rs.getInt("id_line"),
                             rs.getString("name"),
                             rs.getInt("id_convoy"),
@@ -390,7 +400,24 @@ public class RunDaoImp implements RunDao {
                     );
                 }
             }
+        } catch (SQLException e) {
+            throw new SQLException("Error selecting run details", e);
         }
         return null;
+    }
+
+    @Override
+    public boolean findRunsByStaffAfterTime(int idStaff, Timestamp timeDeparture) throws SQLException {
+        // Executes the query to check if there are runs for a staff member after a specific time
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectRunsForOperatorAfterTimeQuery)) {
+            pstmt.setInt(1, idStaff);
+            pstmt.setTimestamp(2, timeDeparture);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Error on findRuns By staff after time", e);
+        }
     }
 }

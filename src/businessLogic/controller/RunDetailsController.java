@@ -1,23 +1,25 @@
 package businessLogic.controller;
 
+import domain.Carriage;
 import domain.DTO.RunDTO;
+import domain.DTO.TimeTableDTO;
+import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
 import businessLogic.controller.UserSession;
 import domain.Staff;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import businessLogic.service.RunDetailsService;
 import domain.Run;
 import javafx.scene.layout.VBox;
 
 import java.net.URL;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ResourceBundle;
+import java.util.logging.Logger;
 
 public class RunDetailsController implements Initializable {
     // Header
@@ -61,6 +63,10 @@ public class RunDetailsController implements Initializable {
     @FXML private Label lineName;
     @FXML private Label timeTableChangeEditButtonReason;
     @FXML private Button runTimeEdit;
+    @FXML private TableView<TimeTableDTO.StationArrAndDepDTO> timeTableView;
+    @FXML private TableColumn<TimeTableDTO.StationArrAndDepDTO, String> stationColumn;
+    @FXML private TableColumn<TimeTableDTO.StationArrAndDepDTO, String> arriveColumn;
+    @FXML private TableColumn<TimeTableDTO.StationArrAndDepDTO, String> departureColumn;
 
     // Toggle Section Buttons
     @FXML private Button convoyDetailSectionToggle;
@@ -71,10 +77,25 @@ public class RunDetailsController implements Initializable {
     @FXML private Button listOfIdCarriages;
 
     private final RunDetailsService runDetailsService = new RunDetailsService();
+    private static final Logger logger = Logger.getLogger(RunDetailsController.class.getName());
 
 
     public static void header(Label supervisorNameLabel, MenuItem logoutMenuItem, MenuItem exitMenuItem) {
         CreateRunController.header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
+    }
+
+    private int idLine;
+    private int idConvoy;
+    private int idStaff;
+    private Timestamp timeDeparture;
+    private int idFirstStation;
+
+    public void setRunParams(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture, int idFirstStation) {
+        this.idLine = idLine;
+        this.idConvoy = idConvoy;
+        this.idStaff = idStaff;
+        this.timeDeparture = timeDeparture;
+        this.idFirstStation = idFirstStation;
     }
 
     @Override
@@ -89,7 +110,14 @@ public class RunDetailsController implements Initializable {
                 }
             });
         }
-        RunDTO run = runDetailsService(); //TODO trasporta i dati: idLine, idConvoy, idStaff
+        RunDTO run = null;
+        try {
+            run = runDetailsService.selectRun(idLine, idConvoy, idStaff, timeDeparture);
+        } catch (Exception e) {
+            logger.severe("Error loading run details: " + e.getMessage());
+            Alert alert = new Alert(AlertType.ERROR, "Errore nel caricamento dei dettagli della corsa.");
+            alert.showAndWait();
+        }
         if (run != null) {
             firstStation.setText(run.getFirstStationName());
             startAtDateTime.setText(run.getTimeDeparture().toLocalDateTime().toString());
@@ -99,40 +127,144 @@ public class RunDetailsController implements Initializable {
             staffEmail.setText(run.getStaffEmail());
             lineName.setText(run.getLineName());
 
-        }
+            boolean isEditable = LocalDateTime.now().isBefore(run.getTimeDeparture().toLocalDateTime().minusMinutes(15));
+            boolean hasOperatorConflict = runDetailsService.hasOperatorConflicts(idStaff, run.getTimeDeparture());
+            operatorChange.setDisable(!isEditable || hasOperatorConflict);
+            if (!isEditable) {
+                operatorChangeEditButtonReason.setText("Non puoi cambiare l'operatore: il tempo limite per la modifica è scaduto (sono richiesti almeno 15 minuti di anticipo rispetto alla partenza).");
+            } else if (hasOperatorConflict) {
+                operatorChangeEditButtonReason.setText("Non puoi cambiare l'operatore: l'operatore selezionato ha altre corse programmate dopo questa.");
+            } else {
+                operatorChangeEditButtonReason.setText("Cambio operatore possibile.");
+            }
 
-        // Carica i dati della corsa (Run) tramite il service
-        run = runDetailsService.getSelectedRun(); // Supponiamo che il service abbia questo metodo
-        if (run != null) {
-            firstStation.setText(run.getStartStation().getLocation());
-            startAtDateTime.setText(run.getDepartureTime().toString());
-            staffNameSurname.setText(run.getOperator().getName() + " " + run.getOperator().getSurname());
-            typeOfConvoy.setText(run.getConvoy().getType());
-            modelOfConvoy.setText(run.getConvoy().getModel());
-            capacityOfConvoy.setText(String.valueOf(run.getConvoy().getCapacity()));
-            numberOfCarriage.setText(String.valueOf(run.getConvoy().getNumberOfCarriage()));
-            staffName.setText(run.getOperator().getName());
-            staffSurname.setText(run.getOperator().getSurname());
-            staffEmail.setText(run.getOperator().getEmail());
-            runDate.setText(run.getDepartureTime().toLocalDateTime().toString());
-            lineName.setText(run.getLine().getName());
-
-            // Abilita/disabilita i pulsanti di modifica in base all'orario di partenza
-            boolean isEditable = LocalDateTime.now().isBefore(run.getDepartureTime().toLocalDateTime());
             eliminationConfirm.setDisable(!isEditable);
             convoyEdit.setDisable(!isEditable);
             operatorChange.setDisable(!isEditable);
             runTimeEdit.setDisable(!isEditable);
-
-        } else {
-            // Gestione errore: nessuna corsa selezionata
+            if (!isEditable) {
+                eliminationButtonMention.setText("Non puoi eliminare la corsa: il tempo limite per la modifica è scaduto (sono richiesti almeno 15 minuti di anticipo rispetto alla partenza)." );
+            } else {
+                eliminationButtonMention.setText("Attenzione: l'eliminazione potrebbe generare conflitti con altre corse o prenotazioni.");
+            }
+        }
+        else {
             Alert alert = new Alert(AlertType.ERROR, "Nessuna corsa selezionata.");
             alert.showAndWait();
             eliminationConfirm.setDisable(true);
             convoyEdit.setDisable(true);
             operatorChange.setDisable(true);
             runTimeEdit.setDisable(true);
+            eliminationButtonMention.setText("Nessuna corsa selezionata.");
+            return;
         }
+        taskInitConvoy(idConvoy);
+        String departureTime = timeDeparture.toLocalDateTime().toLocalTime().toString();
+        taskInitTimeTable(idLine, idFirstStation, departureTime);
+
+        stationColumn.setCellFactory(tc -> {
+            TableCell<TimeTableDTO.StationArrAndDepDTO, String> cell = new TableCell<>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item);
+                        setWrapText(true);
+                        setStyle("-fx-label-padding: 4; -fx-text-alignment: left;");
+                    }
+                }
+            };
+            cell.setPrefHeight(Control.USE_COMPUTED_SIZE);
+            return cell;
+        });
+        arriveColumn.setCellFactory(tc -> {
+            TableCell<TimeTableDTO.StationArrAndDepDTO, String> cell = new TableCell<>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item);
+                        setWrapText(true);
+                        setStyle("-fx-label-padding: 4; -fx-text-alignment: left;");
+                    }
+                }
+            };
+            cell.setPrefHeight(Control.USE_COMPUTED_SIZE);
+            return cell;
+        });
+        departureColumn.setCellFactory(tc -> {
+            TableCell<TimeTableDTO.StationArrAndDepDTO, String> cell = new TableCell<>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(item);
+                        setWrapText(true);
+                        setStyle("-fx-label-padding: 4; -fx-text-alignment: left;");
+                    }
+                }
+            };
+            cell.setPrefHeight(Control.USE_COMPUTED_SIZE);
+            return cell;
+        });
+    }
+
+    private void taskInitConvoy(int idConvoy) {
+        Task<domain.Convoy> task = new Task<>() {
+            @Override
+            protected domain.Convoy call() {
+                return runDetailsService.selectConvoy(idConvoy);
+            }
+        };
+        task.setOnSucceeded(e -> {
+            domain.Convoy convoy = task.getValue();
+            if (convoy != null) {
+                typeOfConvoy.setText(convoy.getCarriages().isEmpty() ? "" : convoy.getCarriages().getFirst().getModelType());
+                modelOfConvoy.setText(convoy.getCarriages().isEmpty() ? "" : convoy.getCarriages().getFirst().getModel());
+                capacityOfConvoy.setText(String.valueOf(convoy.getCarriages().stream().mapToInt(Carriage::getCapacity).sum()));
+                numberOfCarriage.setText(String.valueOf(convoy.getCarriages().size()));
+            }
+        });
+        task.setOnFailed(e -> {
+            Throwable ex = task.getException();
+            if (ex != null) {
+                logger.severe("Error loading convoy details: " + ex.getMessage());
+            }
+            Alert alert = new Alert(AlertType.ERROR, "Errore nel caricamento dei dettagli del convoglio.");
+            alert.showAndWait();
+        });
+        new Thread(task).start();
+    }
+
+    private void taskInitTimeTable(int idLine, int idFirstStation, String departureTime) {
+        Task<TimeTableDTO> task = new Task<>() {
+            @Override
+            protected TimeTableDTO call() {
+                return runDetailsService.selectTimeTable(idLine, idFirstStation, departureTime);
+            }
+        };
+        task.setOnSucceeded(e -> {
+            TimeTableDTO timeTable = task.getValue();
+            if (timeTable != null) {
+                timeTableView.getItems().clear();
+                timeTableView.setItems(FXCollections.observableArrayList(timeTable.getStationArrAndDepDTOList()));
+            }
+        });
+        task.setOnFailed(e -> {
+            Throwable ex = task.getException();
+            if (ex != null) {
+                logger.severe("Error loading timetable: " + ex.getMessage());
+            }
+            Alert alert = new Alert(AlertType.ERROR, "Errore nel caricamento della tabella orari.");
+            alert.showAndWait();
+        });
+        new Thread(task).start();
     }
 
     // Metodi OnAction

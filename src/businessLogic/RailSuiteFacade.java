@@ -400,7 +400,7 @@ public class RailSuiteFacade {
      * Used to delete a run.
      */
     public boolean removeRun(int idLine, int idConvoy, int idStaff) throws SQLException {
-        return runDao.removeRun(idLine, idConvoy, idStaff);
+        return runDao.deleteRun(idLine, idConvoy, idStaff);
     }
     /**
      * Creates a new run with the given parameters.

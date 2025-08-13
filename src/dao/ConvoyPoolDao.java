@@ -80,4 +80,12 @@ public interface ConvoyPoolDao {
      * @throws SQLException if a database access error occurs
      */
     List<ConvoyTableDTO> getConvoyTableDataByStation(int idStation) throws SQLException;
+
+    /**
+     * Checks if a convoy is in the pool and updates its status if necessary.
+     * @param idConvoy the id of the convoy
+     * @return true if the convoy was found and its status was updated, false otherwise
+     * @throws SQLException if a database access error occurs
+     */
+    boolean checkAndUpdateConvoyStatus(int idConvoy) throws SQLException;
 }

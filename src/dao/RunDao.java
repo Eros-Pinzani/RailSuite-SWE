@@ -71,7 +71,7 @@ public interface RunDao {
      * @return true if the removal was successful, false otherwise
      * @throws SQLException if a database access error occurs
      */
-    boolean removeRun(int idLine, int idConvoy, int idStaff) throws SQLException;
+    boolean deleteRun(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException;
 
     /**
      * Creates a new run with the specified parameters.
@@ -184,5 +184,25 @@ public interface RunDao {
      */
     RunDTO selectRunDTODetails(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException;
 
+    /**
+     * Checks if the operator has other runs scheduled after the selected departure time.
+     *
+     * @param idStaff        the staff id
+     * @param timeDeparture  the departure time of the selected run
+     * @return true if there are conflicts, false otherwise
+     * @throws SQLException if a database access error occurs
+     */
     boolean findRunsByStaffAfterTime(int idStaff, Timestamp timeDeparture) throws SQLException;
+
+    /**
+     * Checks if there are runs for a specific convoy after a given departure time.
+     *
+     * @param idLine         the line id
+     * @param idConvoy       the convoy id
+     * @param idStaff        the staff id
+     * @param timeDeparture  the departure time
+     * @return true if there are runs after the specified time, false otherwise
+     * @throws SQLException if a database access error occurs
+     */
+    boolean findRunsByConvoyAfterTime(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException;
 }

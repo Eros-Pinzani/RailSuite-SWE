@@ -3,6 +3,8 @@ package dao;
 import domain.Carriage;
 import domain.Convoy;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -54,7 +56,7 @@ class ConvoyDaoImp implements ConvoyDao {
     private static final String insertConvoyQuery =
             "INSERT INTO convoy DEFAULT VALUES RETURNING id_convoy";
 
-    private static final String convyForNewRunQuery = """
+    private static final String convoyForNewRunQuery = """
             SELECT
               c.id_convoy,
               cp.id_station,
@@ -343,8 +345,8 @@ class ConvoyDaoImp implements ConvoyDao {
     @Override
     public List<Convoy> getConvoysForNewRun(int idStation, String timeDeparture, LocalDate dateDeparture, int idLine) throws SQLException {
         List<Convoy> convoys = new ArrayList<>();
-        try (java.sql.Connection conn = PostgresConnection.getConnection();
-             java.sql.PreparedStatement stmt = conn.prepareStatement(convyForNewRunQuery)) {
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(convoyForNewRunQuery)) {
             java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(dateDeparture, java.time.LocalTime.parse(timeDeparture));
             java.sql.Timestamp departureTimestamp = java.sql.Timestamp.valueOf(dateTime);
             stmt.setInt(1, idStation);
@@ -378,5 +380,29 @@ class ConvoyDaoImp implements ConvoyDao {
             }
         }
         return convoys;
+    }
+
+    public void addCarriagesToConvoy(int id, List<Carriage> carriages) throws SQLException {
+        if (carriages == null || carriages.isEmpty()) {
+            throw new IllegalArgumentException("Carriages list must not be null or empty.");
+        }
+        StringBuilder sql = new StringBuilder("""
+                UPDATE carriage SET id_convoy = ? WHERE id_carriage IN ("
+                """);
+        for (int i = 0; i < carriages.size(); i++) {
+            sql.append(" ? ");
+            if (i < carriages.size() - 1) {
+                sql.append(",");
+            }
+            sql.append(")");
+            try (Connection conn = PostgresConnection.getConnection();) {
+                PreparedStatement pstmt = conn.prepareStatement(sql.toString());
+                pstmt.setInt(1, id);
+                for (int j = 0; j < carriages.size(); j++) {
+                    pstmt.setInt(j + 2, carriages.get(j).getId());
+                }
+                pstmt.executeUpdate();
+            }
+        }
     }
 }

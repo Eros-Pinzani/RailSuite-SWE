@@ -418,7 +418,7 @@ public class CreateRunController {
     }
 
     @FXML
-    private void handleCreateRun(ActionEvent event) {
+    private void handleCreateRun(ActionEvent event) { //FIXME Menu popup si blocca e non procede
         LineRaw selectedLine = lineComboBox.getValue();
         LocalDate date = datePicker.getValue();
         String time = departureTimePicker.getValue();

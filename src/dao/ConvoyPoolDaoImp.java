@@ -46,19 +46,39 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
      * SQL query to select table data by station.
      */
     private static final String SELECT_TABLE_DATA_BY_STATION =
-        "SELECT cp.id_convoy, cp.status, COUNT(c.id_carriage) as carriage_count, " +
-        "COALESCE(string_agg(DISTINCT c.model_type, ','), '') as types " +
-        "FROM convoy_pool cp " +
-        "LEFT JOIN carriage c ON c.id_convoy = cp.id_convoy " +
-        "WHERE cp.id_station = ? " +
-        "GROUP BY cp.id_convoy, cp.status";
+            "SELECT cp.id_convoy, cp.status, COUNT(c.id_carriage) as carriage_count, " +
+                    "COALESCE(string_agg(DISTINCT c.model_type, ','), '') as types " +
+                    "FROM convoy_pool cp " +
+                    "LEFT JOIN carriage c ON c.id_convoy = cp.id_convoy " +
+                    "WHERE cp.id_station = ? " +
+                    "GROUP BY cp.id_convoy, cp.status";
     /**
      * SQL query to insert a new convoy pool.
      */
     private static final String INSERT =
-        "INSERT INTO convoy_pool (id_convoy, id_station, status) VALUES (?, ?, ?)";
+            "INSERT INTO convoy_pool (id_convoy, id_station, status) VALUES (?, ?, ?)";
 
-    ConvoyPoolDaoImp (){}
+    private static final String checkConvoyStatus = """
+                SELECT EXISTS (
+                SELECT 1
+                FROM carriage c
+                JOIN carriage_depot cd ON c.id_carriage = cd.id_carriage
+                WHERE c.id_convoy = ?
+                  AND cd.status_of_carriage IN ('MAINTENANCE', 'CLEANING')
+                  AND cd.time_exited IS NULL
+            ) AS in_maintenance
+            UNION
+            SELECT NOT EXISTS (
+                SELECT 1
+                FROM run
+                WHERE id_convoy = ?
+                  AND now() BETWEEN time_departure AND time_arrival
+            ) AS not_on_run
+            LIMIT 1
+            """;
+
+    ConvoyPoolDaoImp() {
+    }
 
     @Override
     public ConvoyPool getConvoyPoolById(int idConvoy) throws SQLException {
@@ -171,6 +191,27 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
             ps.setInt(2, pool.getIdStation());
             ps.setString(3, pool.getConvoyStatus().name());
             ps.executeUpdate();
+        }
+    }
+
+    @Override
+    public boolean checkAndUpdateConvoyStatus(int idConvoy) throws SQLException {
+        try {
+            try (Connection conn = PostgresConnection.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(checkConvoyStatus)) {
+                ps.setInt(1, idConvoy);
+                ps.setInt(2, idConvoy);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        boolean inMaintenance = rs.getBoolean(1);
+                        boolean notOnRun = rs.getBoolean(2);
+                        return inMaintenance || notOnRun;
+                    }
+                    return false;
+                }
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Error checking convoy status", e);
         }
     }
 

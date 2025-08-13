@@ -122,4 +122,12 @@ public interface ConvoyDao {
      * @throws SQLException if a database access error occurs
      */
     List<Convoy> getConvoysForNewRun(int idStation, String timeDeparture, LocalDate dateDeparture, int idLine) throws SQLException;
+
+    /**
+     * Adds multiple carriages to a convoy.
+     * @param id the id of the convoy
+     * @param carriages the list of carriages to add
+     * @throws SQLException if a database access error occurs
+     */
+    void addCarriagesToConvoy(int id, List<Carriage> carriages) throws SQLException;
 }

@@ -11,7 +11,7 @@ import java.util.List;
  * Implementation of the RunDao interface.
  * Contains SQL queries and logic for accessing run data.
  */
-public class RunDaoImp implements RunDao {
+class RunDaoImp implements RunDao {
     // SQL query to select a run by line and convoy
     private static final String selectRunByLineAndConvoyQuery = """
             SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
@@ -54,7 +54,7 @@ public class RunDaoImp implements RunDao {
                 LEFT JOIN station ls ON r.id_last_station = ls.id_station
             WHERE r.id_line = ? AND r.id_staff = ?""";
     // SQL query to delete a run by line and convoy
-    private static final String deleteRunQuery = "DELETE FROM run WHERE id_line = ? AND id_convoy = ? AND id_staff = ?";
+    private static final String deleteRunQuery = "DELETE FROM run WHERE id_line = ? AND id_convoy = ? AND id_staff = ? AND time_departure = ?";
     // SQL query to insert a new run
     private static final String insertRunQuery =
             "INSERT INTO run (id_line, id_convoy, id_staff, time_departure, time_arrival, id_first_station, id_last_station) " +
@@ -139,6 +139,11 @@ public class RunDaoImp implements RunDao {
             SELECT r.id_staff, r.time_departure
             FROM run r
             WHERE r.id_staff = ? AND r.time_departure > ?
+            """;
+    private static final String selectRunsForConvoyAfterTimeQuery = """
+            SELECT r.id_line, r.id_convoy, r.id_staff, r.time_departure
+            FROM run r
+            WHERE r.id_line = ? AND r.id_convoy = ? AND r.id_staff = ? AND r.time_departure > ?
             """;
 
     private Run resultSetToRun(ResultSet rs) throws SQLException {
@@ -226,13 +231,14 @@ public class RunDaoImp implements RunDao {
     }
 
     @Override
-    public boolean removeRun(int idLine, int idConvoy, int idStaff) throws SQLException {
+    public boolean deleteRun(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException {
         // Executes the query to delete a specific run
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(deleteRunQuery)) {
             pstmt.setInt(1, idLine);
             pstmt.setInt(2, idConvoy);
             pstmt.setInt(3, idStaff);
+            pstmt.setTimestamp(4, timeDeparture);
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
@@ -418,6 +424,22 @@ public class RunDaoImp implements RunDao {
             }
         } catch (SQLException e) {
             throw new SQLException("Error on findRuns By staff after time", e);
+        }
+    }
+
+    @Override
+    public boolean findRunsByConvoyAfterTime(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException {
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectRunsForConvoyAfterTimeQuery)) {
+            pstmt.setInt(1, idLine);
+            pstmt.setInt(2, idConvoy);
+            pstmt.setInt(3, idStaff);
+            pstmt.setTimestamp(4, timeDeparture);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Error on findRuns By convoy after time", e);
         }
     }
 }

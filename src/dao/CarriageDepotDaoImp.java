@@ -1,5 +1,6 @@
 package dao;
 
+import domain.Carriage;
 import domain.DTO.CarriageDepotDTO;
 import domain.CarriageDepot;
 
@@ -150,12 +151,12 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 result.add(new CarriageDepotDTO(
-                    rs.getInt("id_carriage"),
-                    rs.getString("model"),
-                    rs.getInt("year_produced"),
-                    rs.getInt("capacity"),
-                    rs.getString("status_of_carriage"),
-                    rs.getTimestamp("time_exited")
+                        rs.getInt("id_carriage"),
+                        rs.getString("model"),
+                        rs.getInt("year_produced"),
+                        rs.getInt("capacity"),
+                        rs.getString("status_of_carriage"),
+                        rs.getTimestamp("time_exited")
                 ));
             }
         }
@@ -188,24 +189,24 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
         // SQL query to find available carriages for a convoy, updating their status if needed.
         String sql =
                 "WITH updated AS (\n" +
-                "    UPDATE carriage_depot cd\n" +
-                "    SET status_of_carriage = 'AVAILABLE'\n" +
-                "    FROM depot d\n" +
-                "    WHERE cd.id_depot = d.id_depot\n" +
-                "      AND d.id_depot = ?\n" +
-                "      AND ((cd.status_of_carriage = 'CLEANING' AND cd.time_entered <= NOW() - INTERVAL '3 hours')\n" +
-                "           OR (cd.status_of_carriage = 'MAINTENANCE' AND cd.time_entered <= NOW() - INTERVAL '1 day'))\n" +
-                "      AND cd.time_exited IS NULL\n" +
-                "    RETURNING cd.id_carriage\n" +
-                ")\n" +
-                "SELECT c.* FROM carriage_depot cd\n" +
-                "JOIN depot d ON cd.id_depot = d.id_depot\n" +
-                "JOIN carriage c ON cd.id_carriage = c.id_carriage\n" +
-                "WHERE d.id_depot = ?\n" +
-                "  AND cd.status_of_carriage = 'AVAILABLE'\n" +
-                "  AND c.model_type = ?\n" +
-                "  AND c.id_convoy IS NULL\n" +
-                "  AND cd.time_exited IS NULL";
+                        "    UPDATE carriage_depot cd\n" +
+                        "    SET status_of_carriage = 'AVAILABLE'\n" +
+                        "    FROM depot d\n" +
+                        "    WHERE cd.id_depot = d.id_depot\n" +
+                        "      AND d.id_depot = ?\n" +
+                        "      AND ((cd.status_of_carriage = 'CLEANING' AND cd.time_entered <= NOW() - INTERVAL '3 hours')\n" +
+                        "           OR (cd.status_of_carriage = 'MAINTENANCE' AND cd.time_entered <= NOW() - INTERVAL '1 day'))\n" +
+                        "      AND cd.time_exited IS NULL\n" +
+                        "    RETURNING cd.id_carriage\n" +
+                        ")\n" +
+                        "SELECT c.* FROM carriage_depot cd\n" +
+                        "JOIN depot d ON cd.id_depot = d.id_depot\n" +
+                        "JOIN carriage c ON cd.id_carriage = c.id_carriage\n" +
+                        "WHERE d.id_depot = ?\n" +
+                        "  AND cd.status_of_carriage = 'AVAILABLE'\n" +
+                        "  AND c.model_type = ?\n" +
+                        "  AND c.id_convoy IS NULL\n" +
+                        "  AND cd.time_exited IS NULL";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idStation);
@@ -225,23 +226,23 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
         // SQL query to find available carriage types for a convoy, updating their status if needed.
         String sql =
                 "WITH updated AS (\n" +
-                "    UPDATE carriage_depot cd\n" +
-                "    SET status_of_carriage = 'AVAILABLE'\n" +
-                "    FROM depot d\n" +
-                "    WHERE cd.id_depot = d.id_depot\n" +
-                "      AND d.id_depot = ?\n" +
-                "      AND ((cd.status_of_carriage = 'CLEANING' AND cd.time_entered <= NOW() - INTERVAL '3 hours')\n" +
-                "           OR (cd.status_of_carriage = 'MAINTENANCE' AND cd.time_entered <= NOW() - INTERVAL '1 day'))\n" +
-                "      AND cd.time_exited IS NULL\n" +
-                "    RETURNING cd.id_carriage\n" +
-                ")\n" +
-                "SELECT DISTINCT c.model_type FROM carriage_depot cd\n" +
-                "JOIN depot d ON cd.id_depot = d.id_depot\n" +
-                "JOIN carriage c ON cd.id_carriage = c.id_carriage\n" +
-                "WHERE d.id_depot = ?\n" +
-                "  AND cd.status_of_carriage = 'AVAILABLE'\n" +
-                "  AND c.id_convoy IS NULL\n" +
-                "  AND cd.time_exited IS NULL";
+                        "    UPDATE carriage_depot cd\n" +
+                        "    SET status_of_carriage = 'AVAILABLE'\n" +
+                        "    FROM depot d\n" +
+                        "    WHERE cd.id_depot = d.id_depot\n" +
+                        "      AND d.id_depot = ?\n" +
+                        "      AND ((cd.status_of_carriage = 'CLEANING' AND cd.time_entered <= NOW() - INTERVAL '3 hours')\n" +
+                        "           OR (cd.status_of_carriage = 'MAINTENANCE' AND cd.time_entered <= NOW() - INTERVAL '1 day'))\n" +
+                        "      AND cd.time_exited IS NULL\n" +
+                        "    RETURNING cd.id_carriage\n" +
+                        ")\n" +
+                        "SELECT DISTINCT c.model_type FROM carriage_depot cd\n" +
+                        "JOIN depot d ON cd.id_depot = d.id_depot\n" +
+                        "JOIN carriage c ON cd.id_carriage = c.id_carriage\n" +
+                        "WHERE d.id_depot = ?\n" +
+                        "  AND cd.status_of_carriage = 'AVAILABLE'\n" +
+                        "  AND c.id_convoy IS NULL\n" +
+                        "  AND cd.time_exited IS NULL";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, idStation);
@@ -291,5 +292,51 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
             throw new SQLException("Error retrieving available carriage models for station: " + idStation + ", type: " + modelType, e);
         }
         return models;
+    }
+
+    private static final String updateSql = """
+            UPDATE carriage_depot cd
+            SET status_of_carriage = 'AVAILABLE'
+            FROM depot d
+            JOIN convoy_pool cp ON cp.id_station = d.id_depot
+            WHERE cd.id_depot = d.id_depot
+              AND cp.id_convoy = ?
+              AND (
+                (cd.status_of_carriage = 'CLEANING' AND cd.time_entered <= NOW() - INTERVAL '3 hours')
+                OR
+                (cd.status_of_carriage = 'MAINTENANCE' AND cd.time_entered <= NOW() - INTERVAL '1 day')
+              )
+            """;
+    private static final String getCarriagesByConvoyPositionQuery = """
+            SELECT c.*
+            FROM carriage_depot cd
+                     JOIN carriage c ON cd.id_carriage = c.id_carriage
+                     JOIN convoy_pool cp ON cp.id_station = cd.id_depot
+            WHERE cp.id_convoy = ?
+              AND cd.status_of_carriage = 'AVAILABLE' AND (c.model_type, c.model) in (
+                SELECT c2.model_type, c2.model
+                FROM carriage c2
+                WHERE c2.id_convoy = ?
+                )
+            """;
+
+    @Override
+    public List<Carriage> getCarriagesByConvoyPosition(int idConvoy) throws SQLException {
+        List<Carriage> carriages = new ArrayList<>();
+        try (Connection conn = PostgresConnection.getConnection()) {
+            try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                updateStmt.setInt(1, idConvoy);
+                updateStmt.executeUpdate();
+            }
+            try (PreparedStatement selectStmt = conn.prepareStatement(getCarriagesByConvoyPositionQuery)) {
+                selectStmt.setInt(1, idConvoy);
+                selectStmt.setInt(2, idConvoy);
+                ResultSet rs = selectStmt.executeQuery();
+                while (rs.next()) {
+                    carriages.add(mapper.CarriageMapper.toDomain(rs));
+                }
+            }
+        }
+        return carriages;
     }
 }

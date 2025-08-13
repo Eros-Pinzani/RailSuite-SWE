@@ -1,5 +1,6 @@
 package dao;
 
+import domain.Carriage;
 import domain.CarriageDepot;
 import domain.DTO.CarriageDepotDTO;
 
@@ -122,4 +123,12 @@ public interface CarriageDepotDao {
      * @throws SQLException if a database access error occurs
      */
     CarriageDepot findActiveDepotByCarriage(int idCarriage) throws SQLException;
+
+    /**
+     * Retrieves all carriages associated with a convoy by its position.
+     * @param idConvoy the convoy id
+     * @return a list of Carriage objects
+     * @throws SQLException if a database access error occurs
+     */
+    List<Carriage> getCarriagesByConvoyPosition(int idConvoy) throws SQLException;
 }

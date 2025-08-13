@@ -1,19 +1,26 @@
 package businessLogic.controller;
 
 import domain.Carriage;
+import domain.Convoy;
 import domain.DTO.RunDTO;
 import domain.DTO.TimeTableDTO;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import businessLogic.controller.UserSession;
 import domain.Staff;
 import javafx.scene.control.Alert.AlertType;
 import businessLogic.service.RunDetailsService;
-import domain.Run;
 import javafx.scene.layout.VBox;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 import java.net.URL;
 import java.sql.Timestamp;
@@ -75,6 +82,7 @@ public class RunDetailsController implements Initializable {
 
     // Altri
     @FXML private Button listOfIdCarriages;
+    private final ConvoyEditPopupController convoyEditPopupController = new ConvoyEditPopupController();
 
     private final RunDetailsService runDetailsService = new RunDetailsService();
     private static final Logger logger = Logger.getLogger(RunDetailsController.class.getName());
@@ -100,6 +108,7 @@ public class RunDetailsController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // TODO prima di tutto devo aggiornare lo stato delle carriage in depot, del convoglio e dello staff
         header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
         Staff staff = UserSession.getInstance().getStaff();
         if (staff != null) {
@@ -213,6 +222,7 @@ public class RunDetailsController implements Initializable {
             cell.setPrefHeight(Control.USE_COMPUTED_SIZE);
             return cell;
         });
+        disableSections();
     }
 
     private void taskInitConvoy(int idConvoy) {
@@ -267,36 +277,168 @@ public class RunDetailsController implements Initializable {
         new Thread(task).start();
     }
 
+    private void disableSections() {
+        convoyDetailSection.setDisable(true);
+        operatorDetailSection.setDisable(true);
+        timeTableDetailSection.setDisable(true);
+    }
+
     // Metodi OnAction
     @FXML
     private void convoyDetailSectionToggle() {
-        // TODO: Implementare toggle visualizzazione sezione dettagli convoglio
+        if (convoyDetailSection.isDisable()) {
+            disableSections();
+            convoyDetailSection.setDisable(false);
+        }
+        else {
+            convoyDetailSection.setDisable(true);
+        }
     }
 
     @FXML
     private void operatorDetailSectionToggle() {
-        // TODO: Implementare toggle visualizzazione sezione dettagli operatore
+        if (operatorDetailSection.isDisable()) {
+            disableSections();
+            operatorDetailSection.setDisable(false);
+        }
+        else {
+            operatorDetailSection.setDisable(true);
+        }
     }
 
     @FXML
     private void timeTableDetailSectionToggle() {
-        // TODO: Implementare toggle visualizzazione sezione dettagli orario/stazioni
+        if (timeTableDetailSection.isDisable()) {
+            disableSections();
+            timeTableDetailSection.setDisable(false);
+        }
+        else {
+            timeTableDetailSection.setDisable(true);
+        }
     }
 
     @FXML
     private void eliminationConfirm() {
-        // TODO: Implementare conferma eliminazione corsa
+        try {
+            boolean hasConflicts = runDetailsService.hasRunConflict();
+            if (hasConflicts) {
+                businessLogic.controller.PopupManager.openPopup(
+                    "Eliminazione corsa",
+                    "Impossibile eliminare la corsa",
+                    null,
+                    "Questa corsa non può essere eliminata a causa di conflitti con altre corse.",
+                    null
+                );
+                eliminationConfirm.setDisable(true);
+                eliminationButtonMention.setText("Non puoi eliminare la corsa: ci sono conflitti con altre corse" +
+                        ".");
+                return;
+            }
+            Alert confirmAlert = new Alert(AlertType.CONFIRMATION);
+            confirmAlert.setTitle("Conferma eliminazione corsa");
+            confirmAlert.setHeaderText("Sei sicuro di voler eliminare questa corsa?");
+            RunDTO run = runDetailsService.selectRun();
+            confirmAlert.setContentText(
+                "Linea: " + run.getLineName() + "\n" +
+                "Convoglio: " + run.getIdConvoy() + "\n" +
+                "Personale: " + run.getStaffName() + " " + run.getStaffSurname() + "\n" +
+                "Partenza: " + run.getTimeDeparture()
+            );
+            confirmAlert.getDialogPane().setPrefSize(500, 300);
+            ButtonType result = confirmAlert.showAndWait().orElse(ButtonType.CANCEL);
+            if (result != ButtonType.OK) {
+                return;
+            }
+
+            boolean deleted = runDetailsService.deleteRun();
+            String header = deleted ? "Corsa cancellata con successo" : "Corsa non cancellata";
+            String message = deleted ? "La corsa è stata rimossa dal sistema." : "Impossibile cancellare la corsa. Potrebbe essere già stata eliminata o non esistere.";
+            businessLogic.controller.PopupManager.openPopup(
+                "Eliminazione corsa",
+                header,
+                null,
+                message,
+                null
+            );
+            if (deleted) {
+                SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageRun.fxml");
+            }
+        } catch (Exception e) {
+            logger.severe("Error deleting run: " + e.getMessage());
+            businessLogic.controller.PopupManager.openPopup(
+                "Cancellazione corsa",
+                "Error deleting run",
+                null,
+                "An error occurred while deleting the run.\n Please contact support.",
+                null
+            );
+        }
     }
 
     @FXML
     private void convoyEdit() {
-        // TODO: Implementare modifica convoglio
+        try {
+            Convoy convoy = runDetailsService.selectConvoy(idConvoy);
+            if (convoy == null || convoy.getCarriages().isEmpty()) {
+                Alert alert = new Alert(AlertType.INFORMATION, "Nessun convoglio associato a questa corsa.");
+                alert.showAndWait();
+                return;
+            }
+            if (runDetailsService.hasConvoyConflict()) {
+                Alert alert = new Alert(AlertType.ERROR, "Impossibile modificare il convoglio: ci sono conflitti con altre corse.");
+                alert.showAndWait();
+                convoyEdit.setDisable(true);
+                convoyChangeEditButtonReason.setText("Non puoi cambiare il convoglio: ci sono conflitti con altre corse.");
+                return;
+            }
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/businessLogic/fxml/convoyEditPopup.fxml"));
+            Parent root = loader.load();
+            ConvoyEditPopupController controller = loader.getController();
+            controller.setConvoy(convoy);
+            Stage popupStage = new Stage();
+            popupStage.setTitle("Modifica convoglio");
+            popupStage.initModality(Modality.APPLICATION_MODAL);
+            popupStage.setScene(new Scene(root));
+            popupStage.showAndWait();
+            taskInitConvoy(idConvoy);
+        }
+        catch (Exception e) {
+            logger.severe("Error loading convoy edit: " + e.getMessage());
+            Alert alert = new Alert(AlertType.ERROR, "Errore durante il caricamento della modifica del convoglio.");
+            alert.showAndWait();
+        }
     }
 
     @FXML
     private void convoyChange() {
-        // TODO: Implementare cambio convoglio
-    }
+        try {
+            Convoy convoy = runDetailsService.selectConvoy(idConvoy);
+            /*
+            * TODO finire di imlmentare questo metodo. Devo garantirmi che il convoglio non abbia già corse future ad esso assegnate.
+            *  se si allora devo fare il processo di cambio in cascata.
+            * TODO implmentare la scena fxml per il cambio del convoglio.
+             */
+            if (runDetailsService.hasConvoyConflict()) {
+                Alert alert = new Alert(AlertType.ERROR, "Impossibile modificare il convoglio: ci sono conflitti con altre corse.");
+                alert.showAndWait();
+                convoyEdit.setDisable(true);
+                convoyChange.setDisable(true);
+                convoyChangeEditButtonReason.setText("Non puoi cambiare il convoglio: ci sono conflitti con altre corse.");
+                return;
+            }
+            businessLogic.controller.PopupManager.openPopup(
+                    "Modifica convoglio",
+                    "Modifica convoglio associato alla corsa",
+                    null,
+                    null,
+                    "/businessLogic/fxml/EditConvoy.fxml"
+            );
+        }
+        catch (Exception e) {
+            logger.severe("Error loading convoy edit: " + e.getMessage());
+            Alert alert = new Alert(AlertType.ERROR, "Errore durante il caricamento della modifica del convoglio.");
+            alert.showAndWait();
+        }    }
 
     @FXML
     private void operatorChange() {
@@ -310,6 +452,36 @@ public class RunDetailsController implements Initializable {
 
     @FXML
     private void listOfIdCarriages() {
-        // TODO: Implementare visualizzazione lista ID carrozze
+        try {
+            Convoy convoy = runDetailsService.selectConvoy(idConvoy);
+            if (convoy == null || convoy.getCarriages().isEmpty()) {
+                Alert alert = new Alert(AlertType.INFORMATION, "Nessuna carrozza associata a questo convoglio.");
+                alert.showAndWait();
+                return;
+            }
+            VBox carriageListBox = new VBox(10);
+            carriageListBox.setStyle("-fx-padding: 10;");
+            for (Carriage carriage : convoy.getCarriages()) {
+                HBox row = new HBox(10);
+                row.getChildren().addAll(
+                    new Label("ID: " + carriage.getId()),
+                    new Label("Modello: " + carriage.getModel()),
+                    new Label("Tipo: " + carriage.getModelType()),
+                    new Label("Capcità: " + carriage.getCapacity())
+                );
+                carriageListBox.getChildren().add(row);
+            }
+            businessLogic.controller.PopupManager.openPopup(
+                "Lista carrozze",
+                "Carrozze associate al convoglio: " + convoy.getId(),
+                carriageListBox,
+                null,
+                null
+            );
+        } catch (Exception e) {
+            logger.severe("Error loading carriages for convoy: " + e.getMessage());
+            Alert alert = new Alert(AlertType.ERROR, "Errore durante il caricamento di carrozze di un convoglio.");
+            alert.showAndWait();
+        }
     }
 }

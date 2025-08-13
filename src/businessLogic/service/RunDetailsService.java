@@ -2,6 +2,7 @@ package businessLogic.service;
 
 
 import dao.ConvoyDao;
+import dao.ConvoyPoolDao;
 import dao.LineStationDao;
 import dao.RunDao;
 import domain.Convoy;
@@ -19,15 +20,22 @@ public class RunDetailsService {
     private TimeTableDTO timeTable;
     private final ConvoyDao convoyDao = ConvoyDao.of();
     private Convoy convoy;
+    private final ConvoyPoolDao convoyPoolDao = ConvoyPoolDao.of();
 
     public RunDetailsService () {}
 
     public RunDTO selectRun(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture)  {
+        if (run != null) return run;
         try {
             return run = runDao.selectRunDTODetails(idLine, idConvoy, idStaff, timeDeparture);
         } catch (Exception e) {
             throw new RuntimeException("Error selecting run details", e);
         }
+    }
+
+    public RunDTO selectRun() {
+        if (run != null) return run;
+        throw new IllegalStateException("Run details have not been selected yet.");
     }
 
     public TimeTableDTO selectTimeTable(int idLine, int idFirstStation, String departureTime) {
@@ -58,6 +66,42 @@ public class RunDetailsService {
             return runDao.findRunsByStaffAfterTime(idStaff, timeDeparture);
         } catch (Exception e) {
             throw new RuntimeException("Error checking operator conflicts", e);
+        }
+    }
+
+    public boolean hasRunConflict() {
+        if ( run != null) {
+            try {
+                return runDao.findRunsByConvoyAfterTime(run.getIdLine(), run.getIdConvoy(), run.getIdStaff(), run.getTimeDeparture());
+            } catch (Exception e) {
+                throw new RuntimeException("Error checking convoy conflicts", e);
+            }
+        } else {
+            throw new IllegalStateException("Run details have not been selected yet.");
+        }
+    }
+
+    public boolean deleteRun(){
+        if (run != null) {
+            try {
+                return runDao.deleteRun(run.getIdLine(), run.getIdConvoy(), run.getIdStaff(), run.getTimeDeparture());
+            } catch (Exception e) {
+                throw new RuntimeException("Error deleting run", e);
+            }
+        } else {
+            throw new IllegalStateException("Run details have not been selected yet.");
+        }
+    }
+
+    public boolean hasConvoyConflict() {
+        if (convoy != null) {
+            try {
+                return convoyPoolDao.checkAndUpdateConvoyStatus(convoy.getId());
+            } catch (Exception e) {
+                throw new RuntimeException("Error checking convoy conflict", e);
+            }
+        } else {
+            throw new IllegalStateException("Convoy details have not been selected yet.");
         }
     }
 }

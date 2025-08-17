@@ -399,9 +399,9 @@ public class RailSuiteFacade {
      * Removes a run from the system by line, convoy and staff ID.
      * Used to delete a run.
      */
-    public boolean removeRun(int idLine, int idConvoy, int idStaff) throws SQLException {
-        return runDao.deleteRun(idLine, idConvoy, idStaff);
-    }
+    //public boolean removeRun(int idLine, int idConvoy, int idStaff) throws SQLException {
+    //    return runDao.deleteRun(idLine, idConvoy, idStaff);
+    //}
     /**
      * Creates a new run with the given parameters.
      * Used to add a new run to the system.

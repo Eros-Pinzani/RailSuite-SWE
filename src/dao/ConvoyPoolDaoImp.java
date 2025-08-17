@@ -1,5 +1,6 @@
 package dao;
 
+import domain.Convoy;
 import domain.ConvoyPool;
 import domain.DTO.ConvoyTableDTO;
 
@@ -45,19 +46,23 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
     /**
      * SQL query to select table data by station.
      */
-    private static final String SELECT_TABLE_DATA_BY_STATION =
-            "SELECT cp.id_convoy, cp.status, COUNT(c.id_carriage) as carriage_count, " +
-                    "COALESCE(string_agg(DISTINCT c.model_type, ','), '') as types " +
-                    "FROM convoy_pool cp " +
-                    "LEFT JOIN carriage c ON c.id_convoy = cp.id_convoy " +
-                    "WHERE cp.id_station = ? " +
-                    "GROUP BY cp.id_convoy, cp.status";
+    private static final String SELECT_TABLE_DATA_BY_STATION = """
+            SELECT cp.id_convoy, cp.status, COUNT(c.id_carriage) as carriage_count, SUM(c.capacity),\s
+                    COALESCE(string_agg(DISTINCT c.model_type, ','), '') as model_types,\s
+                    c.model
+                    FROM convoy_pool cp\s
+                    LEFT JOIN carriage c ON c.id_convoy = cp.id_convoy\s
+                    WHERE cp.id_station = ?\s
+                    GROUP BY cp.id_convoy, cp.status, c.model
+                   \s""";
     /**
      * SQL query to insert a new convoy pool.
      */
     private static final String INSERT =
             "INSERT INTO convoy_pool (id_convoy, id_station, status) VALUES (?, ?, ?)";
-
+    /**
+     * SQL query to check the status of a convoy.
+     */
     private static final String checkConvoyStatus = """
                 SELECT EXISTS (
                 SELECT 1
@@ -76,7 +81,27 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
             ) AS not_on_run
             LIMIT 1
             """;
-
+    private static final String updateConvoyStatus = """
+            UPDATE convoy_pool cp
+            SET status = CASE
+                WHEN EXISTS (
+                    SELECT 1
+                    FROM carriage c
+                    JOIN carriage_depot cd ON c.id_carriage = cd.id_carriage
+                    WHERE c.id_convoy = cp.id_convoy
+                      AND cd.status_of_carriage IN ('MAINTENANCE', 'CLEANING')
+                      AND cd.time_exited IS NULL
+                ) THEN 'DEPOT'
+                WHEN NOT EXISTS (
+                    SELECT 1
+                    FROM run r
+                    WHERE r.id_convoy = cp.id_convoy
+                      AND now() BETWEEN r.time_departure AND r.time_arrival
+                ) THEN 'WAITING'
+                ELSE 'ON_RUN'
+            END
+            WHERE cp.id_station = ?
+            """;
     ConvoyPoolDaoImp() {
     }
 
@@ -175,8 +200,10 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
                     int idConvoy = rs.getInt("id_convoy");
                     String status = rs.getString("status");
                     int carriageCount = rs.getInt("carriage_count");
-                    String type = rs.getString("types");
-                    result.add(new ConvoyTableDTO(idConvoy, type, status, carriageCount));
+                    int capacity = rs.getInt("sum");
+                    String modelType = rs.getString("model_types");
+                    String model = rs.getString("model");
+                    result.add(new ConvoyTableDTO(idConvoy, model, status, carriageCount, capacity, modelType));
                 }
             }
         }
@@ -213,6 +240,25 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
         } catch (SQLException e) {
             throw new SQLException("Error checking convoy status", e);
         }
+    }
+
+    @Override
+    public List<ConvoyTableDTO> checkConvoyAvailability(int idStation) throws SQLException {
+        List<ConvoyTableDTO> availableConvoys = new ArrayList<>();
+        try (Connection conn = PostgresConnection.getConnection()) {
+            try (PreparedStatement psUpdate = conn.prepareStatement(updateConvoyStatus)) {
+                psUpdate.setInt(1, idStation);
+                psUpdate.executeUpdate();
+            }
+            try {
+                getConvoyTableDataByStation(idStation);
+            } catch (SQLException e){
+                throw new SQLException("Error retrieving convoy table data", e);
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Error checking convoy availability", e);
+        }
+        return availableConvoys;
     }
 
 }

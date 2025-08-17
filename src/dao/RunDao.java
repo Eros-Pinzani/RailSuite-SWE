@@ -1,5 +1,6 @@
 package dao;
 
+import domain.Convoy;
 import domain.DTO.RunDTO;
 import domain.Run;
 
@@ -205,4 +206,16 @@ public interface RunDao {
      * @throws SQLException if a database access error occurs
      */
     boolean findRunsByConvoyAfterTime(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException;
+
+    /**
+     * Selects runs for a convoy that are scheduled to depart after a specified time.
+     *
+     * @param idConvoy       the convoy id
+     * @param timeDeparture  the departure time
+     * @return list of Run objects that match the criteria
+     * @throws SQLException if a database access error occurs
+     */
+    List<Run> selectRunsByConvoyAndTimeForTakeFutureRuns(int idConvoy, Timestamp timeDeparture) throws SQLException;
+
+    boolean replaceFutureRunsConvoy(int idConvoy, int newIdConvoy, RunDTO run)throws SQLException;
 }

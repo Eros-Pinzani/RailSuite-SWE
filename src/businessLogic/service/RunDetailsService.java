@@ -6,8 +6,10 @@ import dao.ConvoyPoolDao;
 import dao.LineStationDao;
 import dao.RunDao;
 import domain.Convoy;
+import domain.DTO.ConvoyTableDTO;
 import domain.DTO.RunDTO;
 import domain.DTO.TimeTableDTO;
+import domain.Run;
 
 
 import java.sql.Timestamp;
@@ -48,6 +50,7 @@ public class RunDetailsService {
     }
 
     public Convoy selectConvoy(int idConvoy) {
+        if (convoy != null && convoy.getId() == idConvoy) return convoy;
         try {
             return convoy = convoyDao.selectConvoy(idConvoy);
         } catch (Exception e) {
@@ -104,4 +107,39 @@ public class RunDetailsService {
             throw new IllegalStateException("Convoy details have not been selected yet.");
         }
     }
+
+    public List<ConvoyTableDTO> checkAvailabilityOfConvoy() {
+        int firstStation = timeTable.getStationArrAndDepDTOList().getFirst().getIdStation();
+        if (convoy != null) {
+            try {
+                return convoyPoolDao.checkConvoyAvailability(firstStation);
+            } catch (Exception e) {
+                throw new RuntimeException("Error checking convoy availability", e);
+            }
+        } else {
+            throw new IllegalStateException("Convoy details have not been selected yet.");
+        }
+    }
+
+    public List<Run> getFutureRunsOfCurrentConvoy(int idConvoy, Timestamp timeDeparture) {
+        try {
+            return runDao.selectRunsByConvoyAndTimeForTakeFutureRuns(idConvoy, timeDeparture);
+        } catch (Exception e) {
+            throw new RuntimeException("Error selecting run details", e);
+        }
+    }
+
+    public void replaceFutureRunsConvoy(int idConvoy, int newIdConvoy) {
+        try {
+            if(!runDao.replaceFutureRunsConvoy(idConvoy, newIdConvoy, run)) {
+                throw new RuntimeException("Failed to replace future runs convoy");
+            }
+            run = selectRun(run.getIdLine(), newIdConvoy, run.getIdStaff(), run.getTimeDeparture());
+            convoy = selectConvoy(newIdConvoy);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error replacing future runs convoy", e);
+        }
+    }
 }
+

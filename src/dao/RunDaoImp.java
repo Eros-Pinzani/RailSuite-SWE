@@ -1,5 +1,6 @@
 package dao;
 
+import domain.Convoy;
 import domain.DTO.RunDTO;
 import domain.Run;
 
@@ -144,6 +145,16 @@ class RunDaoImp implements RunDao {
             SELECT r.id_line, r.id_convoy, r.id_staff, r.time_departure
             FROM run r
             WHERE r.id_line = ? AND r.id_convoy = ? AND r.id_staff = ? AND r.time_departure > ?
+            """;
+    private static final String selectRunsByConvoyAndTimeForTakeFutureRunsQuery = """
+            SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
+                   r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
+            FROM run r
+                LEFT JOIN line l ON r.id_line = l.id_line
+                LEFT JOIN staff s ON r.id_staff = s.id_staff
+                LEFT JOIN station fs ON r.id_first_station = fs.id_station
+                LEFT JOIN station ls ON r.id_last_station = ls.id_station
+            WHERE r.id_convoy = ? AND r.time_departure > now()
             """;
 
     private Run resultSetToRun(ResultSet rs) throws SQLException {
@@ -339,15 +350,15 @@ class RunDaoImp implements RunDao {
     @Override
     public List<Run> searchRunsByDay(String lineName, String convoyId, String staffNameSurname, String firstStationName, java.sql.Timestamp dayStart, java.sql.Timestamp dayEnd) throws SQLException {
         StringBuilder sql = new StringBuilder("""
-            SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
-                   r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
-            FROM run r
-                LEFT JOIN line l ON r.id_line = l.id_line
-                LEFT JOIN staff s ON r.id_staff = s.id_staff
-                LEFT JOIN station fs ON r.id_first_station = fs.id_station
-                LEFT JOIN station ls ON r.id_last_station = ls.id_station
-            WHERE r.time_departure >= ? AND r.time_departure <= ?
-        """);
+                    SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
+                           r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
+                    FROM run r
+                        LEFT JOIN line l ON r.id_line = l.id_line
+                        LEFT JOIN staff s ON r.id_staff = s.id_staff
+                        LEFT JOIN station fs ON r.id_first_station = fs.id_station
+                        LEFT JOIN station ls ON r.id_last_station = ls.id_station
+                    WHERE r.time_departure >= ? AND r.time_departure <= ?
+                """);
         List<Object> params = new ArrayList<>();
         params.add(dayStart);
         params.add(dayEnd);
@@ -393,7 +404,7 @@ class RunDaoImp implements RunDao {
             pstmt.setTimestamp(4, timeDeparture);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return new RunDTO (
+                    return new RunDTO(
                             rs.getInt("id_line"),
                             rs.getString("name"),
                             rs.getInt("id_convoy"),
@@ -442,4 +453,33 @@ class RunDaoImp implements RunDao {
             throw new SQLException("Error on findRuns By convoy after time", e);
         }
     }
+
+    @Override
+    public List<Run> selectRunsByConvoyAndTimeForTakeFutureRuns(int idConvoy, Timestamp timeDeparture) throws SQLException {
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectRunsByConvoyAndTimeForTakeFutureRunsQuery)) {
+            pstmt.setInt(1, idConvoy);
+            pstmt.setTimestamp(2, timeDeparture);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return resultSetToRunList(rs);
+            }
+        }
+    }
+
+    private static final String replaceFutureRunsConvoyQuery = """
+            UPDATE run
+            SET id_convoy = ?
+            WHERE id_convoy = ? AND time_departure > NOW()
+            """;
+    private static final String selectConvoyByIdQuery = """
+            UPDATE run
+            SET id_convoy = ?
+            WHERE id_convoy = ? AND time_departure = ? AND id_line = ? AND id_staff = ?
+            """;
+
+    @Override
+    boolean replaceFutureRunsConvoy(int idConvoy, int newIdConvoy, RunDTO run) throws SQLException{
+
+    }
+
 }

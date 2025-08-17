@@ -9,6 +9,9 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.scene.Node;
+import domain.DTO.ConvoyTableDTO;
+import javafx.collections.ObservableList;
+import businessLogic.controller.ChangeConvoyPopupController;
 
 public class PopupManager {
     /**
@@ -54,5 +57,54 @@ public class PopupManager {
         popupStage.setResizable(false);
         popupStage.centerOnScreen();
         popupStage.showAndWait();
+    }
+
+    /**
+     * Apre un popup FXML e restituisce il controller associato.
+     */
+    public static <T> T openPopupWithController(String title, String header, String fxmlPath) {
+        Stage popupStage = new Stage();
+        popupStage.setTitle(title);
+        VBox vbox = new VBox();
+        vbox.setStyle("-fx-padding: 20;");
+        if (header != null && !header.isBlank()) {
+            Label headerLabel = new Label(header);
+            headerLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; margin-bottom: 10px;");
+            vbox.getChildren().add(headerLabel);
+        }
+        T controller = null;
+        if (fxmlPath != null && !fxmlPath.isBlank()) {
+            try {
+                FXMLLoader loader = new FXMLLoader(PopupManager.class.getResource(fxmlPath));
+                Parent root = loader.load();
+                controller = loader.getController();
+                vbox.getChildren().add(root);
+            } catch (Exception e) {
+                Label errorLabel = new Label("Error loading FXML: " + fxmlPath);
+                vbox.getChildren().add(errorLabel);
+            }
+        }
+        Scene scene = new Scene(vbox, 700, 500);
+        popupStage.setScene(scene);
+        popupStage.initModality(Modality.APPLICATION_MODAL);
+        popupStage.setResizable(false);
+        popupStage.centerOnScreen();
+        popupStage.showAndWait();
+        return controller;
+    }
+
+    /**
+     * Centralizza apertura popup cambio convoglio con passaggio lista e callback.
+     */
+    public static void showChangeConvoyPopup(ObservableList<ConvoyTableDTO> convoysAvailable, String title, String header, javafx.util.Callback<ConvoyTableDTO, Void> onConfirm) {
+        ChangeConvoyPopupController popupController = openPopupWithController(
+            title,
+            header,
+            "/businessLogic/fxml/ChangeConvoyPopup.fxml"
+        );
+        if (popupController != null) {
+            popupController.setConvoys(convoysAvailable);
+            popupController.setConfirmCallback(onConfirm);
+        }
     }
 }

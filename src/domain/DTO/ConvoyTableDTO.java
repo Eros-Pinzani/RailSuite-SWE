@@ -5,40 +5,39 @@ package domain.DTO;
  * Used to transfer convoy summary information for UI tables.
  */
 public class ConvoyTableDTO {
-    private int idConvoy;
-    private String type;
-    private String status;
-    private int carriageCount;
+    private final int idConvoy;
+    private final String model;
+    private final String status;
+    private final int carriageCount;
+    private final int capacity;
+    private final String modelType;
 
     /**
      * Constructs a ConvoyTableDTO with all properties.
      * @param idConvoy the convoy id
-     * @param type the type of convoy
+     * @param model the type of convoy
      * @param status the status of the convoy
      * @param carriageCount the number of carriages in the convoy
      */
-    public ConvoyTableDTO(int idConvoy, String type, String status, int carriageCount) {
+    public ConvoyTableDTO(int idConvoy, String model, String status, int carriageCount, int capacity, String modelType) {
         this.idConvoy = idConvoy;
-        this.type = type;
+        this.model = model;
         this.status = status;
         this.carriageCount = carriageCount;
+        this.capacity = capacity;
+        this.modelType = modelType;
     }
 
     /** @return the convoy id */
     public int getIdConvoy() { return idConvoy; }
-    /** @return the type of convoy */
-    public String getType() { return type; }
+    /** @return the Model of convoy */
+    public String getModel() { return model; }
     /** @return the status of the convoy */
     public String getStatus() { return status; }
     /** @return the number of carriages in the convoy */
     public int getCarriageCount() { return carriageCount; }
-
-    /** Sets the convoy id */
-    public void setIdConvoy(int idConvoy) { this.idConvoy = idConvoy; }
-    /** Sets the type of convoy */
-    public void setType(String type) { this.type = type; }
-    /** Sets the status of the convoy */
-    public void setStatus(String status) { this.status = status; }
-    /** Sets the number of carriages in the convoy */
-    public void setCarriageCount(int carriageCount) { this.carriageCount = carriageCount; }
+    /** @return the capacity of the convoy */
+    public int getCapacity() { return capacity;}
+    /** @return the model type of the convoy */
+    public String getModelType() { return modelType;}
 }

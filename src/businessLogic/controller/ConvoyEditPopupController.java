@@ -110,7 +110,6 @@ public class ConvoyEditPopupController implements Initializable {
         }
     }
 
-    // TODO: Metodo per gestire l'aggiunta di una carrozza
     @FXML
     private void addCarriageEvent() {
         if (convoy == null) {

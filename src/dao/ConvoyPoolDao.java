@@ -88,4 +88,13 @@ public interface ConvoyPoolDao {
      * @throws SQLException if a database access error occurs
      */
     boolean checkAndUpdateConvoyStatus(int idConvoy) throws SQLException;
+
+    /**
+     * Checks the availability of convoys at a specific station.
+     * @param idStation the station id
+     * @return a list of ConvoyTableDTO objects representing available convoys
+     * @throws SQLException if a database access error occurs
+     */
+    List<ConvoyTableDTO> checkConvoyAvailability(int idStation) throws SQLException;
+
 }

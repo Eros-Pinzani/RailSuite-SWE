@@ -1,6 +1,7 @@
 package dao;
 
 import domain.Run;
+
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
@@ -154,4 +155,11 @@ public interface RunDao {
      * @throws SQLException if a database access error occurs
      */
     List<Run> searchRunsByDay(String lineName, String convoyId, String staffNameSurname, String firstStationName, java.sql.Timestamp dayStart, java.sql.Timestamp dayEnd) throws SQLException;
+
+    /**
+     * Retrieves all Run records from the database.
+     * @return a list of Run objects
+     * @throws SQLException if a database access error occurs
+     */
+    List<Run> selectAllRunRaws() throws SQLException;
 }

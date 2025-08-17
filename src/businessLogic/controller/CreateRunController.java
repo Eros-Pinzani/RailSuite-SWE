@@ -18,7 +18,7 @@ import domain.DTO.StaffDTO;
 import javafx.scene.layout.VBox;
 
 /**
- * Controller for the Create Run view.
+ * Controller for the Create Run2 view.
  * Handles UI logic and interactions for creating a new run.
  */
 public class CreateRunController {

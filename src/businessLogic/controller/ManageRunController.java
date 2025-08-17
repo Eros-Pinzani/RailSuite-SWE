@@ -1,7 +1,7 @@
 package businessLogic.controller;
 
 /**
- * Controller for the Manage Run screen.
+ * Controller for the Manage Run2 screen.
  * Handles the display and management of train runs for a selected line and date.
  */
 
@@ -30,7 +30,7 @@ public class ManageRunController {
     @FXML
     private ComboBox<String> filterFirstStationComboBox;
     @FXML
-    private TableView<Run> summaryTable;
+    private TableView<Run2> summaryTable;
     @FXML
     private javafx.scene.control.Label supervisorNameLabel;
     @FXML
@@ -40,21 +40,21 @@ public class ManageRunController {
     @FXML
     private javafx.scene.control.MenuButton menuButton;
     @FXML
-    private TableColumn<Run, String> operatorColumn;
+    private TableColumn<Run2, String> operatorColumn;
     @FXML
-    private TableColumn<Run, Integer> convoyIdColumn;
+    private TableColumn<Run2, Integer> convoyIdColumn;
     @FXML
-    private TableColumn<Run, String> lineNameColumn;
+    private TableColumn<Run2, String> lineNameColumn;
     @FXML
-    private TableColumn<Run, Timestamp> startTimeColumn;
+    private TableColumn<Run2, Timestamp> startTimeColumn;
     @FXML
-    private TableColumn<Run, Timestamp> endTimeColumn;
+    private TableColumn<Run2, Timestamp> endTimeColumn;
     @FXML
-    private TableColumn<Run, String> startStationColumn;
+    private TableColumn<Run2, String> startStationColumn;
     @FXML
-    private TableColumn<Run, String> endStationColumn;
+    private TableColumn<Run2, String> endStationColumn;
     @FXML
-    private TableColumn<Run, String> statusColumn;
+    private TableColumn<Run2, String> statusColumn;
     @FXML
     private Button detailsButton;
     @FXML
@@ -103,7 +103,7 @@ public class ManageRunController {
         startStationColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getFirstStationName()));
         endStationColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getLastStationName()));
         statusColumn.setCellValueFactory(data -> {
-            Run.RunStatus status = data.getValue().getStatus();
+            Run2.RunStatus status = data.getValue().getStatus();
             String display;
             switch (status) {
                 case BEFORE_RUN -> display = "✏️ Modificabile";
@@ -123,7 +123,7 @@ public class ManageRunController {
      * Loads lines, convoys, operators, and first stations for filtering.
      */
     private void initFilters() {
-        List<RunRaw> runsRaw = manageRunService.getAllRunRaws();
+        List<Run> runsRaw = manageRunService.getAllRunRaws();
         if (runsRaw.isEmpty()) {
             logger.warning("No runs available to initialize filters.");
             return;
@@ -138,11 +138,11 @@ public class ManageRunController {
         filterFirstStationComboBox.getItems().add("-------");
         filterFirstStationComboBox.setValue("-------");
 
-        for (RunRaw runRaw : runsRaw) {
-            String lineName = runRaw.getLineName();
-            String convoyId = String.valueOf(runRaw.getIdConvoy());
-            String operatorName = runRaw.getStaffNameSurname();
-            String firstStationName = runRaw.getFirstStationName();
+        for (Run run : runsRaw) {
+            String lineName = run.getLineName();
+            String convoyId = String.valueOf(run.getIdConvoy());
+            String operatorName = run.getStaffNameSurname();
+            String firstStationName = run.getFirstStationName();
 
             if (!filterLineComboBox.getItems().contains(lineName)) {
                 filterLineComboBox.getItems().add(lineName);
@@ -178,7 +178,7 @@ public class ManageRunController {
         if (selectedDate != null) {
             dayStart = java.sql.Timestamp.valueOf(selectedDate.atStartOfDay());
         }
-        List<RunRaw> filtered = manageRunService.filterRunRaws(selectedLine, selectedConvoy, selectedOperator, selectedFirstStation, dayStart);
+        List<Run> filtered = manageRunService.filterRunRaws(selectedLine, selectedConvoy, selectedOperator, selectedFirstStation, dayStart);
         filterLineComboBox.getItems().clear();
         filterConvoyComboBox.getItems().clear();
         filterOperatorComboBox.getItems().clear();
@@ -187,18 +187,18 @@ public class ManageRunController {
         filterConvoyComboBox.getItems().add("-------");
         filterOperatorComboBox.getItems().add("-------");
         filterFirstStationComboBox.getItems().add("-------");
-        for (RunRaw runRaw : filtered) {
-            if (runRaw.getLineName() != null && !filterLineComboBox.getItems().contains(runRaw.getLineName())) {
-                filterLineComboBox.getItems().add(runRaw.getLineName());
+        for (Run run : filtered) {
+            if (run.getLineName() != null && !filterLineComboBox.getItems().contains(run.getLineName())) {
+                filterLineComboBox.getItems().add(run.getLineName());
             }
-            if (runRaw.getIdConvoy() != null && runRaw.getIdConvoy() > 0 && !filterConvoyComboBox.getItems().contains(String.valueOf(runRaw.getIdConvoy()))) {
-                filterConvoyComboBox.getItems().add(String.valueOf(runRaw.getIdConvoy()));
+            if (run.getIdConvoy() != null && run.getIdConvoy() > 0 && !filterConvoyComboBox.getItems().contains(String.valueOf(run.getIdConvoy()))) {
+                filterConvoyComboBox.getItems().add(String.valueOf(run.getIdConvoy()));
             }
-            if (runRaw.getStaffNameSurname() != null && !filterOperatorComboBox.getItems().contains(runRaw.getStaffNameSurname())) {
-                filterOperatorComboBox.getItems().add(runRaw.getStaffNameSurname());
+            if (run.getStaffNameSurname() != null && !filterOperatorComboBox.getItems().contains(run.getStaffNameSurname())) {
+                filterOperatorComboBox.getItems().add(run.getStaffNameSurname());
             }
-            if (runRaw.getFirstStationName() != null && !filterFirstStationComboBox.getItems().contains(runRaw.getFirstStationName())) {
-                filterFirstStationComboBox.getItems().add(runRaw.getFirstStationName());
+            if (run.getFirstStationName() != null && !filterFirstStationComboBox.getItems().contains(run.getFirstStationName())) {
+                filterFirstStationComboBox.getItems().add(run.getFirstStationName());
             }
         }
         if (selectedLine != null && filterLineComboBox.getItems().contains(selectedLine)) filterLineComboBox.setValue(selectedLine);
@@ -255,13 +255,13 @@ public class ManageRunController {
         }
         java.sql.Timestamp dayStart = java.sql.Timestamp.valueOf(selectedDate.atStartOfDay());
         java.sql.Timestamp dayEnd = java.sql.Timestamp.valueOf(selectedDate.atTime(23, 59, 59, 999_000_000));
-        List<Run> runs;
+        List<Run2> run2s;
         try {
-            runs = manageRunService.searchRunsByDay(selectedLine, selectedConvoy, selectedOperator, selectedFirstStation, dayStart, dayEnd);
+            run2s = manageRunService.searchRunsByDay(selectedLine, selectedConvoy, selectedOperator, selectedFirstStation, dayStart, dayEnd);
         } catch (Exception e) {
             logger.severe("Errore SQL durante il caricamento delle corse: " + e.getMessage());
-            runs = List.of();
+            run2s = List.of();
         }
-        summaryTable.getItems().setAll(runs);
+        summaryTable.getItems().setAll(run2s);
     }
 }

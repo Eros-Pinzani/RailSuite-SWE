@@ -366,33 +366,33 @@ public class RailSuiteFacade {
         depotDao.deleteDepot(idDepot);
     }
 
-    // Run
+    // Run2
     /**
      * Retrieves runs by line and convoy ID.
      * Used to get run information for a specific line and convoy.
      */
-    public List<Run> selectRunsByLineAndConvoy(int idLine, int idConvoy) throws SQLException {
+    public List<Run2> selectRunsByLineAndConvoy(int idLine, int idConvoy) throws SQLException {
         return runDao.selectRunsByLineAndConvoy(idLine, idConvoy);
     }
     /**
      * Retrieves a run by line, convoy, and staff ID.
      * Used to get run information for a specific line, convoy, and staff.
      */
-    public Run selectRun(int idLine, int idConvoy, int idStaff) throws SQLException {
+    public Run2 selectRun(int idLine, int idConvoy, int idStaff) throws SQLException {
         return runDao.selectRunByLineConvoyAndStaff(idLine, idConvoy, idStaff);
     }
     /**
      * Retrieves runs by staff and convoy ID.
      * Used to get run information for a specific staff and convoy.
      */
-    public List<Run> selectRunsByStaffAndConvoy(int idStaff, int idConvoy) throws SQLException {
+    public List<Run2> selectRunsByStaffAndConvoy(int idStaff, int idConvoy) throws SQLException {
         return runDao.selectRunsByStaffAndConvoy(idStaff, idConvoy);
     }
     /**
      * Retrieves runs by staff and line ID.
      * Used to get run information for a specific staff and line.
      */
-    public List<Run> selectRunsByStaffAndLine(int idStaff, int idLine) throws SQLException {
+    public List<Run2> selectRunsByStaffAndLine(int idStaff, int idLine) throws SQLException {
         return runDao.selectRunsByStaffAndLine(idStaff, idLine);
     }
     /**
@@ -420,42 +420,42 @@ public class RailSuiteFacade {
      * Retrieves all runs assigned to a specific staff member.
      * Used to list or manage runs by staff.
      */
-    public List<Run> selectRunsByStaff(int idStaff) throws SQLException {
+    public List<Run2> selectRunsByStaff(int idStaff) throws SQLException {
         return runDao.selectRunsByStaff(idStaff);
     }
     /**
      * Retrieves all runs for a specific line.
      * Used to list or manage runs by line.
      */
-    public List<Run> selectRunsByLine(int idLine) throws SQLException {
+    public List<Run2> selectRunsByLine(int idLine) throws SQLException {
         return runDao.selectRunsByLine(idLine);
     }
     /**
      * Retrieves all runs for a specific convoy.
      * Used to list or manage runs by convoy.
      */
-    public List<Run> selectRunsByConvoy(int idConvoy) throws SQLException {
+    public List<Run2> selectRunsByConvoy(int idConvoy) throws SQLException {
         return runDao.selectRunsByConvoy(idConvoy);
     }
     /**
      * Retrieves all runs that start at a specific station.
      * Used to list or manage runs by first station.
      */
-    public List<Run> selectRunsByFirstStation(int idFirstStation) throws SQLException {
+    public List<Run2> selectRunsByFirstStation(int idFirstStation) throws SQLException {
         return runDao.selectRunsByFirstStation(idFirstStation);
     }
     /**
      * Retrieves all runs that end at a specific station.
      * Used to list or manage runs by last station.
      */
-    public List<Run> selectRunsByLastStation(int idLastStation) throws SQLException {
+    public List<Run2> selectRunsByLastStation(int idLastStation) throws SQLException {
         return runDao.selectRunsByLastStation(idLastStation);
     }
     /**
      * Retrieves all runs that start at a specific station and have a specific departure time.
      * Used to filter runs by station and departure time.
      */
-    public List<Run> selectRunsByFirstStationAndDeparture(int idFirstStation, java.sql.Timestamp timeDeparture) throws SQLException {
+    public List<Run2> selectRunsByFirstStationAndDeparture(int idFirstStation, java.sql.Timestamp timeDeparture) throws SQLException {
         return runDao.selectRunsByFirstStationAndDeparture(idFirstStation, timeDeparture);
     }
 }

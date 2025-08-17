@@ -1,7 +1,7 @@
 package businessLogic.controller;
 
 /**
- * Controller for the Manage Run2 screen.
+ * Controller for the Manage Run screen.
  * Handles the display and management of train runs for a selected line and date.
  */
 
@@ -30,7 +30,7 @@ public class ManageRunController {
     @FXML
     private ComboBox<String> filterFirstStationComboBox;
     @FXML
-    private TableView<Run2> summaryTable;
+    private TableView<Run> summaryTable;
     @FXML
     private javafx.scene.control.Label supervisorNameLabel;
     @FXML
@@ -40,21 +40,21 @@ public class ManageRunController {
     @FXML
     private javafx.scene.control.MenuButton menuButton;
     @FXML
-    private TableColumn<Run2, String> operatorColumn;
+    private TableColumn<Run, String> operatorColumn;
     @FXML
-    private TableColumn<Run2, Integer> convoyIdColumn;
+    private TableColumn<Run, Integer> convoyIdColumn;
     @FXML
-    private TableColumn<Run2, String> lineNameColumn;
+    private TableColumn<Run, String> lineNameColumn;
     @FXML
-    private TableColumn<Run2, Timestamp> startTimeColumn;
+    private TableColumn<Run, Timestamp> startTimeColumn;
     @FXML
-    private TableColumn<Run2, Timestamp> endTimeColumn;
+    private TableColumn<Run, Timestamp> endTimeColumn;
     @FXML
-    private TableColumn<Run2, String> startStationColumn;
+    private TableColumn<Run, String> startStationColumn;
     @FXML
-    private TableColumn<Run2, String> endStationColumn;
+    private TableColumn<Run, String> endStationColumn;
     @FXML
-    private TableColumn<Run2, String> statusColumn;
+    private TableColumn<Run, String> statusColumn;
     @FXML
     private Button detailsButton;
     @FXML
@@ -103,7 +103,7 @@ public class ManageRunController {
         startStationColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getFirstStationName()));
         endStationColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getLastStationName()));
         statusColumn.setCellValueFactory(data -> {
-            Run2.RunStatus status = data.getValue().getStatus();
+            Run.RunStatus status = data.getValue().getStatus();
             String display;
             switch (status) {
                 case BEFORE_RUN -> display = "✏️ Modificabile";
@@ -255,13 +255,13 @@ public class ManageRunController {
         }
         java.sql.Timestamp dayStart = java.sql.Timestamp.valueOf(selectedDate.atStartOfDay());
         java.sql.Timestamp dayEnd = java.sql.Timestamp.valueOf(selectedDate.atTime(23, 59, 59, 999_000_000));
-        List<Run2> run2s;
+        List<Run> runs;
         try {
-            run2s = manageRunService.searchRunsByDay(selectedLine, selectedConvoy, selectedOperator, selectedFirstStation, dayStart, dayEnd);
+            runs = manageRunService.searchRunsByDay(selectedLine, selectedConvoy, selectedOperator, selectedFirstStation, dayStart, dayEnd);
         } catch (Exception e) {
             logger.severe("Errore SQL durante il caricamento delle corse: " + e.getMessage());
-            run2s = List.of();
+            runs = List.of();
         }
-        summaryTable.getItems().setAll(run2s);
+        summaryTable.getItems().setAll(runs);
     }
 }

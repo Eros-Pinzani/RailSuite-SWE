@@ -133,7 +133,10 @@ public class RunDaoImp implements RunDao {
                 rs.getString("surname"),
                 rs.getInt("id_first_station"),
                 rs.getString("first_station_name"),
-                rs.getTimestamp("time_departure")
+                rs.getInt("id_last_station"),
+                rs.getString("last_station_name"),
+                rs.getTimestamp("time_departure"),
+                rs.getTimestamp("time_arrival")
         );
     }
 
@@ -389,7 +392,10 @@ public class RunDaoImp implements RunDao {
                         rs.getString("staff_surname"),
                         rs.getInt("id_first_station"),
                         rs.getString("first_station_location"),
-                        rs.getTimestamp("time_departure")
+                        null, // idLastStation non disponibile
+                        null, // lastStationName non disponibile
+                        rs.getTimestamp("time_departure"),
+                        null // timeArrival non disponibile
                 );
                 runs.add(run);
             }

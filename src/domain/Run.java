@@ -3,8 +3,12 @@ package domain;
 import java.sql.Timestamp;
 
 public interface Run {
-    static Run of(Integer idLine, String lineName, Integer idConvoy, Integer idStaff, String staffName, String staffSurname, Integer idFirstStation, String firstStationName, Timestamp timeDeparture) {
-        return new RunImp(idLine, lineName, idConvoy, idStaff, staffName, staffSurname, idFirstStation, firstStationName, timeDeparture);
+    static Run of(Integer idLine, String lineName, Integer idConvoy, Integer idStaff, String staffName, String staffSurname, Integer idFirstStation, String firstStationName, Integer idLastStation, String lastStationName, Timestamp timeDeparture, Timestamp timeArrival) {
+        return new RunImp(idLine, lineName, idConvoy, idStaff, staffName, staffSurname, idFirstStation, firstStationName, idLastStation, lastStationName, timeDeparture, timeArrival);
+    }
+
+    enum RunStatus {
+        RUN, BEFORE_RUN, AFTER_RUN
     }
 
     /**
@@ -43,9 +47,25 @@ public interface Run {
     String getFirstStationName();
 
     /**
+     * @return the last station id
+     */
+    Integer getIdLastStation();
+
+    /**
+     * @return the last station name
+     */
+    String getLastStationName();
+
+    /**
      * @return the departure time
      */
     Timestamp getTimeDeparture();
 
-}
+    /**
+     * @return the arrival time
+     */
+    Timestamp getTimeArrival();
 
+    /** @return the status of the run */
+    RunStatus getStatus();
+}

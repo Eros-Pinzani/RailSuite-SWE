@@ -55,7 +55,7 @@ public class ManageRunService {
     }
 
     /**
-     * Searches for Run2 objects using the provided filters and a date range (entire day).
+     * Searches for Run objects using the provided filters and a date range (entire day).
      * Uses a single DAO call, which returns an empty list if no runs are found.
      * @param lineName the line name to filter (nullable)
      * @param convoyId the convoy id to filter (nullable)
@@ -63,11 +63,11 @@ public class ManageRunService {
      * @param firstStationName the first station name to filter (nullable)
      * @param dayStart the start timestamp of the day (inclusive)
      * @param dayEnd the end timestamp of the day (inclusive)
-     * @return list of Run2 objects matching the filters and date range
+     * @return list of Run objects matching the filters and date range
      * @throws SQLException if a database access error occurs
      */
-    public List<Run2> searchRunsByDay(String lineName, String convoyId, String staffNameSurname, String firstStationName, Timestamp dayStart, Timestamp dayEnd) throws SQLException {
-        List<Run2> run2s = runDao.searchRunsByDay(lineName, convoyId, staffNameSurname, firstStationName, dayStart, dayEnd);
-        return run2s == null ? List.of() : run2s;
+    public List<Run> searchRunsByDay(String lineName, String convoyId, String staffNameSurname, String firstStationName, Timestamp dayStart, Timestamp dayEnd) throws SQLException {
+        List<Run> runs = runDao.searchRunsByDay(lineName, convoyId, staffNameSurname, firstStationName, dayStart, dayEnd);
+        return runs == null ? List.of() : runs;
     }
 }

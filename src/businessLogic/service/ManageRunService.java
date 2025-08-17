@@ -1,7 +1,6 @@
 package businessLogic.service;
 
 import dao.RunDao;
-import dao.RunRawDao;
 import domain.*;
 
 import java.sql.SQLException;
@@ -14,39 +13,39 @@ import java.util.*;
  */
 public class ManageRunService {
     private final RunDao runDao = RunDao.of();
-    private final List<RunRaw> runRaws;
+    private final List<Run> runs;
 
     /**
-     * Constructs the ManageRunService and loads all RunRaw data from the database.
+     * Constructs the ManageRunService and loads all Run data from the database.
      * Throws a RuntimeException if data cannot be loaded.
      */
     public ManageRunService() {
         try {
-            runRaws = RunRawDao.of().selectAllRunRaws();
+            runs = RunDao.of().selectAllRunRaws();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     /**
-     * Returns an unmodifiable list of all RunRaw objects loaded at service initialization.
-     * @return list of RunRaw objects
+     * Returns an unmodifiable list of all Run objects loaded at service initialization.
+     * @return list of Run objects
      */
-    public List<RunRaw> getAllRunRaws() {
-        return Collections.unmodifiableList(runRaws);
+    public List<Run> getAllRunRaws() {
+        return Collections.unmodifiableList(runs);
     }
 
     /**
-     * Filters RunRaw objects based on the provided parameters. Any parameter can be null.
+     * Filters Run objects based on the provided parameters. Any parameter can be null.
      * @param lineName the line name to filter (nullable)
      * @param convoyId the convoy id to filter (nullable)
      * @param staffNameSurname the staff name and surname to filter (nullable)
      * @param firstStationName the first station name to filter (nullable)
      * @param timeDeparture the departure time to filter (nullable)
-     * @return filtered list of RunRaw objects
+     * @return filtered list of Run objects
      */
-    public List<RunRaw> filterRunRaws(String lineName, String convoyId, String staffNameSurname, String firstStationName, java.sql.Timestamp timeDeparture) {
-        return runRaws.stream()
+    public List<Run> filterRunRaws(String lineName, String convoyId, String staffNameSurname, String firstStationName, java.sql.Timestamp timeDeparture) {
+        return runs.stream()
                 .filter(r -> lineName == null || (r.getLineName() != null && r.getLineName().equals(lineName)))
                 .filter(r -> convoyId == null || (r.getIdConvoy() != null && String.valueOf(r.getIdConvoy()).equals(convoyId)))
                 .filter(r -> staffNameSurname == null || (r.getStaffNameSurname() != null && r.getStaffNameSurname().equals(staffNameSurname)))

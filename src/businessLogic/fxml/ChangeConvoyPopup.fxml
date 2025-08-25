@@ -23,5 +23,6 @@
          </columnResizePolicy>
         </TableView>
         <Button fx:id="confirmButton" text="Conferma" />
+        <Button fx:id="cancelButton" text="Annulla" />
     </VBox>
 </AnchorPane>

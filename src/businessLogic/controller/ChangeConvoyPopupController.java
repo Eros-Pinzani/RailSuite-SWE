@@ -16,6 +16,7 @@ public class ChangeConvoyPopupController {
     @FXML private TableColumn<ConvoyTableDTO, Number> carriageCountColumn;
     @FXML private TableColumn<ConvoyTableDTO, Number> capacityColumn;
     @FXML private Button confirmButton;
+    @FXML private Button cancelButton;
 
     private FilteredList<ConvoyTableDTO> filteredData;
     private Callback<ConvoyTableDTO, Void> confirmCallback;
@@ -53,7 +54,24 @@ public class ChangeConvoyPopupController {
             ConvoyTableDTO selected = convoyTable.getSelectionModel().getSelectedItem();
             if (selected != null && confirmCallback != null) {
                 confirmCallback.call(selected);
+                confirmButton.getScene().getWindow().hide();
+            } else {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Attenzione");
+                alert.setHeaderText("Selezione mancante");
+                if (selected == null) {
+                    alert.setContentText("Seleziona un convoglio dalla tabella prima di confermare.");
+                } else {
+                    alert.setContentText("Errore interno: callback non impostato.");
+                }
+                alert.showAndWait();
             }
+        });
+        cancelButton.setOnAction(event -> {
+            if (confirmCallback != null) {
+                confirmCallback.call(null);
+            }
+            cancelButton.getScene().getWindow().hide();
         });
     }
 }

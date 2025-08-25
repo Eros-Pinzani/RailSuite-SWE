@@ -472,39 +472,20 @@ public class RunDetailsController implements Initializable {
                 return;
             }
 
-            // Ritorna tutti gli id convoy disponibili alla determinata stazione dopo un update
-            //  Una volta fatto ciò con un task deve ottenere tutti le run associate da questa corsa in poi
-            // Ottenuto ciò posso fare in cascata la modifica di tutte le corse associte al convoglio selezionato
-
-
-            Task<List<Run>> task = new Task<>() {
-                @Override
-                protected List<Run> call() {
-                    return runDetailsService.getFutureRunsOfCurrentConvoy(idConvoy, timeDeparture);
-                }
-            };
-            task.setOnSucceeded(e -> {
-                List<Run> futureRunsOfCurrentConvoy = task.getValue();
-            });
-            task.setOnFailed(e -> {
-                Alert alert = new Alert(AlertType.ERROR, "Errore nel recupero delle corse future associate al convoglio.");
-                alert.showAndWait();
-            });
-            new Thread(task).start();
-
-
             ObservableList<ConvoyTableDTO> convoysObservable = FXCollections.observableArrayList(convoysAvailable);
             businessLogic.controller.PopupManager.showChangeConvoyPopup(
                 convoysObservable,
                 "Cambia convoglio",
                 "Cambia convoglio associato alla corsa e alle corse future ad esso assiciato",
                 selectedConvoy -> {
-                    int newIdConvoy = selectedConvoy.getIdConvoy();
-                    runDetailsService.replaceFutureRunsConvoy(idConvoy, newIdConvoy);
+                    if (selectedConvoy != null && selectedConvoy.getIdConvoy() != idConvoy) {
+                        int newIdConvoy = selectedConvoy.getIdConvoy();
+                        runDetailsService.replaceFutureRunsConvoy(idConvoy, newIdConvoy);
+                    }
                     return null;
                 }
             );
-             /*Copilot here*/
+
         } catch (
                 Exception e) {
             logger.severe("Error loading convoy edit: " + e.getMessage());

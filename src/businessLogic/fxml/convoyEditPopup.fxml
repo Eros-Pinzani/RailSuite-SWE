@@ -18,14 +18,13 @@
                 <Font name="System Bold" size="18.0"/>
             </font>
         </Label>
-        <TableView prefHeight="200.0" prefWidth="200.0">
+        <TableView fx:id="carriageTable" prefHeight="200.0" prefWidth="200.0">
             <columns>
-                <TableColumn prefWidth="50.0" text="Id"/>
-                <TableColumn prefWidth="75.0" text="Modello"/>
-                <TableColumn prefWidth="75.0" text="Tipo"/>
-                <TableColumn prefWidth="50.0" text="Capacità"/>
+                <TableColumn fx:id="idColumn" prefWidth="50.0" text="Id"/>
+                <TableColumn fx:id="modelColumn" prefWidth="75.0" text="Modello"/>
+                <TableColumn fx:id="typeColumn" prefWidth="75.0" text="Tipo"/>
+                <TableColumn fx:id="capacityColumn" prefWidth="50.0" text="Capacità"/>
             </columns>
-            @
             <columnResizePolicy>
                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
             </columnResizePolicy>
@@ -34,11 +33,11 @@
             <children>
                 <HBox spacing="32.0">
                     <children>
-                        <Button mnemonicParsing="false" onAction="#removeCarriageEvent" text="Rimuovi carrozza"/>
-                        <Button mnemonicParsing="false" onAction="#addCarriageEvent" text="Aggiungi carrozza"/>
+                        <Button fx:id="removeCarriageButton" mnemonicParsing="false" onAction="#removeCarriageEvent" text="Rimuovi carrozza"/>
+                        <Button fx:id="addCarriageButton" mnemonicParsing="false" onAction="#addCarriageEvent" text="Aggiungi carrozza"/>
                     </children>
                 </HBox>
-                <Button mnemonicParsing="false" onAction="#confirmEvent" text="Conferma"/>
+                <Button fx:id="confirmButton" mnemonicParsing="false" onAction="#confirmEvent" text="Conferma"/>
             </children>
         </HBox>
     </children>

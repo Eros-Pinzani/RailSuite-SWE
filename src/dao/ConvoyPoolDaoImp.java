@@ -61,25 +61,24 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
     private static final String INSERT =
             "INSERT INTO convoy_pool (id_convoy, id_station, status) VALUES (?, ?, ?)";
     /**
-     * SQL query to check the status of a convoy.
+     * SQL query per controllare lo stato del convoglio (manutenzione o non assegnato a corse).
      */
     private static final String checkConvoyStatus = """
-                SELECT EXISTS (
-                SELECT 1
-                FROM carriage c
-                JOIN carriage_depot cd ON c.id_carriage = cd.id_carriage
-                WHERE c.id_convoy = ?
-                  AND cd.status_of_carriage IN ('MAINTENANCE', 'CLEANING')
-                  AND cd.time_exited IS NULL
-            ) AS in_maintenance
-            UNION
-            SELECT NOT EXISTS (
-                SELECT 1
-                FROM run
-                WHERE id_convoy = ?
-                  AND now() BETWEEN time_departure AND time_arrival
-            ) AS not_on_run
-            LIMIT 1
+            SELECT
+                EXISTS (
+                    SELECT 1
+                    FROM carriage c
+                    JOIN carriage_depot cd ON c.id_carriage = cd.id_carriage
+                    WHERE c.id_convoy = ?
+                      AND cd.status_of_carriage IN ('MAINTENANCE', 'CLEANING')
+                      AND cd.time_exited IS NULL
+                ) AS in_maintenance,
+                NOT EXISTS (
+                    SELECT 1
+                    FROM run
+                    WHERE id_convoy = ?
+                      AND now() BETWEEN time_departure AND time_arrival
+                ) AS not_on_run
             """;
     private static final String updateConvoyStatus = """
             UPDATE convoy_pool cp
@@ -102,6 +101,7 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
             END
             WHERE cp.id_station = ?
             """;
+
     ConvoyPoolDaoImp() {
     }
 
@@ -223,22 +223,21 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
 
     @Override
     public boolean checkAndUpdateConvoyStatus(int idConvoy) throws SQLException {
-        try {
-            try (Connection conn = PostgresConnection.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(checkConvoyStatus)) {
-                ps.setInt(1, idConvoy);
-                ps.setInt(2, idConvoy);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        boolean inMaintenance = rs.getBoolean(1);
-                        boolean notOnRun = rs.getBoolean(2);
-                        return inMaintenance || notOnRun;
-                    }
-                    return false;
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(checkConvoyStatus)) {
+            ps.setInt(1, idConvoy);
+            ps.setInt(2, idConvoy);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    boolean inMaintenance = rs.getBoolean("in_maintenance");
+                    boolean notOnRun = rs.getBoolean("not_on_run");
+                    return inMaintenance || notOnRun;
                 }
+                return false;
             }
         } catch (SQLException e) {
-            throw new SQLException("Error checking convoy status", e);
+            System.out.println("pluto");
+            throw new SQLException("Error checking convoy status: " + e.getMessage(), e);
         }
     }
 
@@ -252,7 +251,7 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
             }
             try {
                 getConvoyTableDataByStation(idStation);
-            } catch (SQLException e){
+            } catch (SQLException e) {
                 throw new SQLException("Error retrieving convoy table data", e);
             }
         } catch (SQLException e) {

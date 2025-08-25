@@ -103,44 +103,63 @@ class StaffDaoImp implements StaffDao {
         return staffList;
     }
 
-    private static final String CHECK_OPERATOR_AVAILABILITY_SQL = """
-            SELECT s.*
-            FROM staff s
-            WHERE s.type_of_staff = 'OPERATOR'
-              AND NOT EXISTS (
-                SELECT 1
-                FROM run r
-                WHERE r.id_staff = s.id_staff
-                  AND (
-                    (r.time_departure <= ? AND (r.time_departure + INTERVAL '1 hour') > ?)
-                    OR (ABS(EXTRACT(EPOCH FROM (r.time_departure - ?)) / 60) < 15)
-                    OR (SELECT SUM(EXTRACT(EPOCH FROM (r.time_arrival - r.time_departure)) / 3600)
-                        FROM run r2
-                        WHERE r2.id_staff = s.id_staff
-                        AND DATE(r2.time_departure) = DATE(?)
-                    ) > 10
-                  )
-              )
-              AND EXISTS (
-                SELECT 1
-                FROM run r2
-                WHERE r2.id_staff = s.id_staff
-                  AND r2.id_last_station = ?
-                  AND r2.time_arrival <= ?
-                  AND (r2.time_arrival + INTERVAL '15 minutes') <= ?
-              )""";
     @Override
-    public List<Staff> checkOperatorAvailability( int firstStation, Timestamp timeDeparture) throws SQLException {
-        List<Staff> availableStaff = new ArrayList<>();
+    public List<Staff> checkOperatorAvailability(int firstStation, Timestamp timeDeparture) throws SQLException {
+        // Aggiorna lo stato degli operatori disponibili
+        String updateSql = """
+        UPDATE staff_pool sp
+        SET status = 'AVAILABLE'
+        WHERE sp.id_station = ?
+          AND sp.shift_start <= ? AND sp.shift_end >= ?
+          AND NOT EXISTS (
+            SELECT 1
+            FROM run r
+            WHERE r.id_staff = sp.id_staff
+              AND r.time_departure <= ? AND r.time_arrival > ?
+          )
+          AND (
+            SELECT COALESCE(MAX(r2.time_arrival), NULL)
+            FROM run r2
+            WHERE r2.id_staff = sp.id_staff
+              AND r2.id_last_station = ?
+              AND r2.time_arrival <= ?
+          ) IS NULL
+          OR (
+            SELECT EXTRACT(EPOCH FROM (? - MAX(r2.time_arrival))) / 60
+            FROM run r2
+            WHERE r2.id_staff = sp.id_staff
+              AND r2.id_last_station = ?
+              AND r2.time_arrival <= ?
+          ) >= 15
+    """;
         try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(CHECK_OPERATOR_AVAILABILITY_SQL)) {
-            stmt.setTimestamp(1, timeDeparture);
+             PreparedStatement stmt = conn.prepareStatement(updateSql)) {
+            stmt.setInt(1, firstStation);
             stmt.setTimestamp(2, timeDeparture);
             stmt.setTimestamp(3, timeDeparture);
             stmt.setTimestamp(4, timeDeparture);
-            stmt.setInt(5, firstStation);
-            stmt.setTimestamp(6, timeDeparture);
+            stmt.setTimestamp(5, timeDeparture);
+            stmt.setInt(6, firstStation);
             stmt.setTimestamp(7, timeDeparture);
+            stmt.setTimestamp(8, timeDeparture);
+            stmt.setInt(9, firstStation);
+            stmt.setTimestamp(10, timeDeparture);
+            stmt.executeUpdate();
+        }
+
+        // Seleziona gli operatori disponibili
+        String selectSql = """
+        SELECT s.*
+        FROM staff s
+        JOIN staff_pool sp ON s.id_staff = sp.id_staff
+        WHERE s.type_of_staff = 'OPERATOR'
+          AND sp.id_station = ?
+          AND sp.status = 'AVAILABLE'
+        """;
+        List<Staff> availableStaff = new ArrayList<>();
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(selectSql)) {
+            stmt.setInt(1, firstStation);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 availableStaff.add(mapResultSetToStaff(rs));
@@ -150,4 +169,57 @@ class StaffDaoImp implements StaffDao {
         }
         return availableStaff;
     }
+
+    /* TODO: IMPLEMENTA PER BENE LA QUERY
+    private static final String CHECK_OPERATOR_AVAILABILITY_SQL = """
+                SELECT s.*
+            FROM staff s
+            JOIN staff_pool sp ON s.id_staff = sp.id_staff
+            WHERE s.type_of_staff = 'OPERATOR'
+              AND sp.id_station = ?
+              AND sp.shift_start <= ? AND sp.shift_end >= ?
+              AND sp.status = 'AVAILABLE'
+              AND NOT EXISTS (
+                SELECT 1
+                FROM run r
+                WHERE r.id_staff = s.id_staff
+                  AND (
+                    (r.time_departure <= ? AND r.time_arrival > ?)
+                    OR (ABS(EXTRACT(EPOCH FROM (r.time_departure - ?)) / 60) < 15)
+                    OR (ABS(EXTRACT(EPOCH FROM (? - r.time_arrival)) / 60) < 15)
+                  )
+              )
+              AND (
+                SELECT COALESCE(SUM(EXTRACT(EPOCH FROM (r2.time_arrival - r2.time_departure)) / 3600), 0)
+                FROM run r2
+                WHERE r2.id_staff = s.id_staff
+                  AND DATE(r2.time_departure) = DATE(?)
+              ) <= 10""";
+    @Override
+    public List<Staff> checkOperatorAvailability( int firstStation, Timestamp timeDeparture) throws SQLException {
+        List<Staff> availableStaff = new ArrayList<>();
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(CHECK_OPERATOR_AVAILABILITY_SQL)) {
+            stmt.setInt(1, firstStation);
+            stmt.setTimestamp(2, timeDeparture);
+            stmt.setTimestamp(3, timeDeparture);
+            stmt.setTimestamp(4, timeDeparture);
+            stmt.setTimestamp(5, timeDeparture);
+            stmt.setTimestamp(6, timeDeparture);
+            stmt.setTimestamp(7, timeDeparture);
+            stmt.setTimestamp(8, timeDeparture);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                availableStaff.add(mapResultSetToStaff(rs));
+            }
+            System.out.println(stmt);
+            System.out.println(firstStation);
+            System.out.println(timeDeparture);
+        } catch (SQLException e) {
+            throw new SQLException("Errore nel controllo disponibilità operatori", e);
+        }
+
+
+        return availableStaff;
+    }*/
 }

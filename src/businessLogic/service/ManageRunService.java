@@ -13,7 +13,7 @@ import java.util.*;
  */
 public class ManageRunService {
     private final RunDao runDao = RunDao.of();
-    private final List<Run> runs;
+    private List<Run> runs;
 
     /**
      * Constructs the ManageRunService and loads all Run data from the database.
@@ -21,7 +21,7 @@ public class ManageRunService {
      */
     public ManageRunService() {
         try {
-            runs = RunDao.of().selectAllRunRaws();
+            runs = RunDao.of().selectAllRun();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -31,8 +31,8 @@ public class ManageRunService {
      * Returns an unmodifiable list of all Run objects loaded at service initialization.
      * @return list of Run objects
      */
-    public List<Run> getAllRunRaws() {
-        return Collections.unmodifiableList(runs);
+    public List<Run> getAllRun() {
+        return runs = Collections.unmodifiableList(runs);
     }
 
     /**

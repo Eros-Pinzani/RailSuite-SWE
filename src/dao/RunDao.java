@@ -206,4 +206,23 @@ public interface RunDao {
     boolean replaceFutureRunsConvoy(int idConvoy, int newIdConvoy, RunDTO run)throws SQLException;
 
     void updateRunStaff(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture, int idStaff1) throws SQLException;
+
+    /**
+     * Aggiorna l'orario di partenza di una run.
+     * @param idLine id della linea
+     * @param idConvoy id del convoglio
+     * @param idStaff id dello staff
+     * @param oldDeparture orario di partenza attuale
+     * @param newDeparture nuovo orario di partenza
+     * @return true se l'aggiornamento ha successo, false altrimenti
+     * @throws SQLException in caso di errore DB
+     */
+    boolean updateRunDepartureTime(int idLine, int idConvoy, int idStaff, Timestamp oldDeparture, Timestamp newDeparture) throws SQLException;
+
+    /**
+     * Returns all runs in the database.
+     * @return list of Run objects
+     * @throws SQLException if a database access error occurs
+     */
+    List<Run> selectAllRun() throws SQLException;
 }

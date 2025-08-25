@@ -35,9 +35,9 @@
             <children>
                 <HBox alignment="TOP_CENTER" spacing="32.0">
                     <children>
-                        <Button mnemonicParsing="false" onAction="#convoyDetailSectionToggle" text="Dati Convoglio" />
-                        <Button mnemonicParsing="false" onAction="#operatorDetailSectionToggle" text="Dati operatore" />
-                        <Button mnemonicParsing="false" onAction="#timeTableDetailSectionToggle" text="Stazioni e orari" />
+                        <Button fx:id="convoyDetailSectionToggle" mnemonicParsing="false" onAction="#convoyDetailSectionToggle" text="Dati Convoglio" />
+                        <Button fx:id="operatorDetailSectionToggle" mnemonicParsing="false" onAction="#operatorDetailSectionToggle" text="Dati operatore" />
+                        <Button fx:id="timeTableDetailSectionToggle" mnemonicParsing="false" onAction="#timeTableDetailSectionToggle" text="Stazioni e orari" />
                     </children>
                 </HBox>
                 <VBox prefHeight="200.0" prefWidth="100.0" spacing="16.0">
@@ -122,7 +122,7 @@
                                         </Label>
                                         <HBox alignment="CENTER_LEFT" spacing="32.0">
                                             <children>
-                                                <Button mnemonicParsing="false" onAction="#eliminationConfirm" style="-fx-background-color: red;" text="Elimina" textFill="WHITE">
+                                                <Button fx:id="eliminationConfirm" mnemonicParsing="false" onAction="#eliminationConfirm" style="-fx-background-color: red;" text="Elimina" textFill="WHITE">
                                                     <font>
                                                         <Font name="System Bold" size="12.0" />
                                                     </font>
@@ -140,7 +140,7 @@
                                 </VBox>
                             </children>
                         </VBox>
-                        <VBox fx:id="convoyDetailSection" spacing="16.0">
+                        <VBox fx:id="convoyDetailSection" spacing="16.0" visible="false">
                             <children>
                                 <Label text="Dettagli del convoglio">
                                     <font>
@@ -196,19 +196,19 @@
                                                 <Label fx:id="numberOfCarriage" />
                                             </children>
                                         </HBox>
-                                        <Button mnemonicParsing="false" onAction="#listOfIdCarriages" text="Lista degli identificativi delle carrozze" />
+                                        <Button fx:id="listOfIdCarriages" mnemonicParsing="false" onAction="#listOfIdCarriages" text="Lista degli identificativi delle carrozze" />
                                     </children>
                                 </HBox>
                                 <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="16.0">
                                     <children>
                                         <Label fx:id="convoyChangeEditButtonReason" maxWidth="470.0" />
-                                        <Button mnemonicParsing="false" onAction="#convoyEdit" text="Modifica Convoglio" />
-                                        <Button mnemonicParsing="false" onAction="#convoyChange" text="Cambia Convoglio" />
+                                        <Button fx:id="convoyEdit" mnemonicParsing="false" onAction="#convoyEdit" text="Modifica Convoglio" />
+                                        <Button fx:id="convoyChange" mnemonicParsing="false" onAction="#convoyChange" text="Cambia Convoglio" />
                                     </children>
                                 </HBox>
                             </children>
                         </VBox>
-                        <VBox fx:id="operatorDetailSection" spacing="16.0">
+                        <VBox fx:id="operatorDetailSection" spacing="16.0" visible="false">
                             <VBox.margin>
                                 <Insets top="16.0" />
                             </VBox.margin>
@@ -255,12 +255,12 @@
                                 <HBox prefHeight="100.0" prefWidth="200.0" spacing="16.0">
                                     <children>
                                         <Label fx:id="operatorChangeEditButtonReason" maxWidth="470.0" />
-                                        <Button mnemonicParsing="false" onAction="#operatorChange" text="Cambia Operatore" />
+                                        <Button fx:id="operatorChange" mnemonicParsing="false" onAction="#operatorChange" text="Cambia Operatore" />
                                     </children>
                                 </HBox>
                             </children>
                         </VBox>
-                        <VBox fx:id="timeTableDetailSection" spacing="16.0">
+                        <VBox fx:id="timeTableDetailSection" spacing="16.0" visible="false">
                             <children>
                                 <Label text="Dettagli orario">
                                     <font>
@@ -291,11 +291,11 @@
                                         </HBox>
                                     </children>
                                 </HBox>
-                                <TableView prefHeight="200.0" prefWidth="200.0">
+                                <TableView fx:id="timeTableView" VBox.vgrow="ALWAYS" prefHeight="200.0" prefWidth="200.0">
                                     <columns>
-                                        <TableColumn prefWidth="300.0" text="Stazione" />
-                                        <TableColumn prefWidth="100.0" text="Arrivo" />
-                                        <TableColumn prefWidth="100.0" text="Partenza" />
+                                        <TableColumn fx:id="stationColumn" prefWidth="300.0" text="Stazione" />
+                                        <TableColumn fx:id="arriveColumn" prefWidth="100.0" text="Arrivo" />
+                                        <TableColumn fx:id="departureColumn" prefWidth="100.0" text="Partenza" />
                                     </columns>
                                     <columnResizePolicy>
                                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
@@ -304,7 +304,7 @@
                                 <HBox prefHeight="100.0" prefWidth="200.0" spacing="16.0">
                                     <children>
                                         <Label fx:id="timeTableChangeEditButtonReason" maxWidth="470.0" />
-                                        <Button mnemonicParsing="false" onAction="#runTimeEdit" text="Modifica l'orario di partenza" />
+                                        <Button fx:id="runTimeEdit" mnemonicParsing="false" onAction="#runTimeEdit" text="Modifica l'orario di partenza" />
                                     </children>
                                 </HBox>
                             </children>

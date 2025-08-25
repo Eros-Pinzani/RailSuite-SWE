@@ -5,7 +5,6 @@ import domain.Convoy;
 import domain.DTO.ConvoyTableDTO;
 import domain.DTO.RunDTO;
 import domain.DTO.TimeTableDTO;
-import domain.Run;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -148,21 +147,10 @@ public class RunDetailsController implements Initializable {
         this.idStaff = idStaff;
         this.timeDeparture = timeDeparture;
         this.idFirstStation = idFirstStation;
+        loadRunDetails();
     }
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
-        // TODO prima di tutto devo aggiornare lo stato delle carriage in depot, del convoglio e dello staff
-        header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
-        Staff staff = UserSession.getInstance().getStaff();
-        if (staff != null) {
-            backButton.setOnAction(e -> {
-                switch (staff.getTypeOfStaff()) {
-                    case SUPERVISOR -> SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageRun.fxml");
-                    case OPERATOR -> SceneManager.getInstance().switchScene("/businessLogic/fxml/OperatorHome.fxml");
-                }
-            });
-        }
+    private void loadRunDetails() {
         RunDTO run = null;
         try {
             run = runDetailsService.selectRun(idLine, idConvoy, idStaff, timeDeparture);
@@ -213,59 +201,33 @@ public class RunDetailsController implements Initializable {
         taskInitConvoy(idConvoy);
         String departureTime = timeDeparture.toLocalDateTime().toLocalTime().toString();
         taskInitTimeTable(idLine, idFirstStation, departureTime);
+    }
 
-        stationColumn.setCellFactory(tc -> {
-            TableCell<TimeTableDTO.StationArrAndDepDTO, String> cell = new TableCell<>() {
-                @Override
-                protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setText(null);
-                    } else {
-                        setText(item);
-                        setWrapText(true);
-                        setStyle("-fx-label-padding: 4; -fx-text-alignment: left;");
-                    }
+    private void hideSections() {
+        convoyDetailSection.setVisible(false);
+        convoyDetailSection.setManaged(false);
+        operatorDetailSection.setVisible(false);
+        operatorDetailSection.setManaged(false);
+        timeTableDetailSection.setVisible(false);
+        timeTableDetailSection.setManaged(false);
+    }
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
+        Staff staff = UserSession.getInstance().getStaff();
+        if (staff != null) {
+            backButton.setOnAction(e -> {
+                switch (staff.getTypeOfStaff()) {
+                    case SUPERVISOR -> SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageRun.fxml");
+                    case OPERATOR -> SceneManager.getInstance().switchScene("/businessLogic/fxml/OperatorHome.fxml");
                 }
-            };
-            cell.setPrefHeight(Control.USE_COMPUTED_SIZE);
-            return cell;
-        });
-        arriveColumn.setCellFactory(tc -> {
-            TableCell<TimeTableDTO.StationArrAndDepDTO, String> cell = new TableCell<>() {
-                @Override
-                protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setText(null);
-                    } else {
-                        setText(item);
-                        setWrapText(true);
-                        setStyle("-fx-label-padding: 4; -fx-text-alignment: left;");
-                    }
-                }
-            };
-            cell.setPrefHeight(Control.USE_COMPUTED_SIZE);
-            return cell;
-        });
-        departureColumn.setCellFactory(tc -> {
-            TableCell<TimeTableDTO.StationArrAndDepDTO, String> cell = new TableCell<>() {
-                @Override
-                protected void updateItem(String item, boolean empty) {
-                    super.updateItem(item, empty);
-                    if (empty || item == null) {
-                        setText(null);
-                    } else {
-                        setText(item);
-                        setWrapText(true);
-                        setStyle("-fx-label-padding: 4; -fx-text-alignment: left;");
-                    }
-                }
-            };
-            cell.setPrefHeight(Control.USE_COMPUTED_SIZE);
-            return cell;
-        });
-        disableSections();
+            });
+        }
+        stationColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getStationName()));
+        arriveColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getArriveTime()));
+        departureColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDepartureTime()));
+        hideSections();
     }
 
     private void taskInitConvoy(int idConvoy) {
@@ -307,6 +269,10 @@ public class RunDetailsController implements Initializable {
             if (timeTable != null) {
                 timeTableView.getItems().clear();
                 timeTableView.setItems(FXCollections.observableArrayList(timeTable.getStationArrAndDepDTOList()));
+                timeTableDetailSection.setVisible(false);
+                timeTableDetailSection.setManaged(false);
+            } else {
+                logger.warning("Tabella orari non disponibile");
             }
         });
         task.setOnFailed(e -> {
@@ -320,41 +286,29 @@ public class RunDetailsController implements Initializable {
         new Thread(task).start();
     }
 
-    private void disableSections() {
-        convoyDetailSection.setDisable(true);
-        operatorDetailSection.setDisable(true);
-        timeTableDetailSection.setDisable(true);
-    }
-
     // Metodi OnAction
     @FXML
     private void convoyDetailSectionToggle() {
-        if (convoyDetailSection.isDisable()) {
-            disableSections();
-            convoyDetailSection.setDisable(false);
-        } else {
-            convoyDetailSection.setDisable(true);
-        }
+        boolean show = !convoyDetailSection.isVisible();
+        hideSections();
+        convoyDetailSection.setVisible(show);
+        convoyDetailSection.setManaged(show);
     }
 
     @FXML
     private void operatorDetailSectionToggle() {
-        if (operatorDetailSection.isDisable()) {
-            disableSections();
-            operatorDetailSection.setDisable(false);
-        } else {
-            operatorDetailSection.setDisable(true);
-        }
+        boolean show = !operatorDetailSection.isVisible();
+        hideSections();
+        operatorDetailSection.setVisible(show);
+        operatorDetailSection.setManaged(show);
     }
 
     @FXML
     private void timeTableDetailSectionToggle() {
-        if (timeTableDetailSection.isDisable()) {
-            disableSections();
-            timeTableDetailSection.setDisable(false);
-        } else {
-            timeTableDetailSection.setDisable(true);
-        }
+        boolean show = !timeTableDetailSection.isVisible();
+        hideSections();
+        timeTableDetailSection.setVisible(show);
+        timeTableDetailSection.setManaged(show);
     }
 
     @FXML
@@ -427,7 +381,7 @@ public class RunDetailsController implements Initializable {
                 convoyEdit.setDisable(true);
                 return;
             }
-            if (runDetailsService.hasConvoyConflict()) {
+            if (!runDetailsService.hasConvoyConflict()) {
                 Alert alert = new Alert(AlertType.ERROR, "Impossibile modificare il convoglio: Il convoglio è in un'altra corsa.");
                 alert.showAndWait();
                 convoyEdit.setDisable(true);
@@ -516,6 +470,7 @@ public class RunDetailsController implements Initializable {
                         idStaff = selectedStaff.getIdStaff();
                     } catch (Exception e) {
                         logger.severe("Error changing operator: " + e.getMessage());
+                        e.printStackTrace();
                         Alert alert = new Alert(AlertType.ERROR, "Errore durante il cambio dell'operatore.");
                         alert.showAndWait();
                         operatorChangeEditButtonReason.setText("Errore durante la modifica dell'operatore.");
@@ -539,7 +494,85 @@ public class RunDetailsController implements Initializable {
 
     @FXML
     private void runTimeEdit() {
-        // TODO: Implementare modifica orario di partenza
+        // TODO pupup di sucesso più piccolo
+        // TODO fix tabella piccoola
+        // TODO quandoa aggiornato richiama il db diretto e aggiorna
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime minAllowed = now.plusMinutes(15);
+        LocalDateTime maxAllowed = now.plusDays(1).withHour(23).withMinute(59);
+        boolean isEditable = now.isBefore(timeDeparture.toLocalDateTime().minusMinutes(15));
+        if (!isEditable) {
+            PopupManager.openPopup("Modifica orario", "Non puoi modificare l'orario di partenza: il tempo limite per la modifica è scaduto (sono richiesti almeno 15 minuti di anticipo rispetto alla partenza).", null, null, null);
+            runTimeEdit.setDisable(true);
+            return;
+        }
+        try {
+            DatePicker datePicker = new DatePicker(minAllowed.toLocalDate());
+            datePicker.setDayCellFactory(dp -> new DateCell() {
+                @Override
+                public void updateItem(java.time.LocalDate item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setDisable(empty || item.isBefore(minAllowed.toLocalDate()) || item.isAfter(maxAllowed.toLocalDate()));
+                }
+            });
+            Spinner<Integer> hourSpinner = new Spinner<>(0, 23, minAllowed.getHour());
+            Spinner<Integer> minuteSpinner = new Spinner<>(0, 59, minAllowed.getMinute());
+            Button confirmBtn = new Button("Conferma");
+            Button cancelBtn = new Button("Annulla");
+            Label errorLabel = new Label("");
+            errorLabel.setStyle("-fx-text-fill: red;");
+            VBox vbox = new VBox(10,
+                new Label("Giorno:"), datePicker,
+                new Label("Ora:"), hourSpinner,
+                new Label("Minuti:"), minuteSpinner,
+                errorLabel,
+                new HBox(10, confirmBtn, cancelBtn)
+            );
+            vbox.setStyle("-fx-padding: 20;");
+
+            Stage popupStage = new Stage();
+            popupStage.setTitle("Modifica orario di partenza");
+            popupStage.setScene(new Scene(vbox));
+            popupStage.initModality(Modality.APPLICATION_MODAL);
+            popupStage.setResizable(false);
+            popupStage.centerOnScreen();
+
+            confirmBtn.setOnAction(ev -> {
+                java.time.LocalDate date = datePicker.getValue();
+                int hour = hourSpinner.getValue();
+                int minute = minuteSpinner.getValue();
+                java.time.LocalDateTime selectedDateTime = date.atTime(hour, minute);
+                if (selectedDateTime.isBefore(minAllowed) || selectedDateTime.isAfter(maxAllowed)) {
+                    errorLabel.setText("Orario non valido. Deve essere almeno tra 15 minuti e domani alle 23:59.");
+                    return;
+                }
+                Timestamp newDeparture = Timestamp.valueOf(selectedDateTime);
+                boolean valid = runDetailsService.isDepartureTimeValid(idStaff, idConvoy, newDeparture);
+                if (valid) {
+                    boolean success = runDetailsService.updateRunDepartureTime(idLine, idConvoy, idStaff, timeDeparture, newDeparture);
+                    if (success) {
+                        startAtDateTime.setText(newDeparture.toLocalDateTime().toString());
+                        timeDeparture = newDeparture;
+                        popupStage.close();
+                        PopupManager.openPopup("Successo", "Orario di partenza aggiornato correttamente.", null, null, null);
+                    } else {
+                        errorLabel.setText("Errore nell'aggiornamento dell'orario di partenza.");
+                        logger.warning("Errore nell'aggiornamento dell'orario di partenza.");
+                    }
+                } else {
+                    errorLabel.setText("Orario non valido per lo staff o il convoglio. Rispetta i vincoli di turno, pausa e disponibilità convoglio.");
+                    logger.warning("Orario non valido per staff o convoglio. Vincoli non rispettati.");
+                }
+            });
+            cancelBtn.setOnAction(ev -> {
+                popupStage.close();
+            });
+            popupStage.showAndWait();
+        } catch (Exception ex) {
+            logger.severe("Errore durante la modifica dell'orario di partenza: " + ex.getMessage());
+            PopupManager.openPopup("Errore", "Errore durante la modifica dell'orario di partenza.", null, null, null);
+        }
     }
 
     @FXML

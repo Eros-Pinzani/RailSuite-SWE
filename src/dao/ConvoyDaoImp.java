@@ -386,23 +386,21 @@ class ConvoyDaoImp implements ConvoyDao {
         if (carriages == null || carriages.isEmpty()) {
             throw new IllegalArgumentException("Carriages list must not be null or empty.");
         }
-        StringBuilder sql = new StringBuilder("""
-                UPDATE carriage SET id_convoy = ? WHERE id_carriage IN ("
-                """);
+        StringBuilder sql = new StringBuilder("UPDATE carriage SET id_convoy = ? WHERE id_carriage IN (");
         for (int i = 0; i < carriages.size(); i++) {
-            sql.append(" ? ");
+            sql.append("?");
             if (i < carriages.size() - 1) {
                 sql.append(",");
             }
-            sql.append(")");
-            try (Connection conn = PostgresConnection.getConnection();) {
-                PreparedStatement pstmt = conn.prepareStatement(sql.toString());
-                pstmt.setInt(1, id);
-                for (int j = 0; j < carriages.size(); j++) {
-                    pstmt.setInt(j + 2, carriages.get(j).getId());
-                }
-                pstmt.executeUpdate();
+        }
+        sql.append(")");
+        try (Connection conn = PostgresConnection.getConnection()) {
+            PreparedStatement pstmt = conn.prepareStatement(sql.toString());
+            pstmt.setInt(1, id);
+            for (int j = 0; j < carriages.size(); j++) {
+                pstmt.setInt(j + 2, carriages.get(j).getId());
             }
+            pstmt.executeUpdate();
         }
     }
 }

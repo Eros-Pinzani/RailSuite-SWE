@@ -37,21 +37,21 @@ public class CarriageSelectionPopupController implements Initializable {
     private Convoy convoy;
 
     private  CarriageSelectionPopupService service;
-    private ObservableList<Carriage> selectedCarriages = FXCollections.observableArrayList();
-
-    public void setConvoy(Convoy convoy) {
-        this.convoy = convoy;
-        this.service = new CarriageSelectionPopupService(convoy);
-    }
+    private final ObservableList<Carriage> selectedCarriages = FXCollections.observableArrayList();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        setAvailableCarriages();
         idColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getId()).asObject());
         modelColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getModel()));
         typeColumn.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getModelType()));
         capacityColumn.setCellValueFactory(cellData -> new SimpleIntegerProperty(cellData.getValue().getCapacity()).asObject());
         carriageTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+    }
+
+    public void setConvoy(Convoy convoy) {
+        this.convoy = convoy;
+        this.service = new CarriageSelectionPopupService(convoy);
+        setAvailableCarriages();
     }
 
     private void setAvailableCarriages() {

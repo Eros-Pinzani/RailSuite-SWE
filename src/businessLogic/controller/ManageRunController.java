@@ -67,7 +67,6 @@ public class ManageRunController {
     private javafx.scene.control.DatePicker filterDatePicker;
 
 
-
     private final ManageRunService manageRunService = new ManageRunService();
     private static final Logger logger = Logger.getLogger(ManageRunController.class.getName());
     private EventHandler<ActionEvent> lineComboHandler;
@@ -81,7 +80,7 @@ public class ManageRunController {
      */
     @FXML
     public void initialize() {
-         // TODO: Aggiornare lo stato di convogli, carrozze (manutenzione) e personale all'avvio della schermata ManageRun sotto forma di TASK
+        // TODO: Aggiornare lo stato di convogli, carrozze (manutenzione) e personale all'avvio della schermata ManageRun sotto forma di TASK
         ManageConvoyController.header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
         try {
             initFilters();
@@ -95,7 +94,7 @@ public class ManageRunController {
         filterConvoyComboBox.setOnAction(convoyComboHandler);
         filterOperatorComboBox.setOnAction(operatorComboHandler);
         searchButton.setOnAction(e -> refreshRunSummaryTable());
-        newRunButton.setOnAction(e -> businessLogic.controller.SceneManager.getInstance().switchScene("/businessLogic/fxml/CreateRun.fxml"));
+        newRunButton.setOnAction(e -> SceneManager.getInstance().switchScene("/businessLogic/fxml/CreateRun.fxml"));
         operatorColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getStaffNameSurname()));
         convoyIdColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleObjectProperty<>(data.getValue().getIdConvoy()));
         lineNameColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getLineName()));
@@ -114,7 +113,19 @@ public class ManageRunController {
             return new javafx.beans.property.SimpleStringProperty(display);
         });
         detailsButton.disableProperty().bind(summaryTable.getSelectionModel().selectedItemProperty().isNull());
-        backButton.setOnAction(e -> businessLogic.controller.SceneManager.getInstance().switchScene("/businessLogic/fxml/SupervisorHome.fxml"));
+        detailsButton.setOnAction(e -> {
+            Run selectedRun = summaryTable.getSelectionModel().getSelectedItem();
+            if (selectedRun != null) {
+                SceneManager.getInstance().openRunDetailsScene(
+                        selectedRun.getIdLine(),
+                        selectedRun.getIdConvoy(),
+                        selectedRun.getIdStaff(),
+                        selectedRun.getTimeDeparture(),
+                        selectedRun.getIdFirstStation()
+                );
+            }
+        });
+        backButton.setOnAction(e -> SceneManager.getInstance().switchScene("/businessLogic/fxml/SupervisorHome.fxml"));
 
     }
 
@@ -124,7 +135,7 @@ public class ManageRunController {
      * Loads lines, convoys, operators, and first stations for filtering.
      */
     private void initFilters() {
-        List<Run> runsRaw = manageRunService.getAllRunRaws();
+        List<Run> runsRaw = manageRunService.getAllRun();
         if (runsRaw.isEmpty()) {
             logger.warning("No runs available to initialize filters.");
             return;
@@ -202,13 +213,17 @@ public class ManageRunController {
                 filterFirstStationComboBox.getItems().add(run.getFirstStationName());
             }
         }
-        if (selectedLine != null && filterLineComboBox.getItems().contains(selectedLine)) filterLineComboBox.setValue(selectedLine);
+        if (selectedLine != null && filterLineComboBox.getItems().contains(selectedLine))
+            filterLineComboBox.setValue(selectedLine);
         else filterLineComboBox.setValue("-------");
-        if (selectedConvoy != null && filterConvoyComboBox.getItems().contains(selectedConvoy)) filterConvoyComboBox.setValue(selectedConvoy);
+        if (selectedConvoy != null && filterConvoyComboBox.getItems().contains(selectedConvoy))
+            filterConvoyComboBox.setValue(selectedConvoy);
         else filterConvoyComboBox.setValue("-------");
-        if (selectedOperator != null && filterOperatorComboBox.getItems().contains(selectedOperator)) filterOperatorComboBox.setValue(selectedOperator);
+        if (selectedOperator != null && filterOperatorComboBox.getItems().contains(selectedOperator))
+            filterOperatorComboBox.setValue(selectedOperator);
         else filterOperatorComboBox.setValue("-------");
-        if (selectedFirstStation != null && filterFirstStationComboBox.getItems().contains(selectedFirstStation)) filterFirstStationComboBox.setValue(selectedFirstStation);
+        if (selectedFirstStation != null && filterFirstStationComboBox.getItems().contains(selectedFirstStation))
+            filterFirstStationComboBox.setValue(selectedFirstStation);
         else filterFirstStationComboBox.setValue("-------");
         onHandlers();
     }

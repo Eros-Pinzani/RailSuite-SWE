@@ -128,7 +128,7 @@ public class RunDaoImp implements RunDao {
     private static final String selectRunDTOdetails = """
             SELECT r.id_line, l.name,
                 r.id_convoy,
-                r.id_staff, s.name, s.surname, s.email,
+                r.id_staff, s.name as staff_name, s.surname, s.email,
                 r.time_departure,
                 st.location
             FROM run r
@@ -420,7 +420,7 @@ public class RunDaoImp implements RunDao {
                             rs.getString("name"),
                             rs.getInt("id_convoy"),
                             rs.getInt("id_staff"),
-                            rs.getString("name"),
+                            rs.getString("staff_name"),
                             rs.getString("surname"),
                             rs.getString("email"),
                             rs.getTimestamp("time_departure"),
@@ -532,6 +532,41 @@ public class RunDaoImp implements RunDao {
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new SQLException("Error updating run staff", e);
+        }
+    }
+
+    @Override
+    public boolean updateRunDepartureTime(int idLine, int idConvoy, int idStaff, Timestamp oldDeparture, Timestamp newDeparture) throws SQLException {
+        String sql = "UPDATE run SET time_departure = ? WHERE id_line = ? AND id_convoy = ? AND id_staff = ? AND time_departure = ?";
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setTimestamp(1, newDeparture);
+            ps.setInt(2, idLine);
+            ps.setInt(3, idConvoy);
+            ps.setInt(4, idStaff);
+            ps.setTimestamp(5, oldDeparture);
+            int affected = ps.executeUpdate();
+            return affected > 0;
+        }
+    }
+
+    private static final String selectAllRunQuery = """
+        SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
+               r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
+        FROM run r
+            LEFT JOIN line l ON r.id_line = l.id_line
+            LEFT JOIN staff s ON r.id_staff = s.id_staff
+            LEFT JOIN station fs ON r.id_first_station = fs.id_station
+            LEFT JOIN station ls ON r.id_last_station = ls.id_station
+    """;
+
+    @Override
+    public List<Run> selectAllRun() throws SQLException {
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectAllRunQuery)) {
+            try (ResultSet rs = pstmt.executeQuery()) {
+                return resultSetToRunList(rs);
+            }
         }
     }
 }

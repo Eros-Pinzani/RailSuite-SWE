@@ -139,7 +139,7 @@ public class CreateRunService {
         }
     }
 
-    public void createRun(LineRaw lineRaw, LocalDate date, String time, Convoy convoy, StaffDTO operator) {
+    public Run createRun(LineRaw lineRaw, LocalDate date, String time, Convoy convoy, StaffDTO operator) {
         try{
             if (travelTime == null) {
                 travelTime = waitForTravelTime(lineRaw);
@@ -156,6 +156,11 @@ public class CreateRunService {
                 arrivalTimestamp,
                 lineRaw.getIdFirstStation(),
                 lineRaw.getIdLastStation()
+            );
+            return runDao.selectRunByLineConvoyAndStaff(
+                lineRaw.getIdLine(),
+                convoy.getId(),
+                operator.getIdStaff()
             );
         }catch (Exception e) {
             throw new RuntimeException("Error while creating run: " + e.getMessage(), e);

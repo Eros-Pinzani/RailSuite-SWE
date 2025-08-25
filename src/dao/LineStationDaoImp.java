@@ -2,7 +2,10 @@ package dao;
 
 import domain.DTO.TimeTableDTO;
 import domain.LineStation;
+
 import java.sql.*;
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +14,8 @@ import java.util.List;
  * Contains SQL queries and logic for accessing line-station relationship data.
  */
 class LineStationDaoImp implements LineStationDao {
-    LineStationDaoImp(){}
+    LineStationDaoImp() {
+    }
 
     @Override
     public LineStation findById(int idLine, int idStation) throws SQLException {
@@ -45,7 +49,7 @@ class LineStationDaoImp implements LineStationDao {
         return stations;
     }
 
-    private static java.time.Duration parsePgInterval(String intervalStr) {
+    private static Duration parsePgInterval(String intervalStr) {
         if (intervalStr == null) return null;
         // Gestisce solo formato HH:mm:ss
         String[] parts = intervalStr.split(":");
@@ -60,42 +64,61 @@ class LineStationDaoImp implements LineStationDao {
         } else if (parts.length == 1) {
             hours = Integer.parseInt(parts[0]);
         }
-        return java.time.Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds);
+        return Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds);
     }
 
     /**
      * Restituisce la tabella orari per una corsa: ogni stazione con orario di arrivo e partenza.
+     *
      * @param idLine id della linea
      * @param idStartStation id della stazione di partenza
      * @param departureTime orario di partenza (formato HH:mm)
      * @return lista di StationArrAndDepDTO
      */
+    private static final String findTimeTableForRunSQL = """
+            SELECT ls.*, s.location
+            FROM line_station ls
+            JOIN station s ON ls.id_station = s.id_station
+            WHERE ls.id_line = ?
+            ORDER BY CASE
+                WHEN ? = (SELECT id_station FROM line_station WHERE id_line = ?
+                          ORDER BY station_order ASC LIMIT 1) THEN ls.station_order
+                          ELSE -ls.station_order
+            END""";
+
     @Override
-    public List<domain.DTO.TimeTableDTO.StationArrAndDepDTO> findTimeTableForRun(int idLine, int idStartStation, String departureTime) throws SQLException {
-        String sql = "SELECT ls.*, s.location FROM line_station ls JOIN station s ON ls.id_station = s.id_station WHERE ls.id_line = ? ORDER BY ls.station_order";
-        List<domain.DTO.TimeTableDTO.StationArrAndDepDTO> result = new ArrayList<>();
+    public List<TimeTableDTO.StationArrAndDepDTO> findTimeTableForRun(
+            int idLine,
+            int idStartStation,
+            String departureTime) throws SQLException {
+        List<TimeTableDTO.StationArrAndDepDTO> result = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             PreparedStatement stmt = conn.prepareStatement(findTimeTableForRunSQL)) {
             stmt.setInt(1, idLine);
+            stmt.setInt(2, idStartStation);
+            stmt.setInt(3, idLine);
             ResultSet rs = stmt.executeQuery();
-            boolean foundStart = false;
-            java.time.LocalTime currentTime = java.time.LocalTime.parse(departureTime);
+
+            LocalTime depPrev = LocalTime.parse(departureTime);
+            LocalTime arrCurr;
+            boolean isFirst = true;
             while (rs.next()) {
                 int idStation = rs.getInt("id_station");
                 String stationName = rs.getString("location");
                 String intervalStr = rs.getString("time_to_next_station");
-                java.time.Duration timeToNext = parsePgInterval(intervalStr);
+                Duration timeToNext = parsePgInterval(intervalStr);
+
                 String arr, dep;
-                if (!foundStart) {
+                if (isFirst) {
                     arr = "------";
-                    dep = currentTime.toString();
-                    foundStart = (idStation == idStartStation);
+                    dep = depPrev.toString();
+                    isFirst = false;
                 } else {
-                    currentTime = currentTime.plusMinutes(1);
-                    arr = currentTime.toString();
-                    if (timeToNext != null) {
-                        dep = currentTime.plus(timeToNext).toString();
-                        currentTime = currentTime.plus(timeToNext);
+                    arrCurr = depPrev.plus(timeToNext != null ? timeToNext : Duration.ZERO);
+                    arr = arrCurr.toString();
+                    if (!rs.isLast()) {
+                        depPrev = arrCurr.plusMinutes(1);
+                        dep = depPrev.toString();
                     } else {
                         dep = "------";
                     }

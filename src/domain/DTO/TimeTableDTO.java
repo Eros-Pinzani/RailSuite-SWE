@@ -19,7 +19,7 @@ public class TimeTableDTO {
         return stationArrAndDepDTOList;
     }
 
-    public class StationArrAndDepDTO {
+    public static class StationArrAndDepDTO {
         private final int idStation;
         private final String stationName;
         private final String arriveTime;

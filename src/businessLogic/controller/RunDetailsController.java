@@ -479,7 +479,7 @@ public class RunDetailsController implements Initializable {
 
             Task<List<Run>> task = new Task<>() {
                 @Override
-                protected List<Run> call() throws Exception {
+                protected List<Run> call() {
                     return runDetailsService.getFutureRunsOfCurrentConvoy(idConvoy, timeDeparture);
                 }
             };

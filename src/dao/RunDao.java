@@ -1,5 +1,6 @@
 package dao;
 
+import domain.DTO.RunDTO;
 import domain.Run;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -57,13 +58,15 @@ public interface RunDao {
 
     /**
      * Removes a run identified by line and convoy.
-     * @param idLine the line id
-     * @param idConvoy the convoy id
-     * @param idStaff the staff id
+     *
+     * @param idLine        the line id
+     * @param idConvoy      the convoy id
+     * @param idStaff       the staff id
+     * @param timeDeparture departure time
      * @return true if the removal was successful, false otherwise
      * @throws SQLException if a database access error occurs
      */
-    boolean removeRun(int idLine, int idConvoy, int idStaff) throws SQLException;
+    boolean deleteRun(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException;
 
     /**
      * Creates a new run with the specified parameters.
@@ -154,4 +157,50 @@ public interface RunDao {
      * @throws SQLException if a database access error occurs
      */
     List<Run> searchRunsByDay(String lineName, String convoyId, String staffNameSurname, String firstStationName, java.sql.Timestamp dayStart, java.sql.Timestamp dayEnd) throws SQLException;
+
+    /**
+     * Returns a RunDTO object containing detailed information about a run.
+     *
+     * @param idLine         the line id
+     * @param idConvoy       the convoy id
+     * @param idStaff        the staff id
+     * @param timeDeparture  the departure time
+     * @return a RunDTO object with run details, or null if not found
+     * @throws SQLException if a database access error occurs
+     */
+    RunDTO selectRunDTODetails(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException;
+
+    /**
+     * Checks if the operator has other runs scheduled after the selected departure time.
+     *
+     * @param idStaff        the staff id
+     * @param timeDeparture  the departure time of the selected run
+     * @return true if there are conflicts, false otherwise
+     * @throws SQLException if a database access error occurs
+     */
+    boolean findRunsByStaffAfterTime(int idStaff, Timestamp timeDeparture) throws SQLException;
+
+    /**
+     * Checks if there are runs for a specific convoy after a given departure time.
+     *
+     * @param idLine         the line id
+     * @param idConvoy       the convoy id
+     * @param idStaff        the staff id
+     * @param timeDeparture  the departure time
+     * @return true if there are runs after the specified time, false otherwise
+     * @throws SQLException if a database access error occurs
+     */
+    boolean findRunsByConvoyAfterTime(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException;
+
+    /**
+     * Selects runs for a convoy that are scheduled to depart after a specified time.
+     *
+     * @param idConvoy       the convoy id
+     * @param timeDeparture  the departure time
+     * @return list of Run objects that match the criteria
+     * @throws SQLException if a database access error occurs
+     */
+    List<Run> selectRunsByConvoyAndTimeForTakeFutureRuns(int idConvoy, Timestamp timeDeparture) throws SQLException;
+
+    boolean replaceFutureRunsConvoy(int idConvoy, int newIdConvoy, RunDTO run)throws SQLException;
 }

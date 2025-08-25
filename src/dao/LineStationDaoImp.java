@@ -1,5 +1,6 @@
 package dao;
 
+import domain.DTO.TimeTableDTO;
 import domain.LineStation;
 import java.sql.*;
 import java.util.ArrayList;
@@ -99,7 +100,7 @@ class LineStationDaoImp implements LineStationDao {
                         dep = "------";
                     }
                 }
-                result.add(new domain.DTO.TimeTableDTO(0, null).new StationArrAndDepDTO(idStation, stationName, arr, dep));
+                result.add(new TimeTableDTO.StationArrAndDepDTO(idStation, stationName, arr, dep));
             }
         }
         return result;

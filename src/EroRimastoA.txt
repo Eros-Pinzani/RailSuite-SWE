@@ -17,3 +17,9 @@ Per chi troverà questo file in futuro. NON è facile, ma è possibile fare tutt
 
 
 Devs_leo ore 23:27 del 10/08 :)
+
+
+Line deve diventare LineRaw
+TimeTableDTO deve andare nel domain non più un DTO con al suo interno oggetti di tipo LineStation con gli orari da implementare.
+
+Devs_leo ore 16:06 del 17/08/2025

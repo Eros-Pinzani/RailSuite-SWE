@@ -1,5 +1,6 @@
 package dao;
 
+import domain.DTO.ConvoyTableDTO;
 import domain.DTO.RunDTO;
 import domain.Run;
 
@@ -146,16 +147,24 @@ public class RunDaoImp implements RunDao {
             FROM run r
             WHERE r.id_line = ? AND r.id_convoy = ? AND r.id_staff = ? AND r.time_departure > ?
             """;
-    private static final String selectRunsByConvoyAndTimeForTakeFutureRunsQuery = """
-            SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
-                   r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
-            FROM run r
-                LEFT JOIN line l ON r.id_line = l.id_line
-                LEFT JOIN staff s ON r.id_staff = s.id_staff
-                LEFT JOIN station fs ON r.id_first_station = fs.id_station
-                LEFT JOIN station ls ON r.id_last_station = ls.id_station
-            WHERE r.id_convoy = ? AND r.time_departure > now()
-            """;
+    private static final String selectConvoyTableDTOQuery = """
+        SELECT c.id_convoy,
+               MIN(car.model) AS model,
+               cp.status,
+               COUNT(car.id_carriage) AS carriage_count,
+               SUM(car.capacity) AS capacity,
+               MIN(car.model_type) AS model_type
+        FROM convoy c
+        LEFT JOIN carriage car ON c.id_convoy = car.id_convoy
+        LEFT JOIN convoy_pool cp ON c.id_convoy = cp.id_convoy
+        WHERE c.id_convoy = ?
+          AND EXISTS (
+              SELECT 1 FROM run r
+              WHERE r.id_convoy = c.id_convoy
+                AND r.time_departure > now()
+          )
+        GROUP BY c.id_convoy, cp.status
+    """;
 
 
     private Run resultSetToRun(ResultSet rs) throws SQLException {
@@ -457,14 +466,24 @@ public class RunDaoImp implements RunDao {
     }
 
     @Override
-    public List<Run> selectRunsByConvoyAndTimeForTakeFutureRuns(int idConvoy, Timestamp timeDeparture) throws SQLException {
+    public List<ConvoyTableDTO> selectRunsByConvoyAndTimeForTakeFutureRuns(int idConvoy, Timestamp timeDeparture) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(selectRunsByConvoyAndTimeForTakeFutureRunsQuery)) {
+             PreparedStatement pstmt = conn.prepareStatement(selectConvoyTableDTOQuery)) {
             pstmt.setInt(1, idConvoy);
-            pstmt.setTimestamp(2, timeDeparture);
+            List<ConvoyTableDTO> convoyTableDTOList = new ArrayList<>();
             try (ResultSet rs = pstmt.executeQuery()) {
-                return resultSetToRunList(rs);
+                while (rs.next()) {
+                    convoyTableDTOList.add(new ConvoyTableDTO(
+                            rs.getInt("id_convoy"),
+                            rs.getString("model"),
+                            rs.getString("status"),
+                            rs.getInt("carriage_count"),
+                            rs.getInt("capacity"),
+                            rs.getString("model_type")
+                    ));
+                }
             }
+            return convoyTableDTOList;
         }
     }
 
@@ -480,8 +499,39 @@ public class RunDaoImp implements RunDao {
             """;
 
     @Override
-    boolean replaceFutureRunsConvoy(int idConvoy, int newIdConvoy, RunDTO run) throws SQLException {
-
+    public boolean replaceFutureRunsConvoy(int idConvoy, int newIdConvoy, RunDTO run) throws SQLException {
+        int affectedRows = 0;
+        try (Connection conn = PostgresConnection.getConnection()) {
+            try (PreparedStatement pstmt = conn.prepareStatement(replaceFutureRunsConvoyQuery)) {
+                pstmt.setInt(1, newIdConvoy);
+                pstmt.setInt(2, idConvoy);
+                affectedRows += pstmt.executeUpdate();
+            }
+            try (PreparedStatement pstmt = conn.prepareStatement(selectConvoyByIdQuery)) {
+                pstmt.setInt(1, newIdConvoy);
+                pstmt.setInt(2, idConvoy);
+                pstmt.setTimestamp(3, run.getTimeDeparture());
+                pstmt.setInt(4, run.getIdLine());
+                pstmt.setInt(5, run.getIdStaff());
+                affectedRows += pstmt.executeUpdate();
+            }
+        }
+        return affectedRows > 0;
     }
 
+    @Override
+    public void updateRunStaff(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture, int idStaff1) throws SQLException {
+        String sql = "UPDATE run SET id_staff = ? WHERE id_line = ? AND id_convoy = ? AND id_staff = ? AND time_departure = ?";
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, idStaff1);
+            pstmt.setInt(2, idLine);
+            pstmt.setInt(3, idConvoy);
+            pstmt.setInt(4, idStaff);
+            pstmt.setTimestamp(5, timeDeparture);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new SQLException("Error updating run staff", e);
+        }
+    }
 }

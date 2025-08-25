@@ -1,15 +1,12 @@
 package businessLogic.service;
 
 
-import dao.ConvoyDao;
-import dao.ConvoyPoolDao;
-import dao.LineStationDao;
-import dao.RunDao;
+import dao.*;
 import domain.Convoy;
 import domain.DTO.ConvoyTableDTO;
 import domain.DTO.RunDTO;
 import domain.DTO.TimeTableDTO;
-import domain.Run;
+import domain.Staff;
 
 
 import java.sql.Timestamp;
@@ -23,6 +20,7 @@ public class RunDetailsService {
     private final ConvoyDao convoyDao = ConvoyDao.of();
     private Convoy convoy;
     private final ConvoyPoolDao convoyPoolDao = ConvoyPoolDao.of();
+    private final StaffDao staffDao = StaffDao.of();
 
     public RunDetailsService () {}
 
@@ -43,7 +41,8 @@ public class RunDetailsService {
     public TimeTableDTO selectTimeTable(int idLine, int idFirstStation, String departureTime) {
         try {
             List<TimeTableDTO.StationArrAndDepDTO> stationArrAndDepDTOList = lineStationDao.findTimeTableForRun(idLine, idFirstStation, departureTime);
-            return new TimeTableDTO(idLine, stationArrAndDepDTOList);
+            this.timeTable = new TimeTableDTO(idLine, stationArrAndDepDTOList);
+            return this.timeTable;
         } catch (Exception e) {
             throw new RuntimeException("Error selecting timetable", e);
         }
@@ -121,7 +120,7 @@ public class RunDetailsService {
         }
     }
 
-    public List<Run> getFutureRunsOfCurrentConvoy(int idConvoy, Timestamp timeDeparture) {
+    public List<ConvoyTableDTO> getFutureRunsOfCurrentConvoy(int idConvoy, Timestamp timeDeparture) {
         try {
             return runDao.selectRunsByConvoyAndTimeForTakeFutureRuns(idConvoy, timeDeparture);
         } catch (Exception e) {
@@ -141,5 +140,21 @@ public class RunDetailsService {
             throw new RuntimeException("Error replacing future runs convoy", e);
         }
     }
-}
 
+    public List<Staff> checkAvailabilityOfOperator() {
+        int firstStation = timeTable.getStationArrAndDepDTOList().getFirst().getIdStation();
+        try {
+            return staffDao.checkOperatorAvailability(firstStation, run.getTimeDeparture() );
+        } catch (Exception e) {
+            throw new RuntimeException("Error checking operator availability", e);
+        }
+    }
+
+    public void changeOperator(Staff selectedStaff) {
+        try {
+            runDao.updateRunStaff(run.getIdLine(), run.getIdConvoy(), run.getIdStaff(), run.getTimeDeparture(), selectedStaff.getIdStaff());
+        } catch (Exception e) {
+            throw new RuntimeException("Error changing operator", e);
+        }
+    }
+}

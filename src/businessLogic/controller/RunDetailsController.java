@@ -455,12 +455,6 @@ public class RunDetailsController implements Initializable {
     @FXML
     private void convoyChange() {
         try {
-            Convoy convoy = runDetailsService.selectConvoy(idConvoy);
-            /*
-             * TODO finire di imlmentare questo metodo. Devo garantirmi che il convoglio non abbia già corse future ad esso assegnate.
-             *  se si allora devo fare il processo di cambio in cascata.
-             * TODO implmentare la scena fxml per il cambio del convoglio.
-             */
             List<ConvoyTableDTO> convoysAvailable = runDetailsService.checkAvailabilityOfConvoy();
             if (convoysAvailable.isEmpty()) {
                 Alert alert = new Alert(AlertType.INFORMATION, "Nessun convoglio disponibile per il cambio.");
@@ -472,22 +466,21 @@ public class RunDetailsController implements Initializable {
                 return;
             }
 
-            ObservableList<ConvoyTableDTO> convoysObservable = FXCollections.observableArrayList(convoysAvailable);
+            ObservableList<ConvoyTableDTO> convoysObservable = FXCollections.observableArrayList(runDetailsService.getFutureRunsOfCurrentConvoy(idConvoy, timeDeparture));
             businessLogic.controller.PopupManager.showChangeConvoyPopup(
-                convoysObservable,
-                "Cambia convoglio",
-                "Cambia convoglio associato alla corsa e alle corse future ad esso assiciato",
-                selectedConvoy -> {
-                    if (selectedConvoy != null && selectedConvoy.getIdConvoy() != idConvoy) {
-                        int newIdConvoy = selectedConvoy.getIdConvoy();
-                        runDetailsService.replaceFutureRunsConvoy(idConvoy, newIdConvoy);
+                    convoysObservable,
+                    "Cambia convoglio",
+                    "Cambia convoglio associato alla corsa e alle corse future ad esso assiciato",
+                    selectedConvoy -> {
+                        if (selectedConvoy != null && selectedConvoy.getIdConvoy() != idConvoy) {
+                            int newIdConvoy = selectedConvoy.getIdConvoy();
+                            runDetailsService.replaceFutureRunsConvoy(idConvoy, newIdConvoy);
+                        }
+                        return null;
                     }
-                    return null;
-                }
             );
 
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             logger.severe("Error loading convoy edit: " + e.getMessage());
             Alert alert = new Alert(AlertType.ERROR, "Errore durante il caricamento della modifica del convoglio.");
             alert.showAndWait();
@@ -498,7 +491,50 @@ public class RunDetailsController implements Initializable {
 
     @FXML
     private void operatorChange() {
-        // TODO: Implementare cambio operatore
+        try {
+            List<Staff> operatorsAvailable = runDetailsService.checkAvailabilityOfOperator();
+            if (operatorsAvailable.isEmpty()) {
+                Alert alert = new Alert(AlertType.INFORMATION, "Nessun operatore disponibile per il cambio.");
+                alert.showAndWait();
+                operatorChange.setDisable(true);
+                operatorChangeEditButtonReason.setText("Non è possibile cambiare operatore: nessun operatore disponibile.");
+                return;
+            }
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/businessLogic/fxml/StaffSelectionPopup.fxml"));
+            Parent root = loader.load();
+            StaffSelectionPopupController popupController = loader.getController();
+            ObservableList<Staff> operatorsObservable = FXCollections.observableArrayList(operatorsAvailable);
+            popupController.setStaffList(operatorsObservable);
+            popupController.setConfirmCallback(selectedStaff -> {
+                if (selectedStaff != null) {
+                    try {
+                        runDetailsService.changeOperator(selectedStaff);
+                        staffName.setText(selectedStaff.getName());
+                        staffSurname.setText(selectedStaff.getSurname());
+                        staffEmail.setText(selectedStaff.getEmail());
+                        staffNameSurname.setText(selectedStaff.getName() + " " + selectedStaff.getSurname());
+                        idStaff = selectedStaff.getIdStaff();
+                    } catch (Exception e) {
+                        logger.severe("Error changing operator: " + e.getMessage());
+                        Alert alert = new Alert(AlertType.ERROR, "Errore durante il cambio dell'operatore.");
+                        alert.showAndWait();
+                        operatorChangeEditButtonReason.setText("Errore durante la modifica dell'operatore.");
+                    }
+                }
+                ((Stage) root.getScene().getWindow()).close();
+                return null;
+            });
+            Stage stage = new Stage();
+            stage.setTitle("Seleziona operatore disponibile");
+            stage.setScene(new Scene(root));
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.showAndWait();
+        } catch (Exception e) {
+            logger.severe("Error loading staff edit: " + e.getMessage());
+            Alert alert = new Alert(AlertType.ERROR, "Errore durante il caricamento della modifica dell'operatore.");
+            alert.showAndWait();
+            operatorChangeEditButtonReason.setText("Errore durante la modifica dell'operatore.");
+        }
     }
 
     @FXML

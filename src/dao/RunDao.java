@@ -1,5 +1,6 @@
 package dao;
 
+import domain.DTO.ConvoyTableDTO;
 import domain.DTO.RunDTO;
 import domain.Run;
 import java.sql.SQLException;
@@ -200,7 +201,9 @@ public interface RunDao {
      * @return list of Run objects that match the criteria
      * @throws SQLException if a database access error occurs
      */
-    List<Run> selectRunsByConvoyAndTimeForTakeFutureRuns(int idConvoy, Timestamp timeDeparture) throws SQLException;
+    List<ConvoyTableDTO> selectRunsByConvoyAndTimeForTakeFutureRuns(int idConvoy, Timestamp timeDeparture) throws SQLException;
 
     boolean replaceFutureRunsConvoy(int idConvoy, int newIdConvoy, RunDTO run)throws SQLException;
+
+    void updateRunStaff(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture, int idStaff1) throws SQLException;
 }

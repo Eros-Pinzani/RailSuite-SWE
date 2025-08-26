@@ -31,7 +31,7 @@
             </MenuButton>
         </HBox>
         <!--Main-->
-        <VBox spacing="16.0">
+        <VBox spacing="16.0" VBox.vgrow="ALWAYS">
             <children>
                 <HBox alignment="TOP_CENTER" spacing="32.0">
                     <children>
@@ -40,7 +40,7 @@
                         <Button fx:id="timeTableDetailSectionToggle" mnemonicParsing="false" onAction="#timeTableDetailSectionToggle" text="Stazioni e orari" />
                     </children>
                 </HBox>
-                <VBox prefHeight="200.0" prefWidth="100.0" spacing="16.0">
+                <VBox spacing="16.0" VBox.vgrow="ALWAYS">
                     <children>
                         <VBox fx:id="generalDetailSection" spacing="16.0">
                             <children>
@@ -260,7 +260,7 @@
                                 </HBox>
                             </children>
                         </VBox>
-                        <VBox fx:id="timeTableDetailSection" spacing="16.0" visible="false">
+                        <VBox fx:id="timeTableDetailSection" spacing="16.0" visible="false" VBox.vgrow="ALWAYS">
                             <children>
                                 <Label text="Dettagli orario">
                                     <font>
@@ -291,7 +291,7 @@
                                         </HBox>
                                     </children>
                                 </HBox>
-                                <TableView fx:id="timeTableView" VBox.vgrow="ALWAYS" prefHeight="200.0" prefWidth="200.0">
+                                <TableView fx:id="timeTableView" VBox.vgrow="ALWAYS" minHeight="100.0" prefHeight="-1" prefWidth="200.0">
                                     <columns>
                                         <TableColumn fx:id="stationColumn" prefWidth="300.0" text="Stazione" />
                                         <TableColumn fx:id="arriveColumn" prefWidth="100.0" text="Arrivo" />
@@ -301,12 +301,6 @@
                                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                                     </columnResizePolicy>
                                 </TableView>
-                                <HBox prefHeight="100.0" prefWidth="200.0" spacing="16.0">
-                                    <children>
-                                        <Label fx:id="timeTableChangeEditButtonReason" maxWidth="470.0" />
-                                        <Button fx:id="runTimeEdit" mnemonicParsing="false" onAction="#runTimeEdit" text="Modifica l'orario di partenza" />
-                                    </children>
-                                </HBox>
                             </children>
                         </VBox>
                     </children>

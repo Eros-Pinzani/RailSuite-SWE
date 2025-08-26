@@ -259,7 +259,7 @@ class StaffDaoImp implements StaffDao {
                                      END
                           FROM run r4
                           WHERE r4.id_staff = s.id_staff
-g                            AND DATE(r4.time_departure) = DATE '%3$s' + INTERVAL '1 day'
+                            AND DATE(r4.time_departure) = DATE '%3$s' + INTERVAL '1 day'
                       ) >= 14
                 ORDER BY s.id_staff;""",
                 timestampString, idStaff, dateString, idLine);

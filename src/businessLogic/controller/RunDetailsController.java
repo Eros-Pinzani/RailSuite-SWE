@@ -99,10 +99,6 @@ public class RunDetailsController implements Initializable {
     @FXML
     private Label lineName;
     @FXML
-    private Label timeTableChangeEditButtonReason;
-    @FXML
-    private Button runTimeEdit;
-    @FXML
     private TableView<TimeTableDTO.StationArrAndDepDTO> timeTableView;
     @FXML
     private TableColumn<TimeTableDTO.StationArrAndDepDTO, String> stationColumn;
@@ -182,7 +178,6 @@ public class RunDetailsController implements Initializable {
             eliminationConfirm.setDisable(!isEditable);
             convoyEdit.setDisable(!isEditable);
             operatorChange.setDisable(!isEditable);
-            runTimeEdit.setDisable(!isEditable);
             if (!isEditable) {
                 eliminationButtonMention.setText("Non puoi eliminare la corsa: il tempo limite per la modifica è scaduto (sono richiesti almeno 15 minuti di anticipo rispetto alla partenza).");
             } else {
@@ -194,7 +189,6 @@ public class RunDetailsController implements Initializable {
             eliminationConfirm.setDisable(true);
             convoyEdit.setDisable(true);
             operatorChange.setDisable(true);
-            runTimeEdit.setDisable(true);
             eliminationButtonMention.setText("Nessuna corsa selezionata.");
             return;
         }
@@ -224,9 +218,6 @@ public class RunDetailsController implements Initializable {
                 }
             });
         }
-        stationColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getStationName()));
-        arriveColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getArriveTime()));
-        departureColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDepartureTime()));
         hideSections();
     }
 
@@ -265,6 +256,10 @@ public class RunDetailsController implements Initializable {
             }
         };
         task.setOnSucceeded(e -> {
+            stationColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getStationName()));
+            arriveColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getArriveTime()));
+            departureColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDepartureTime()));
+
             TimeTableDTO timeTable = task.getValue();
             if (timeTable != null) {
                 timeTableView.getItems().clear();
@@ -470,7 +465,6 @@ public class RunDetailsController implements Initializable {
                         idStaff = selectedStaff.getIdStaff();
                     } catch (Exception e) {
                         logger.severe("Error changing operator: " + e.getMessage());
-                        e.printStackTrace();
                         Alert alert = new Alert(AlertType.ERROR, "Errore durante il cambio dell'operatore.");
                         alert.showAndWait();
                         operatorChangeEditButtonReason.setText("Errore durante la modifica dell'operatore.");
@@ -489,89 +483,6 @@ public class RunDetailsController implements Initializable {
             Alert alert = new Alert(AlertType.ERROR, "Errore durante il caricamento della modifica dell'operatore.");
             alert.showAndWait();
             operatorChangeEditButtonReason.setText("Errore durante la modifica dell'operatore.");
-        }
-    }
-
-    @FXML
-    private void runTimeEdit() {
-        // TODO pupup di sucesso più piccolo
-        // TODO fix tabella piccoola
-        // TODO quandoa aggiornato richiama il db diretto e aggiorna
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime minAllowed = now.plusMinutes(15);
-        LocalDateTime maxAllowed = now.plusDays(1).withHour(23).withMinute(59);
-        boolean isEditable = now.isBefore(timeDeparture.toLocalDateTime().minusMinutes(15));
-        if (!isEditable) {
-            PopupManager.openPopup("Modifica orario", "Non puoi modificare l'orario di partenza: il tempo limite per la modifica è scaduto (sono richiesti almeno 15 minuti di anticipo rispetto alla partenza).", null, null, null);
-            runTimeEdit.setDisable(true);
-            return;
-        }
-        try {
-            DatePicker datePicker = new DatePicker(minAllowed.toLocalDate());
-            datePicker.setDayCellFactory(dp -> new DateCell() {
-                @Override
-                public void updateItem(java.time.LocalDate item, boolean empty) {
-                    super.updateItem(item, empty);
-                    setDisable(empty || item.isBefore(minAllowed.toLocalDate()) || item.isAfter(maxAllowed.toLocalDate()));
-                }
-            });
-            Spinner<Integer> hourSpinner = new Spinner<>(0, 23, minAllowed.getHour());
-            Spinner<Integer> minuteSpinner = new Spinner<>(0, 59, minAllowed.getMinute());
-            Button confirmBtn = new Button("Conferma");
-            Button cancelBtn = new Button("Annulla");
-            Label errorLabel = new Label("");
-            errorLabel.setStyle("-fx-text-fill: red;");
-            VBox vbox = new VBox(10,
-                new Label("Giorno:"), datePicker,
-                new Label("Ora:"), hourSpinner,
-                new Label("Minuti:"), minuteSpinner,
-                errorLabel,
-                new HBox(10, confirmBtn, cancelBtn)
-            );
-            vbox.setStyle("-fx-padding: 20;");
-
-            Stage popupStage = new Stage();
-            popupStage.setTitle("Modifica orario di partenza");
-            popupStage.setScene(new Scene(vbox));
-            popupStage.initModality(Modality.APPLICATION_MODAL);
-            popupStage.setResizable(false);
-            popupStage.centerOnScreen();
-
-            confirmBtn.setOnAction(ev -> {
-                java.time.LocalDate date = datePicker.getValue();
-                int hour = hourSpinner.getValue();
-                int minute = minuteSpinner.getValue();
-                java.time.LocalDateTime selectedDateTime = date.atTime(hour, minute);
-                if (selectedDateTime.isBefore(minAllowed) || selectedDateTime.isAfter(maxAllowed)) {
-                    errorLabel.setText("Orario non valido. Deve essere almeno tra 15 minuti e domani alle 23:59.");
-                    return;
-                }
-                Timestamp newDeparture = Timestamp.valueOf(selectedDateTime);
-                boolean valid = runDetailsService.isDepartureTimeValid(idStaff, idConvoy, newDeparture);
-                if (valid) {
-                    boolean success = runDetailsService.updateRunDepartureTime(idLine, idConvoy, idStaff, timeDeparture, newDeparture);
-                    if (success) {
-                        startAtDateTime.setText(newDeparture.toLocalDateTime().toString());
-                        timeDeparture = newDeparture;
-                        popupStage.close();
-                        PopupManager.openPopup("Successo", "Orario di partenza aggiornato correttamente.", null, null, null);
-                    } else {
-                        errorLabel.setText("Errore nell'aggiornamento dell'orario di partenza.");
-                        logger.warning("Errore nell'aggiornamento dell'orario di partenza.");
-                    }
-                } else {
-                    errorLabel.setText("Orario non valido per lo staff o il convoglio. Rispetta i vincoli di turno, pausa e disponibilità convoglio.");
-                    logger.warning("Orario non valido per staff o convoglio. Vincoli non rispettati.");
-                }
-            });
-            cancelBtn.setOnAction(ev -> {
-                popupStage.close();
-            });
-            popupStage.showAndWait();
-        } catch (Exception ex) {
-            logger.severe("Errore durante la modifica dell'orario di partenza: " + ex.getMessage());
-            PopupManager.openPopup("Errore", "Errore durante la modifica dell'orario di partenza.", null, null, null);
         }
     }
 

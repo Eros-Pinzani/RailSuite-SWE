@@ -91,7 +91,7 @@ class LineStationDaoImp implements LineStationDao {
             int idLine,
             int idStartStation,
             String departureTime) throws SQLException {
-        List<TimeTableDTO.StationArrAndDepDTO> result = new ArrayList<>();
+
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(findTimeTableForRunSQL)) {
             stmt.setInt(1, idLine);
@@ -100,14 +100,27 @@ class LineStationDaoImp implements LineStationDao {
             ResultSet rs = stmt.executeQuery();
 
             LocalTime depPrev = LocalTime.parse(departureTime);
-            LocalTime arrCurr;
-            boolean isFirst = true;
+            if (rs.next()) {// va bene se contrario.
+                if (rs.getInt("id_station") == 1) {
+                    // Caricamento ordinato
+                    return correctOrderInsert(rs, depPrev);
+                } else {
+                    return invertedOrderInsert(rs, depPrev);
+                }
+            }
+        }
+        return null;
+    }
+
+    private List<TimeTableDTO.StationArrAndDepDTO> correctOrderInsert(ResultSet rs, LocalTime depPrev) throws SQLException {
+        LocalTime arrCurr;
+        boolean isFirst = true;
+        String intervalStr;
+        Duration timeToNext = null;
+        List<TimeTableDTO.StationArrAndDepDTO> result = new ArrayList<>();
             while (rs.next()) {
                 int idStation = rs.getInt("id_station");
                 String stationName = rs.getString("location");
-                String intervalStr = rs.getString("time_to_next_station");
-                Duration timeToNext = parsePgInterval(intervalStr);
-
                 String arr, dep;
                 if (isFirst) {
                     arr = "------";
@@ -123,8 +136,43 @@ class LineStationDaoImp implements LineStationDao {
                         dep = "------";
                     }
                 }
+
+                intervalStr = rs.getString("time_to_next_station");
+                timeToNext = parsePgInterval(intervalStr);
+                System.out.println(intervalStr);
+                System.out.println(timeToNext);
+                System.out.println(depPrev.plus(timeToNext != null ? timeToNext : Duration.ZERO));
                 result.add(new TimeTableDTO.StationArrAndDepDTO(idStation, stationName, arr, dep));
+        }
+        return result;
+    }
+
+    private List<TimeTableDTO.StationArrAndDepDTO> invertedOrderInsert(ResultSet rs, LocalTime depPrev) throws SQLException {
+        LocalTime arrCurr;
+        boolean isFirst = true;
+        List<TimeTableDTO.StationArrAndDepDTO> result = new ArrayList<>();
+        while (rs.next()) {
+            int idStation = rs.getInt("id_station");
+            String stationName = rs.getString("location");
+            String intervalStr = rs.getString("time_to_next_station");
+            Duration timeToNext = parsePgInterval(intervalStr);
+
+            String arr, dep;
+            if (isFirst) {
+                arr = "------";
+                dep = depPrev.toString();
+                isFirst = false;
+            } else {
+                arrCurr = depPrev.plus(timeToNext != null ? timeToNext : Duration.ZERO);
+                arr = arrCurr.toString();
+                if (!rs.isLast()) {
+                    depPrev = arrCurr.plusMinutes(1);
+                    dep = depPrev.toString();
+                } else {
+                    dep = "------";
+                }
             }
+            result.add(new TimeTableDTO.StationArrAndDepDTO(idStation, stationName, arr, dep));
         }
         return result;
     }

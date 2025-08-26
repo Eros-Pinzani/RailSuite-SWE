@@ -23,3 +23,6 @@ Line deve diventare LineRaw
 TimeTableDTO deve andare nel domain non più un DTO con al suo interno oggetti di tipo LineStation con gli orari da implementare.
 
 Devs_leo ore 16:06 del 17/08/2025
+
+
+Controllare ogni volta che venga creato o modificata una run che il DB si aggiorni.

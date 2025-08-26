@@ -146,11 +146,9 @@ public class RunDetailsService {
     }
 
     public List<Staff> checkAvailabilityOfOperator() {
-        int firstStation = timeTable.getStationArrAndDepDTOList().getFirst().getIdStation();
         try {
-            return staffDao.checkOperatorAvailability(firstStation, run.getTimeDeparture());
+            return staffDao.checkOperatorAvailability(run.getIdStaff(), run.getIdLine(), run.getTimeDeparture());
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException("Error checking operator availability", e);
         }
     }

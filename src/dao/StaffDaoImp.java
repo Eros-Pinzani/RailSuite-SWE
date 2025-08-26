@@ -103,63 +103,185 @@ class StaffDaoImp implements StaffDao {
         return staffList;
     }
 
-    @Override
-    public List<Staff> checkOperatorAvailability(int firstStation, Timestamp timeDeparture) throws SQLException {
-        // Aggiorna lo stato degli operatori disponibili
-        String updateSql = """
-        UPDATE staff_pool sp
-        SET status = 'AVAILABLE'
-        WHERE sp.id_station = ?
-          AND sp.shift_start <= ? AND sp.shift_end >= ?
-          AND NOT EXISTS (
-            SELECT 1
-            FROM run r
-            WHERE r.id_staff = sp.id_staff
-              AND r.time_departure <= ? AND r.time_arrival > ?
-          )
-          AND (
-            SELECT COALESCE(MAX(r2.time_arrival), NULL)
-            FROM run r2
-            WHERE r2.id_staff = sp.id_staff
-              AND r2.id_last_station = ?
-              AND r2.time_arrival <= ?
-          ) IS NULL
-          OR (
-            SELECT EXTRACT(EPOCH FROM (? - MAX(r2.time_arrival))) / 60
-            FROM run r2
-            WHERE r2.id_staff = sp.id_staff
-              AND r2.id_last_station = ?
-              AND r2.time_arrival <= ?
-          ) >= 15
-    """;
+    private void updateForCheckOperatorAvailability(int idStaff, int idLine, Timestamp timeDeparture) throws SQLException {
+        String dateString = timeDeparture.toLocalDateTime().toLocalDate().toString();
+        String timestampString = timeDeparture.toString();
+        String noConstraintsSql = String.format("""
+                CREATE OR REPLACE VIEW staff_no_run_no_shift AS
+                SELECT s.*
+                FROM staff s
+                         JOIN staff_pool sp ON s.id_staff = sp.id_staff
+                    AND sp.shift_end <= '%s'
+                WHERE s.type_of_staff = 'OPERATOR'
+                  AND s.id_staff <> %d
+                ORDER BY s.id_staff;
+                """, timestampString, idStaff);
         try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(updateSql)) {
-            stmt.setInt(1, firstStation);
-            stmt.setTimestamp(2, timeDeparture);
-            stmt.setTimestamp(3, timeDeparture);
-            stmt.setTimestamp(4, timeDeparture);
-            stmt.setTimestamp(5, timeDeparture);
-            stmt.setInt(6, firstStation);
-            stmt.setTimestamp(7, timeDeparture);
-            stmt.setTimestamp(8, timeDeparture);
-            stmt.setInt(9, firstStation);
-            stmt.setTimestamp(10, timeDeparture);
-            stmt.executeUpdate();
+                Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(noConstraintsSql);
         }
+        // Costruisco la query staff_with_run_constraints come stringa, inserendo tutti i valori direttamente
+        String constrintsSql = String.format("""
+                CREATE OR REPLACE VIEW staff_with_run_constraints AS
+                SELECT s.*
+                FROM staff s
+                         LEFT JOIN staff_pool sp ON s.id_staff = sp.id_staff
+                    AND sp.shift_start <= '%1$s'
+                    AND sp.shift_end >= '%1$s'
+                WHERE s.type_of_staff = 'OPERATOR'
+                  AND s.id_staff <> %2$d
+                  AND EXISTS (
+                    SELECT 1
+                    FROM run r2
+                    WHERE r2.id_staff = s.id_staff
+                      AND r2.time_arrival <= '%1$s'
+                      AND DATE(r2.time_arrival) = '%3$s'
+                )
+                  AND (
+                    COALESCE(
+                            (
+                                SELECT r2.id_last_station
+                                FROM run r2
+                                WHERE r2.id_staff = s.id_staff
+                                  AND r2.time_arrival <= '%1$s'
+                                  AND DATE(r2.time_arrival) = '%3$s'
+                                ORDER BY r2.time_arrival DESC
+                                LIMIT 1
+                            ),
+                            sp.id_station
+                    ) = (
+                        SELECT r.id_first_station
+                        FROM run r
+                        WHERE r.id_staff = %2$d
+                          AND r.id_line = %4$d
+                          AND r.time_departure = '%1$s'
+                        LIMIT 1
+                    )
+                    )
+                  AND NOT EXISTS (
+                    SELECT 1
+                    FROM run r
+                    WHERE r.id_staff = s.id_staff
+                      AND (r.time_departure, r.time_arrival) OVERLAPS (
+                                                                       '%1$s',
+                                                                       (
+                                                                           SELECT r_target.time_arrival
+                                                                           FROM run r_target
+                                                                           WHERE r_target.id_staff = %2$d
+                                                                             AND r_target.id_line = %4$d
+                                                                             AND r_target.time_departure = '%1$s'
+                                                                           LIMIT 1
+                                                                       )
+                        )
+                )
+                  AND (
+                          SELECT EXTRACT(EPOCH FROM ('%1$s' - COALESCE(MAX(r2.time_arrival), '%1$s'))) / 60
+                          FROM run r2
+                          WHERE r2.id_staff = s.id_staff
+                            AND r2.time_arrival <= '%1$s'
+                            AND DATE(r2.time_arrival) = '%3$s'
+                      ) >= 15
+                  AND (
+                          SELECT EXTRACT(EPOCH FROM (
+                              LEAST(
+                                      COALESCE(MAX(r3.time_arrival),
+                                               (
+                                                   SELECT r_target.time_arrival
+                                                   FROM run r_target
+                                                   WHERE r_target.id_staff = %2$d
+                                                     AND r_target.id_line = %4$d
+                                                     AND r_target.time_departure = '%1$s'
+                                                   LIMIT 1
+                                               )
+                                      ),
+                                      (
+                                          SELECT r_target.time_arrival
+                                          FROM run r_target
+                                          WHERE r_target.id_staff = %2$d
+                                            AND r_target.id_line = %4$d
+                                            AND r_target.time_departure = '%1$s'
+                                          LIMIT 1
+                                      )
+                              )
+                                  - GREATEST(
+                                      COALESCE(MIN(r3.time_departure), '%1$s'),
+                                      '%1$s'
+                                    )
+                              )) / 3600
+                          FROM (
+                                   SELECT r3.time_departure, r3.time_arrival
+                                   FROM run r3
+                                   WHERE r3.id_staff = s.id_staff
+                                     AND DATE(r3.time_departure) = '%3$s'
+                                   UNION ALL
+                                   SELECT
+                                       '%1$s' AS time_departure,
+                                       (
+                                           SELECT r_target.time_arrival
+                                           FROM run r_target
+                                           WHERE r_target.id_staff = %2$d
+                                             AND r_target.id_line = %4$d
+                                             AND r_target.time_departure = '%1$s'
+                                           LIMIT 1
+                                       ) AS time_arrival
+                               ) r3
+                      ) <= 10
+                  AND (
+                          SELECT CASE
+                                     WHEN MIN(r4.time_departure) IS NULL THEN 99999
+                                     ELSE EXTRACT(EPOCH FROM (
+                                         MIN(r4.time_departure) - GREATEST(
+                                                 (
+                                                     SELECT COALESCE(MAX(r5.time_arrival),
+                                                                     (
+                                                                         SELECT r_target.time_arrival
+                                                                         FROM run r_target
+                                                                         WHERE r_target.id_staff = %2$d
+                                                                           AND r_target.id_line = %4$d
+                                                                           AND r_target.time_departure = '%1$s'
+                                                                         LIMIT 1
+                                                                     )
+                                                            )
+                                                     FROM run r5
+                                                     WHERE r5.id_staff = s.id_staff
+                                                       AND DATE(r5.time_arrival) = '%3$s'
+                                                 ),
+                                                 (
+                                                     SELECT r_target.time_arrival
+                                                     FROM run r_target
+                                                     WHERE r_target.id_staff = %2$d
+                                                       AND r_target.id_line = %4$d
+                                                       AND r_target.time_departure = '%1$s'
+                                                     LIMIT 1
+                                                 )
+                                                                  )
+                                         )) / 3600
+                                     END
+                          FROM run r4
+                          WHERE r4.id_staff = s.id_staff
+g                            AND DATE(r4.time_departure) = DATE '%3$s' + INTERVAL '1 day'
+                      ) >= 14
+                ORDER BY s.id_staff;""",
+                timestampString, idStaff, dateString, idLine);
+        try (Connection conn = PostgresConnection.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(constrintsSql);
+        }
+    }
 
-        // Seleziona gli operatori disponibili
-        String selectSql = """
-        SELECT s.*
-        FROM staff s
-        JOIN staff_pool sp ON s.id_staff = sp.id_staff
-        WHERE s.type_of_staff = 'OPERATOR'
-          AND sp.id_station = ?
-          AND sp.status = 'AVAILABLE'
-        """;
+    @Override
+    public List<Staff> checkOperatorAvailability(int idStaff, int idLine, Timestamp timeDeparture) throws SQLException {
+        updateForCheckOperatorAvailability(idStaff, idLine, timeDeparture);
+        String sql = """
+                SELECT * FROM staff_with_run_constraints
+                UNION ALL
+                SELECT * FROM staff_no_run_no_shift
+                ORDER BY id_staff;
+                """;
+
         List<Staff> availableStaff = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(selectSql)) {
-            stmt.setInt(1, firstStation);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 availableStaff.add(mapResultSetToStaff(rs));
@@ -169,57 +291,4 @@ class StaffDaoImp implements StaffDao {
         }
         return availableStaff;
     }
-
-    /* TODO: IMPLEMENTA PER BENE LA QUERY
-    private static final String CHECK_OPERATOR_AVAILABILITY_SQL = """
-                SELECT s.*
-            FROM staff s
-            JOIN staff_pool sp ON s.id_staff = sp.id_staff
-            WHERE s.type_of_staff = 'OPERATOR'
-              AND sp.id_station = ?
-              AND sp.shift_start <= ? AND sp.shift_end >= ?
-              AND sp.status = 'AVAILABLE'
-              AND NOT EXISTS (
-                SELECT 1
-                FROM run r
-                WHERE r.id_staff = s.id_staff
-                  AND (
-                    (r.time_departure <= ? AND r.time_arrival > ?)
-                    OR (ABS(EXTRACT(EPOCH FROM (r.time_departure - ?)) / 60) < 15)
-                    OR (ABS(EXTRACT(EPOCH FROM (? - r.time_arrival)) / 60) < 15)
-                  )
-              )
-              AND (
-                SELECT COALESCE(SUM(EXTRACT(EPOCH FROM (r2.time_arrival - r2.time_departure)) / 3600), 0)
-                FROM run r2
-                WHERE r2.id_staff = s.id_staff
-                  AND DATE(r2.time_departure) = DATE(?)
-              ) <= 10""";
-    @Override
-    public List<Staff> checkOperatorAvailability( int firstStation, Timestamp timeDeparture) throws SQLException {
-        List<Staff> availableStaff = new ArrayList<>();
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(CHECK_OPERATOR_AVAILABILITY_SQL)) {
-            stmt.setInt(1, firstStation);
-            stmt.setTimestamp(2, timeDeparture);
-            stmt.setTimestamp(3, timeDeparture);
-            stmt.setTimestamp(4, timeDeparture);
-            stmt.setTimestamp(5, timeDeparture);
-            stmt.setTimestamp(6, timeDeparture);
-            stmt.setTimestamp(7, timeDeparture);
-            stmt.setTimestamp(8, timeDeparture);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                availableStaff.add(mapResultSetToStaff(rs));
-            }
-            System.out.println(stmt);
-            System.out.println(firstStation);
-            System.out.println(timeDeparture);
-        } catch (SQLException e) {
-            throw new SQLException("Errore nel controllo disponibilità operatori", e);
-        }
-
-
-        return availableStaff;
-    }*/
 }

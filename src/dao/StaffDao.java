@@ -1,6 +1,7 @@
 package dao;
 
 import domain.Staff;
+
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
@@ -45,5 +46,5 @@ public interface StaffDao {
      */
     List<Staff> findByType(Staff.TypeOfStaff type) throws SQLException;
 
-    List<Staff> checkOperatorAvailability(int firstStation, Timestamp timeDeparture) throws SQLException;
+    List<Staff> checkOperatorAvailability(int idStaff, int idLine, Timestamp timeDeparture) throws SQLException;
 }

@@ -10,11 +10,6 @@ import java.util.List;
  * Defines methods for queries and updates on staff pool records.
  */
 public interface StaffPoolDao {
-    enum ShiftStatus {
-        AVAILABLE,
-        ON_RUN,
-        RELAX
-    }
 
     static StaffPoolDao of() {
         return new StaffPoolDaoImp();

@@ -113,14 +113,6 @@ public class RailSuiteFacade {
     }
 
     /**
-     * Adds a carriage to a convoy.
-     * Used to assign a carriage to a convoy.
-     */
-    public boolean addCarriageToConvoy(int convoyId, Carriage carriage) throws SQLException {
-        return convoyDao.addCarriageToConvoy(convoyId, carriage);
-    }
-
-    /**
      * Removes a carriage from a convoy.
      * Used to unassign a carriage from a convoy.
      */

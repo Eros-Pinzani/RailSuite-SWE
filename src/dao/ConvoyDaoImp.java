@@ -142,21 +142,6 @@ class ConvoyDaoImp implements ConvoyDao {
     }
 
     @Override
-    public boolean addCarriageToConvoy(int convoyId, Carriage carriage) throws SQLException {
-        try (
-                java.sql.Connection conn = PostgresConnection.getConnection();
-                java.sql.PreparedStatement pstmt = conn.prepareStatement(updateCarriageConvoyQuery)
-        ) {
-            pstmt.setInt(1, convoyId);
-            pstmt.setInt(2, carriage.getId());
-            int affectedRows = pstmt.executeUpdate();
-            return affectedRows > 0;
-        } catch (SQLException e) {
-            throw new SQLException("Error adding carriage " + carriage.getId() + " to convoy " + convoyId, e);
-        }
-    }
-
-    @Override
     public boolean removeCarriageFromConvoy(int convoyId, Carriage carriage) throws SQLException {
         try (
                 java.sql.Connection conn = PostgresConnection.getConnection();

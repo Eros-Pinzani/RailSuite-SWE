@@ -44,19 +44,6 @@ public interface ConvoyDao {
     boolean removeConvoy(int id) throws SQLException;
 
     /**
-     * Adds a carriage to a convoy.
-     * @param convoyId the id of the convoy
-     * @param carriage the carriage to add
-     * @return true if added, false otherwise
-     * @throws SQLException if a database access error occurs
-     */
-    boolean addCarriageToConvoy(int convoyId, Carriage carriage) throws SQLException;
-    /* PERCHÉ QUESTO METODO NON VIENE UTILIZZATO MA QUELLO PER RIMUOVERE SI?*/
-
-
-
-
-    /**
      * Removes a carriage from a convoy.
      * @param convoyId the id of the convoy
      * @param carriage the carriage to remove

@@ -63,13 +63,13 @@ public class CreateRunController {
     @FXML
     private Label timeRecap;
     @FXML
-    private TableView<domain.DTO.TimeTableDTO.StationArrAndDepDTO> routeTableView;
+    private TableView<TimeTable.StationArrAndDep> routeTableView;
     @FXML
-    private TableColumn<domain.DTO.TimeTableDTO.StationArrAndDepDTO, String> stationColumn;
+    private TableColumn<TimeTable.StationArrAndDep, String> stationColumn;
     @FXML
-    private TableColumn<domain.DTO.TimeTableDTO.StationArrAndDepDTO, String> arriveColumn;
+    private TableColumn<TimeTable.StationArrAndDep, String> arriveColumn;
     @FXML
-    private TableColumn<domain.DTO.TimeTableDTO.StationArrAndDepDTO, String> departureColumn;
+    private TableColumn<TimeTable.StationArrAndDep, String> departureColumn;
     @FXML
     private TableView<domain.Carriage> carriagesTableView;
     @FXML
@@ -317,7 +317,7 @@ public class CreateRunController {
             if (selectedLine != null && startStation != null && time != null) {
                 int idLine = selectedLine.getIdLine();
                 int idStartStation = selectedLine.getFirstStationLocation().equals(startStation) ? selectedLine.getIdFirstStation() : selectedLine.getIdLastStation();
-                List<domain.DTO.TimeTableDTO.StationArrAndDepDTO> rows = createRunService.getTimeTableForRun(idLine, idStartStation, time);
+                List<TimeTable.StationArrAndDep> rows = createRunService.getTimeTableForRun(idLine, idStartStation, time);
                 routeTableView.setItems(FXCollections.observableArrayList(rows));
             } else {
                 routeTableView.getItems().clear();

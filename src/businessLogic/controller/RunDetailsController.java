@@ -4,7 +4,7 @@ import domain.Carriage;
 import domain.Convoy;
 import domain.DTO.ConvoyTableDTO;
 import domain.DTO.RunDTO;
-import domain.DTO.TimeTableDTO;
+import domain.TimeTable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -99,13 +99,13 @@ public class RunDetailsController implements Initializable {
     @FXML
     private Label lineName;
     @FXML
-    private TableView<TimeTableDTO.StationArrAndDepDTO> timeTableView;
+    private TableView<TimeTable.StationArrAndDep> timeTableView;
     @FXML
-    private TableColumn<TimeTableDTO.StationArrAndDepDTO, String> stationColumn;
+    private TableColumn<TimeTable.StationArrAndDep, String> stationColumn;
     @FXML
-    private TableColumn<TimeTableDTO.StationArrAndDepDTO, String> arriveColumn;
+    private TableColumn<TimeTable.StationArrAndDep, String> arriveColumn;
     @FXML
-    private TableColumn<TimeTableDTO.StationArrAndDepDTO, String> departureColumn;
+    private TableColumn<TimeTable.StationArrAndDep, String> departureColumn;
 
     // Toggle Section Buttons
     @FXML
@@ -249,9 +249,9 @@ public class RunDetailsController implements Initializable {
     }
 
     private void taskInitTimeTable(int idLine, int idFirstStation, String departureTime) {
-        Task<TimeTableDTO> task = new Task<>() {
+        Task<TimeTable> task = new Task<>() {
             @Override
-            protected TimeTableDTO call() {
+            protected TimeTable call() {
                 return runDetailsService.selectTimeTable(idLine, idFirstStation, departureTime);
             }
         };
@@ -260,10 +260,10 @@ public class RunDetailsController implements Initializable {
             arriveColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getArriveTime()));
             departureColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getDepartureTime()));
 
-            TimeTableDTO timeTable = task.getValue();
+            TimeTable timeTable = task.getValue();
             if (timeTable != null) {
                 timeTableView.getItems().clear();
-                timeTableView.setItems(FXCollections.observableArrayList(timeTable.getStationArrAndDepDTOList()));
+                timeTableView.setItems(FXCollections.observableArrayList(timeTable.getStationArrAndDepList()));
                 timeTableDetailSection.setVisible(false);
                 timeTableDetailSection.setManaged(false);
             } else {

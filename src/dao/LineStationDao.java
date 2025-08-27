@@ -1,6 +1,8 @@
 package dao;
 
 import domain.LineStation;
+import domain.TimeTable;
+
 import java.sql.SQLException;
 import java.util.List;
 
@@ -29,5 +31,5 @@ public interface LineStationDao {
      * @return list of StationArrAndDepDTO objects representing the timetable
      * @throws SQLException if a database access error occurs
      */
-    List<domain.DTO.TimeTableDTO.StationArrAndDepDTO> findTimeTableForRun(int idLine, int idStartStation, String departureTime) throws SQLException;
+    List<TimeTable.StationArrAndDep> findTimeTableForRun(int idLine, int idStartStation, String departureTime) throws SQLException;
 }

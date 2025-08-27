@@ -1,31 +1,31 @@
-package domain.DTO;
+package domain;
 
 import java.util.List;
 
-public class TimeTableDTO {
+public class TimeTable {
     private final int idLine;
-    List<StationArrAndDepDTO> stationArrAndDepDTOList;
+    List<StationArrAndDep> stationArrAndDepList;
 
-    public TimeTableDTO(int idLine, List<StationArrAndDepDTO> stationArrAndDepDTOList) {
+    public TimeTable(int idLine, List<StationArrAndDep> stationArrAndDepList) {
         this.idLine = idLine;
-        this.stationArrAndDepDTOList = stationArrAndDepDTOList;
+        this.stationArrAndDepList = stationArrAndDepList;
     }
 
     public int getIdLine() {
         return idLine;
     }
 
-    public List<StationArrAndDepDTO> getStationArrAndDepDTOList() {
-        return stationArrAndDepDTOList;
+    public List<StationArrAndDep> getStationArrAndDepList() {
+        return stationArrAndDepList;
     }
 
-    public static class StationArrAndDepDTO {
+    public static class StationArrAndDep {
         private final int idStation;
         private final String stationName;
         private final String arriveTime;
         private final String departureTime;
 
-        public StationArrAndDepDTO(int idStation, String stationName, String arriveTime, String departureTime) {
+        public StationArrAndDep(int idStation, String stationName, String arriveTime, String departureTime) {
             this.idStation = idStation;
             this.stationName = stationName;
             this.arriveTime = arriveTime;

@@ -1,12 +1,13 @@
 package dao;
 
-import domain.DTO.TimeTableDTO;
+import domain.TimeTable;
 import domain.LineStation;
 
 import java.sql.*;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -69,8 +70,23 @@ class LineStationDaoImp implements LineStationDao {
                           ELSE -ls.station_order
             END""";
 
+    // Oggetto interno per contenere i dati di riga
+    private static class LineStationRow {
+        int idStation;
+        String location;
+        int stationOrder;
+        Duration timeToNext; // null se nella tabella è null
+
+        LineStationRow(int idStation, String location, int stationOrder, Duration timeToNext) {
+            this.idStation = idStation;
+            this.location = location;
+            this.stationOrder = stationOrder;
+            this.timeToNext = timeToNext;
+        }
+    }
+
     @Override
-    public List<TimeTableDTO.StationArrAndDepDTO> findTimeTableForRun(
+    public List<TimeTable.StationArrAndDep> findTimeTableForRun(
             int idLine,
             int idStartStation,
             String departureTime) throws SQLException {
@@ -82,81 +98,65 @@ class LineStationDaoImp implements LineStationDao {
             stmt.setInt(3, idLine);
             ResultSet rs = stmt.executeQuery();
 
-            LocalTime depPrev = LocalTime.parse(departureTime);
-            if (rs.next()) {// va bene se contrario.
-                if (rs.getInt("id_station") == 1) {
-                    // Caricamento ordinato
-                    return correctOrderInsert(rs, depPrev);
-                } else {
-                    return invertedOrderInsert(rs, depPrev);
-                }
-            }
-        }
-        return null;
-    }
-
-    private List<TimeTableDTO.StationArrAndDepDTO> correctOrderInsert(ResultSet rs, LocalTime depPrev) throws SQLException {
-        LocalTime arrCurr;
-        boolean isFirst = true;
-        String intervalStr;
-        Duration timeToNext = null;
-        List<TimeTableDTO.StationArrAndDepDTO> result = new ArrayList<>();
+            // Leggo tutte le righe in una lista di oggetti
+            List<LineStationRow> rows = new ArrayList<>();
             while (rs.next()) {
                 int idStation = rs.getInt("id_station");
-                String stationName = rs.getString("location");
+                String location = rs.getString("location");
+                int stationOrder = rs.getInt("station_order");
+                String intervalStr = rs.getString("time_to_next_station");
+                Duration d = parsePgInterval(intervalStr); // può ritornare null
+                rows.add(new LineStationRow(idStation, location, stationOrder, d));
+            }
+
+            if (rows.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            // Se la prima riga non corrisponde alla stazione di partenza, invertiamo
+            boolean forward = rows.getFirst().idStation == idStartStation;
+            if (!forward) {
+                Collections.reverse(rows);
+            }
+
+            // Calcolo arrivi/partenze
+            LocalTime depPrev = LocalTime.parse(departureTime);
+            List<TimeTable.StationArrAndDep> result = new ArrayList<>();
+
+            for (int i = 0; i < rows.size(); i++) {
+                LineStationRow r = rows.get(i);
                 String arr, dep;
-                if (isFirst) {
+
+                if (i == 0) {
+                    // stazione di partenza
                     arr = "------";
                     dep = depPrev.toString();
-                    isFirst = false;
                 } else {
-                    arrCurr = depPrev.plus(timeToNext != null ? timeToNext : Duration.ZERO);
+                    // per arrivare alla stazione i uso il time_to_next della stazione (i-1)
+                    Duration prevSegment = rows.get(i - 1).timeToNext;
+                    if (prevSegment == null) {
+                        // gestione del NULL: log e assumo Duration.ZERO
+                        System.out.println("Warning: time_to_next_station is NULL for station "
+                                + rows.get(i - 1).idStation + " — assuming Duration.ZERO");
+                        prevSegment = Duration.ZERO;
+                    }
+                    LocalTime arrCurr = depPrev.plus(prevSegment);
                     arr = arrCurr.toString();
-                    if (!rs.isLast()) {
+
+                    if (i < rows.size() - 1) {
+                        // fermata di 1 minuto
                         depPrev = arrCurr.plusMinutes(1);
                         dep = depPrev.toString();
                     } else {
+                        // ultima stazione: nessuna partenza
                         dep = "------";
                     }
                 }
 
-                intervalStr = rs.getString("time_to_next_station");
-                timeToNext = parsePgInterval(intervalStr);
-                System.out.println(intervalStr);
-                System.out.println(timeToNext);
-                System.out.println(depPrev.plus(timeToNext != null ? timeToNext : Duration.ZERO));
-                result.add(new TimeTableDTO.StationArrAndDepDTO(idStation, stationName, arr, dep));
-        }
-        return result;
-    }
-
-    private List<TimeTableDTO.StationArrAndDepDTO> invertedOrderInsert(ResultSet rs, LocalTime depPrev) throws SQLException {
-        LocalTime arrCurr;
-        boolean isFirst = true;
-        List<TimeTableDTO.StationArrAndDepDTO> result = new ArrayList<>();
-        while (rs.next()) {
-            int idStation = rs.getInt("id_station");
-            String stationName = rs.getString("location");
-            String intervalStr = rs.getString("time_to_next_station");
-            Duration timeToNext = parsePgInterval(intervalStr);
-
-            String arr, dep;
-            if (isFirst) {
-                arr = "------";
-                dep = depPrev.toString();
-                isFirst = false;
-            } else {
-                arrCurr = depPrev.plus(timeToNext != null ? timeToNext : Duration.ZERO);
-                arr = arrCurr.toString();
-                if (!rs.isLast()) {
-                    depPrev = arrCurr.plusMinutes(1);
-                    dep = depPrev.toString();
-                } else {
-                    dep = "------";
-                }
+                result.add(new TimeTable.StationArrAndDep(r.idStation, r.location, arr, dep));
             }
-            result.add(new TimeTableDTO.StationArrAndDepDTO(idStation, stationName, arr, dep));
+
+            return result;
         }
-        return result;
     }
 }

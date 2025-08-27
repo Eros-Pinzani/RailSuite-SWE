@@ -5,7 +5,7 @@ import dao.*;
 import domain.Convoy;
 import domain.DTO.ConvoyTableDTO;
 import domain.DTO.RunDTO;
-import domain.DTO.TimeTableDTO;
+import domain.TimeTable;
 import domain.Run;
 import domain.Staff;
 
@@ -20,7 +20,7 @@ public class RunDetailsService {
     private final RunDao runDao = RunDao.of();
     private RunDTO run;
     private final LineStationDao lineStationDao = LineStationDao.of();
-    private TimeTableDTO timeTable;
+    private TimeTable timeTable;
     private final ConvoyDao convoyDao = ConvoyDao.of();
     private Convoy convoy;
     private final ConvoyPoolDao convoyPoolDao = ConvoyPoolDao.of();
@@ -42,10 +42,10 @@ public class RunDetailsService {
         throw new IllegalStateException("Run details have not been selected yet.");
     }
 
-    public TimeTableDTO selectTimeTable(int idLine, int idFirstStation, String departureTime) {
+    public TimeTable selectTimeTable(int idLine, int idFirstStation, String departureTime) {
         try {
-            List<TimeTableDTO.StationArrAndDepDTO> stationArrAndDepDTOList = lineStationDao.findTimeTableForRun(idLine, idFirstStation, departureTime);
-            this.timeTable = new TimeTableDTO(idLine, stationArrAndDepDTOList);
+            List<TimeTable.StationArrAndDep> stationArrAndDepList = lineStationDao.findTimeTableForRun(idLine, idFirstStation, departureTime);
+            this.timeTable = new TimeTable(idLine, stationArrAndDepList);
             return this.timeTable;
         } catch (Exception e) {
             throw new RuntimeException("Error selecting timetable", e);
@@ -112,7 +112,7 @@ public class RunDetailsService {
     }
 
     public List<ConvoyTableDTO> checkAvailabilityOfConvoy() {
-        int firstStation = timeTable.getStationArrAndDepDTOList().getFirst().getIdStation();
+        int firstStation = timeTable.getStationArrAndDepList().getFirst().getIdStation();
         if (convoy != null) {
             try {
                 return convoyPoolDao.checkConvoyAvailability(firstStation);

@@ -140,7 +140,7 @@ public class CreateRunService {
         return times;
     }
 
-    public List<domain.DTO.TimeTableDTO.StationArrAndDepDTO> getTimeTableForRun(int idLine, int idStartStation, String departureTime) {
+    public List<TimeTable.StationArrAndDep> getTimeTableForRun(int idLine, int idStartStation, String departureTime) {
         try {
             return lineStationDao.findTimeTableForRun(idLine, idStartStation, departureTime);
         } catch (Exception e) {

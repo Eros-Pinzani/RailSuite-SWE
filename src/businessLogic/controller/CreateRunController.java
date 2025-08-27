@@ -7,9 +7,6 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 
 import java.time.Duration;
@@ -27,7 +24,7 @@ import javafx.stage.Stage;
  */
 public class CreateRunController {
     @FXML
-    private ComboBox<LineRaw> lineComboBox;
+    private ComboBox<Line> lineComboBox;
     @FXML
     private ComboBox<String> startStationComboBox;
     private EventHandler<ActionEvent> startStationComboHandler;
@@ -108,26 +105,26 @@ public class CreateRunController {
         header(supervisorNameLabel, logoutMenuItem, exitMenuItem);
         try {
             // Line: mostra solo nomi unici, ma salva l'oggetto domain.LineRaw
-            List<LineRaw> allLines = createRunService.getAllLines();
+            List<Line> allLines = createRunService.getAllLines();
             List<String> uniqueLineNames = new java.util.ArrayList<>();
-            List<LineRaw> uniqueLines = new java.util.ArrayList<>();
-            for (LineRaw line : allLines) {
+            List<Line> uniqueLines = new java.util.ArrayList<>();
+            for (Line line : allLines) {
                 if (!uniqueLineNames.contains(line.getLineName())) {
                     uniqueLineNames.add(line.getLineName());
                     uniqueLines.add(line);
                 }
             }
             lineComboBox.setItems(FXCollections.observableArrayList(uniqueLines));
-            lineComboBox.setCellFactory(lv -> new ListCell<LineRaw>() {
+            lineComboBox.setCellFactory(lv -> new ListCell<Line>() {
                 @Override
-                protected void updateItem(LineRaw item, boolean empty) {
+                protected void updateItem(Line item, boolean empty) {
                     super.updateItem(item, empty);
                     setText(empty || item == null ? null : item.getLineName());
                 }
             });
-            lineComboBox.setButtonCell(new ListCell<LineRaw>() {
+            lineComboBox.setButtonCell(new ListCell<Line>() {
                 @Override
-                protected void updateItem(LineRaw item, boolean empty) {
+                protected void updateItem(Line item, boolean empty) {
                     super.updateItem(item, empty);
                     setText(empty || item == null ? null : item.getLineName());
                 }
@@ -199,7 +196,7 @@ public class CreateRunController {
 
     private void onLineSelected() {
         startStationComboBox.setOnAction(null);
-        LineRaw selectedLine = lineComboBox.getValue();
+        Line selectedLine = lineComboBox.getValue();
         if (selectedLine != null) {
             startStationComboBox.setDisable(false);
             startStationComboBox.setItems(FXCollections.observableArrayList(selectedLine.getFirstStationLocation(), selectedLine.getLastStationLocation()));
@@ -218,7 +215,7 @@ public class CreateRunController {
      * Calculates travel time asynchronously for the selected line.
      * @param selectedLine the selected line
      */
-    private void calculateTravelTimeAsync(LineRaw selectedLine) {
+    private void calculateTravelTimeAsync(Line selectedLine) {
         Task<Duration> task = new Task<>() {
             @Override
             protected Duration call() {
@@ -253,7 +250,7 @@ public class CreateRunController {
      * Updates the available pools and operators based on selected filters.
      */
     private void updatePoolsAvailability() {
-        LineRaw selectedLine = lineComboBox.getValue();
+        Line selectedLine = lineComboBox.getValue();
         String startStation = startStationComboBox.getValue();
         LocalDate date = datePicker.getValue();
         String time = departureTimePicker.getValue();
@@ -314,7 +311,7 @@ public class CreateRunController {
             dateRecap.setText(datePicker.getValue() != null ? datePicker.getValue().toString() : "");
             timeRecap.setText(departureTimePicker.getValue() != null ? departureTimePicker.getValue() : "");
 
-            LineRaw selectedLine = lineComboBox.getValue();
+            Line selectedLine = lineComboBox.getValue();
             String startStation = startStationComboBox.getValue();
             String time = departureTimePicker.getValue();
             if (selectedLine != null && startStation != null && time != null) {
@@ -341,7 +338,7 @@ public class CreateRunController {
     }
 
     private boolean checkRecap() {
-        LineRaw selectedLine = lineComboBox.getValue();
+        Line selectedLine = lineComboBox.getValue();
         String direction = startStationComboBox.getValue();
         LocalDate date = datePicker.getValue();
         String time = departureTimePicker.getValue();
@@ -385,7 +382,7 @@ public class CreateRunController {
         updateRecapLabels();
     }
 
-    private void calculateTravelTimeAndCreateRun(LineRaw selectedLine, LocalDate date, String time, Convoy convoy, StaffDTO operator, ProgressBar progressBar, Dialog<Void> dialog) {
+    private void calculateTravelTimeAndCreateRun(Line selectedLine, LocalDate date, String time, Convoy convoy, StaffDTO operator, ProgressBar progressBar, Dialog<Void> dialog) {
         javafx.concurrent.Task<Run> task = new javafx.concurrent.Task<>() {
             @Override
             protected Run call() {
@@ -460,7 +457,7 @@ public class CreateRunController {
 
     @FXML
     private void handleCreateRun(ActionEvent event) {
-        LineRaw selectedLine = lineComboBox.getValue();
+        Line selectedLine = lineComboBox.getValue();
         LocalDate date = datePicker.getValue();
         String time = departureTimePicker.getValue();
         Convoy convoy = convoyComboBox.getValue();

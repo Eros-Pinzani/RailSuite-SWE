@@ -1,26 +1,20 @@
 package domain;
 
-import java.util.List;
-
-/**
- * Implementation of the Line interface.
- * Stores and manages a list of stations for a line.
- */
 class LineImp implements Line {
     private final int idLine;
-    private final String name;
-    private final List<LineStation> stations;
+    private final String lineName;
+    private final int idFirstStation;
+    private final String firstStationLocation;
+    private final int idLastStation;
+    private final String lastStationLocation;
 
-    /**
-     * Constructs a LineImp with the given id, name, and stations.
-     * @param idLine the line id
-     * @param name the name of the line
-     * @param stations the list of stations for the line
-     */
-    public LineImp(int idLine, String name, List<LineStation> stations) {
+    public LineImp(int idLine, String lineName, int idFirstStation, String firstStationLocation, int idLastStation, String lastStationLocation) {
         this.idLine = idLine;
-        this.name = name;
-        this.stations = stations;
+        this.lineName = lineName;
+        this.idFirstStation = idFirstStation;
+        this.firstStationLocation = firstStationLocation;
+        this.idLastStation = idLastStation;
+        this.lastStationLocation = lastStationLocation;
     }
 
     @Override
@@ -29,12 +23,27 @@ class LineImp implements Line {
     }
 
     @Override
-    public String getName() {
-        return name;
+    public String getLineName() {
+        return lineName;
     }
 
     @Override
-    public LineStation getStationAt(int order) {
-        return stations.get(order);
+    public int getIdFirstStation() {
+        return idFirstStation;
+    }
+
+    @Override
+    public String getFirstStationLocation() {
+        return firstStationLocation;
+    }
+
+    @Override
+    public int getIdLastStation() {
+        return idLastStation;
+    }
+
+    @Override
+    public String getLastStationLocation() {
+        return lastStationLocation;
     }
 }

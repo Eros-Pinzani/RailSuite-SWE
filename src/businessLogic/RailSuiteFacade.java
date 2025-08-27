@@ -91,8 +91,8 @@ public class RailSuiteFacade {
      * Retrieves all lines in the system.
      * Used to list or manage all lines.
      */
-    public List<Line> findAllLines() throws SQLException {
-        return lineDao.findAll();
+    public List<Line> findAllLines() throws Exception {
+        return lineDao.getAllLines();
     }
 
     // Convoy

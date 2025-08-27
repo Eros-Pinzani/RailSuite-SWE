@@ -1,31 +1,34 @@
 package domain;
-
-import java.util.List;
-
 /**
- * Interface representing a Line entity.
- * Provides factory method and accessors for line properties and stations management.
+ * Interface representing a Line entity with raw data.
+ * Provides factory method and accessors for line properties.
  */
+
 public interface Line {
+    /**
+     * Factory method to create a LineRaw instance.
+     * @param idLine the unique identifier of the line
+     * @param lineName the name of the line
+     * @param idFirstStation the unique identifier of the first station
+     * @param firstStationLocation the name of the line in the main direction
+     * @param idLastStation the unique identifier of the last station
+     * @param lastStationLocation the name of the line in the return direction
+     * @return a LineRaw instance
+     */
+    static Line of(int idLine, String lineName, int idFirstStation, String firstStationLocation, int idLastStation, String lastStationLocation) {
+        return new LineImp(idLine, lineName,idFirstStation, firstStationLocation, idLastStation, lastStationLocation);
+    }
+
     /** @return the unique identifier of the line */
     int getIdLine();
     /** @return the name of the line */
-    String getName();
-    /**
-     * Returns the station at the given order in the line.
-     * @param order the order of the station
-     * @return the LineStation at the specified order
-     */
-    LineStation getStationAt(int order);
-
-    /**
-     * Factory method to create a Line instance.
-     * @param idLine the line id
-     * @param name the name of the line
-     * @param stations the list of stations for the line
-     * @return a Line instance
-     */
-    static Line of(int idLine, String name, List<LineStation> stations) {
-        return new LineImp(idLine, name, stations);
-    }
+    String getLineName();
+    /** @return the unique identifier of the first station */
+    int getIdFirstStation();
+    /** @return the name of the line in the main direction */
+    String getFirstStationLocation();
+    /** @return the unique identifier of the last station */
+    int getIdLastStation();
+    /** @return the name of the line in the return direction */
+    String getLastStationLocation();
 }

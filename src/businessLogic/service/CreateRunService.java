@@ -15,7 +15,7 @@ import java.util.List;
 
 
 public class CreateRunService {
-    private final LineRawDao lineRawDao = LineRawDao.of();
+    private final LineDao lineDao = LineDao.of();
     private final ConvoyDao convoyDao = ConvoyDao.of();
     private final LineStationDao lineStationDao = LineStationDao.of();
 
@@ -46,15 +46,15 @@ public class CreateRunService {
         return new ArrayList<>(convoysPoolAvailableFilteredByType);
     }
 
-    public List<LineRaw> getAllLines() {
+    public List<Line> getAllLines() {
         try {
-            return lineRawDao.getAllLines();
+            return lineDao.getAllLines();
         } catch (Exception e) {
             throw new RuntimeException("Error while retrieving lines: " + e.getMessage(), e);
         }
     }
 
-    public Duration calculateTravelTime(LineRaw selectedLine) {
+    public Duration calculateTravelTime(Line selectedLine) {
         try {
             List<LineStation> stations = lineStationDao.findByLine(selectedLine.getIdLine());
             if (stations.isEmpty()) return Duration.ZERO;
@@ -148,26 +148,26 @@ public class CreateRunService {
         }
     }
 
-    public Run createRun(LineRaw lineRaw, LocalDate date, String time, Convoy convoy, StaffDTO operator) {
+    public Run createRun(Line line, LocalDate date, String time, Convoy convoy, StaffDTO operator) {
         try{
             if (travelTime == null) {
-                travelTime = waitForTravelTime(lineRaw);
+                travelTime = waitForTravelTime(line);
             }
             RunDao runDao = RunDao.of();
             java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(date, java.time.LocalTime.parse(time));
             java.sql.Timestamp departureTimestamp = java.sql.Timestamp.valueOf(dateTime);
             java.sql.Timestamp arrivalTimestamp = java.sql.Timestamp.valueOf(dateTime.plus(travelTime));
             runDao.createRun(
-                lineRaw.getIdLine(),
+                line.getIdLine(),
                 convoy.getId(),
                 operator.getIdStaff(),
                 departureTimestamp,
                 arrivalTimestamp,
-                lineRaw.getIdFirstStation(),
-                lineRaw.getIdLastStation()
+                line.getIdFirstStation(),
+                line.getIdLastStation()
             );
             return runDao.selectRunByLineConvoyAndStaff(
-                lineRaw.getIdLine(),
+                line.getIdLine(),
                 convoy.getId(),
                 operator.getIdStaff()
             );
@@ -193,7 +193,7 @@ public class CreateRunService {
      * @return the calculated travel time
      * @throws IllegalStateException if the travel time is not calculated within the maximum number of tries
      */
-    public Duration waitForTravelTime(LineRaw selectedLine) {
+    public Duration waitForTravelTime(Line selectedLine) {
         setTravelTime(null);
         new Thread(() -> {
             Duration duration = calculateTravelTime(selectedLine);

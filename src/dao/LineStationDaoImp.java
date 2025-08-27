@@ -18,22 +18,6 @@ class LineStationDaoImp implements LineStationDao {
     }
 
     @Override
-    public LineStation findById(int idLine, int idStation) throws SQLException {
-        // SQL query to get a specific LineStation relation by idLine and idStation
-        String sql = "SELECT * FROM line_station WHERE id_line = ? AND id_station = ?";
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idLine);
-            stmt.setInt(2, idStation);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return mapper.LineStationMapper.toDomain(rs);
-            }
-            return null;
-        }
-    }
-
-    @Override
     public List<LineStation> findByLine(int idLine) throws SQLException {
         // SQL query to get all LineStation relations for a line, ordered by station_order
         String sql = "SELECT * FROM line_station WHERE id_line = ? ORDER BY station_order";
@@ -69,7 +53,6 @@ class LineStationDaoImp implements LineStationDao {
 
     /**
      * Restituisce la tabella orari per una corsa: ogni stazione con orario di arrivo e partenza.
-     *
      * @param idLine id della linea
      * @param idStartStation id della stazione di partenza
      * @param departureTime orario di partenza (formato HH:mm)

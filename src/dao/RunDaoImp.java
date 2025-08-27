@@ -13,16 +13,6 @@ import java.util.List;
  * Contains SQL queries and logic for accessing run data.
  */
 public class RunDaoImp implements RunDao {
-    // SQL query to select a run by line and convoy
-    private static final String selectRunByLineAndConvoyQuery = """
-            SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
-                   r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
-            FROM run r
-                LEFT JOIN line l ON r.id_line = l.id_line
-                LEFT JOIN staff s ON r.id_staff = s.id_staff
-                LEFT JOIN station fs ON r.id_first_station = fs.id_station
-                LEFT JOIN station ls ON r.id_last_station = ls.id_station
-            WHERE r.id_convoy = ? AND r.id_line = ?""";
     // SQL query to select a run by line, convoy, and staff
     private static final String selectRunByLineConvoyAndStaffQuery = """
             SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
@@ -34,36 +24,12 @@ public class RunDaoImp implements RunDao {
                 LEFT JOIN station ls ON r.id_last_station = ls.id_station
             WHERE r.id_convoy = ? AND r.id_line = ? AND r.id_staff = ?
             """;
-    // SQL query to select a run by staff and convoy
-    private static final String selectRunByStaffAndConvoyQuery = """
-            SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
-                   r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
-            FROM run r
-                LEFT JOIN line l ON r.id_line = l.id_line
-                LEFT JOIN staff s ON r.id_staff = s.id_staff
-                LEFT JOIN station fs ON r.id_first_station = fs.id_station
-                LEFT JOIN station ls ON r.id_last_station = ls.id_station
-            WHERE r.id_convoy = ? AND r.id_staff""";
-    // SQL query to select a run by staff and line
-    private static final String selectRunByStaffAndLineQuery = """
-            SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
-                   r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
-            FROM run r
-                LEFT JOIN line l ON r.id_line = l.id_line
-                LEFT JOIN staff s ON r.id_staff = s.id_staff
-                LEFT JOIN station fs ON r.id_first_station = fs.id_station
-                LEFT JOIN station ls ON r.id_last_station = ls.id_station
-            WHERE r.id_line = ? AND r.id_staff = ?""";
     // SQL query to delete a run by line and convoy
     private static final String deleteRunQuery = "DELETE FROM run WHERE id_line = ? AND id_convoy = ? AND id_staff = ? AND time_departure = ?";
     // SQL query to insert a new run
     private static final String insertRunQuery =
             "INSERT INTO run (id_line, id_convoy, id_staff, time_departure, time_arrival, id_first_station, id_last_station) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
-    // SQL query to update an existing run
-    private static final String updateRunQuery =
-            "UPDATE run SET id_staff = ?, time_departure = ?, time_arrival = ?, id_first_station = ?, id_last_station = ?" +
-                    "WHERE id_line = ? AND id_convoy = ?";
     // SQL query to select all runs by staff
     private static final String selectRunsByStaffQuery = """
             SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
@@ -74,16 +40,6 @@ public class RunDaoImp implements RunDao {
                 LEFT JOIN station fs ON r.id_first_station = fs.id_station
                 LEFT JOIN station ls ON r.id_last_station = ls.id_station
             WHERE r.id_staff = ?""";
-    // SQL query to select all runs by line
-    private static final String selectRunsByLineQuery = """
-            SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
-                   r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
-            FROM run r
-                LEFT JOIN line l ON r.id_line = l.id_line
-                LEFT JOIN staff s ON r.id_staff = s.id_staff
-                LEFT JOIN station fs ON r.id_first_station = fs.id_station
-                LEFT JOIN station ls ON r.id_last_station = ls.id_station
-            WHERE r.id_line = ?""";
     // SQL query to select all runs by convoy
     private static final String selectRunsByConvoyQuery = """
             SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
@@ -94,37 +50,6 @@ public class RunDaoImp implements RunDao {
                 LEFT JOIN station fs ON r.id_first_station = fs.id_station
                 LEFT JOIN station ls ON r.id_last_station = ls.id_station
             WHERE r.id_convoy = ?""";
-    // SQL query to select all runs by first station
-    private static final String selectRunsByFirstStationQuery = """
-            SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
-                   r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
-            FROM run r
-                LEFT JOIN line l ON r.id_line = l.id_line
-                LEFT JOIN staff s ON r.id_staff = s.id_staff
-                LEFT JOIN station fs ON r.id_first_station = fs.id_station
-                LEFT JOIN station ls ON r.id_last_station = ls.id_station
-            WHERE r.id_first_station = ?""";
-    // SQL query to select all runs by last station
-    private static final String selectRunsByLastStationQuery = """
-            SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
-                   r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
-            FROM run r
-                LEFT JOIN line l ON r.id_line = l.id_line
-                LEFT JOIN staff s ON r.id_staff = s.id_staff
-                LEFT JOIN station fs ON r.id_first_station = fs.id_station
-                LEFT JOIN station ls ON r.id_last_station = ls.id_station
-            WHERE r.id_last_station = ?""";
-    // SQL query to select all runs by first station and departure time
-    private static final String selectRunsByFirstStationAndDepartureQuery = """
-            SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
-                   r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
-            FROM run r
-                LEFT JOIN line l ON r.id_line = l.id_line
-                LEFT JOIN staff s ON r.id_staff = s.id_staff
-                LEFT JOIN station fs ON r.id_first_station = fs.id_station
-                LEFT JOIN station ls ON r.id_last_station = ls.id_station
-            WHERE r.id_first_station = ? AND time_departure = ?\s""";
-
     private static final String selectRunDTOdetails = """
             SELECT r.id_line, l.name,
                 r.id_convoy,
@@ -196,19 +121,6 @@ public class RunDaoImp implements RunDao {
     }
 
     @Override
-    public List<Run> selectRunsByLineAndConvoy(int idLine, int idConvoy) throws SQLException {
-        // Executes the query to get a run by line and convoy
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(selectRunByLineAndConvoyQuery)) {
-            pstmt.setInt(1, idLine);
-            pstmt.setInt(2, idConvoy);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                return resultSetToRunList(rs);
-            }
-        }
-    }
-
-    @Override
     public Run selectRunByLineConvoyAndStaff(int idLine, int idConvoy, int idStaff) throws SQLException {
         // Executes the query to get a run by line, convoy, and staff
         try (Connection conn = PostgresConnection.getConnection();
@@ -223,32 +135,6 @@ public class RunDaoImp implements RunDao {
             }
         }
         return null;
-    }
-
-    @Override
-    public List<Run> selectRunsByStaffAndConvoy(int idStaff, int idConvoy) throws SQLException {
-        // Executes the query to get a run by staff and convoy
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(selectRunByStaffAndConvoyQuery)) {
-            pstmt.setInt(1, idStaff);
-            pstmt.setInt(2, idConvoy);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                return resultSetToRunList(rs);
-            }
-        }
-    }
-
-    @Override
-    public List<Run> selectRunsByStaffAndLine(int idStaff, int idLine) throws SQLException {
-        // Executes the query to get a run by staff and line
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(selectRunByStaffAndLineQuery)) {
-            pstmt.setInt(1, idStaff);
-            pstmt.setInt(2, idLine);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                return resultSetToRunList(rs);
-            }
-        }
     }
 
     @Override
@@ -289,25 +175,6 @@ public class RunDaoImp implements RunDao {
         return false;
     }
 
-    @Override
-    public boolean updateRun(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture, Timestamp timeArrival, int idFirstStation, int idLastStation) throws SQLException {
-        // Executes the query to update an existing run
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(updateRunQuery)) {
-            pstmt.setInt(1, idStaff);
-            pstmt.setTimestamp(2, timeDeparture);
-            pstmt.setTimestamp(3, timeArrival);
-            pstmt.setInt(4, idFirstStation);
-            pstmt.setInt(5, idLastStation);
-            pstmt.setInt(6, idLine);
-            pstmt.setInt(7, idConvoy);
-            int affectedRows = pstmt.executeUpdate();
-            return affectedRows > 0;
-        } catch (SQLException e) {
-            throw new SQLException("Error updating run: " + idLine + ", " + idConvoy, e);
-        }
-    }
-
     private List<Run> getRuns(int id, String query) throws SQLException {
         // Utility method to execute queries that return multiple runs filtered by a parameter
         try (Connection conn = PostgresConnection.getConnection();
@@ -325,36 +192,8 @@ public class RunDaoImp implements RunDao {
     }
 
     @Override
-    public List<Run> selectRunsByLine(int idLine) throws SQLException {
-        return getRuns(idLine, selectRunsByLineQuery);
-    }
-
-    @Override
     public List<Run> selectRunsByConvoy(int idConvoy) throws SQLException {
         return getRuns(idConvoy, selectRunsByConvoyQuery);
-    }
-
-    @Override
-    public List<Run> selectRunsByFirstStation(int idFirstStation) throws SQLException {
-        return getRuns(idFirstStation, selectRunsByFirstStationQuery);
-    }
-
-    @Override
-    public List<Run> selectRunsByLastStation(int idLastStation) throws SQLException {
-        return getRuns(idLastStation, selectRunsByLastStationQuery);
-    }
-
-    @Override
-    public List<Run> selectRunsByFirstStationAndDeparture(int idFirstStation, Timestamp timeDeparture) throws SQLException {
-        // Executes the query to get all runs that start from a station and have a specific departure time
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(selectRunsByFirstStationAndDepartureQuery)) {
-            pstmt.setInt(1, idFirstStation);
-            pstmt.setTimestamp(2, timeDeparture);
-            try (ResultSet rs = pstmt.executeQuery()) {
-                return resultSetToRunList(rs);
-            }
-        }
     }
 
     @Override

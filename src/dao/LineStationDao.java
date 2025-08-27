@@ -14,15 +14,6 @@ public interface LineStationDao {
     }
 
     /**
-     * Returns the LineStation relation identified by idLine and idStation.
-     * @param idLine the line id
-     * @param idStation the station id
-     * @return the corresponding LineStation object, or null if not found
-     * @throws SQLException if a database access error occurs
-     */
-    LineStation findById(int idLine, int idStation) throws SQLException;
-
-    /**
      * Returns all LineStation relations associated with a specific line.
      * @param idLine the line id
      * @return list of LineStation objects ordered by station_order

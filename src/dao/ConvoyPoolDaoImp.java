@@ -1,6 +1,5 @@
 package dao;
 
-import domain.Convoy;
 import domain.ConvoyPool;
 import domain.DTO.ConvoyTableDTO;
 
@@ -18,31 +17,6 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
      */
     private static final String SELECT_BY_ID =
             "SELECT id_convoy, id_station, status FROM convoy_pool WHERE id_convoy = ?";
-    /**
-     * SQL query to update a convoy pool.
-     */
-    private static final String UPDATE =
-            "UPDATE convoy_pool SET id_station = ?, status = ? WHERE id_convoy = ?";
-    /**
-     * SQL query to select all convoy pools.
-     */
-    private static final String SELECT_ALL =
-            "SELECT id_convoy, id_station, status FROM convoy_pool";
-    /**
-     * SQL query to select convoy pools by station.
-     */
-    private static final String SELECT_BY_STATION =
-            "SELECT id_convoy, id_station, status FROM convoy_pool WHERE id_station = ?";
-    /**
-     * SQL query to select convoy pools by status.
-     */
-    private static final String SELECT_BY_STATUS =
-            "SELECT id_convoy, id_station, status FROM convoy_pool WHERE status = ?";
-    /**
-     * SQL query to select convoy pools by station and status.
-     */
-    private static final String SELECT_BY_STATION_AND_STATUS =
-            "SELECT id_convoy, id_station, status FROM convoy_pool WHERE id_station = ? AND status = ?";
     /**
      * SQL query to select table data by station.
      */
@@ -117,76 +91,6 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
             }
         }
         return null;
-    }
-
-    @Override
-    public void updateConvoyPool(ConvoyPool convoyPool) throws SQLException {
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(UPDATE)) {
-            ps.setInt(1, convoyPool.getIdStation());
-            ps.setString(2, convoyPool.getConvoyStatus().name());
-            ps.setInt(3, convoyPool.getIdConvoy());
-            ps.executeUpdate();
-        }
-    }
-
-    @Override
-    public List<ConvoyPool> getAllConvoyPools() throws SQLException {
-        List<ConvoyPool> list = new ArrayList<>();
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SELECT_ALL);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                list.add(mapper.ConvoyPoolMapper.toDomain(rs));
-            }
-        }
-        return list;
-    }
-
-    @Override
-    public List<ConvoyPool> getConvoysByStation(int idStation) throws SQLException {
-        List<ConvoyPool> list = new ArrayList<>();
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SELECT_BY_STATION)) {
-            ps.setInt(1, idStation);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapper.ConvoyPoolMapper.toDomain(rs));
-                }
-            }
-        }
-        return list;
-    }
-
-    @Override
-    public List<ConvoyPool> getConvoysByStatus(ConvoyPool.ConvoyStatus status) throws SQLException {
-        List<ConvoyPool> list = new ArrayList<>();
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SELECT_BY_STATUS)) {
-            ps.setString(1, status.name());
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapper.ConvoyPoolMapper.toDomain(rs));
-                }
-            }
-        }
-        return list;
-    }
-
-    @Override
-    public List<ConvoyPool> getConvoysByStationAndStatus(int idStation, ConvoyPool.ConvoyStatus status) throws SQLException {
-        List<ConvoyPool> list = new ArrayList<>();
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(SELECT_BY_STATION_AND_STATUS)) {
-            ps.setInt(1, idStation);
-            ps.setString(2, status.name());
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    list.add(mapper.ConvoyPoolMapper.toDomain(rs));
-                }
-            }
-        }
-        return list;
     }
 
     @Override

@@ -31,12 +31,4 @@ public interface LineDao {
      * @throws SQLException if a database access error occurs
      */
     List<Line> findAll() throws SQLException;
-
-    /**
-     * Retrieves all lines that pass through a specific station.
-     * @param idStation the id of the station
-     * @return a list of Line objects
-     * @throws SQLException if a database access error occurs
-     */
-    List<Line> findByStation(int idStation) throws SQLException;
 }

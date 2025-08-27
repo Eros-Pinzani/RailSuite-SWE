@@ -21,24 +21,6 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
     }
 
     @Override
-    public CarriageDepot getCarriageDepot(int idDepot, int idCarriage) throws SQLException {
-        // SQL query to select a carriage_depot by depot and carriage id.
-        String sql = "SELECT * FROM carriage_depot WHERE id_depot = ? AND id_carriage = ?";
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idDepot);
-            stmt.setInt(2, idCarriage);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return mapResultSetToCarriageDepot(rs);
-            }
-        } catch (SQLException e) {
-            throw new SQLException("Error finding carriage_depot by depot and carriage: " + idDepot + ", " + idCarriage, e);
-        }
-        return null;
-    }
-
-    @Override
     public List<CarriageDepot> getCarriagesByDepot(int idDepot) throws SQLException {
         // SQL query to select all carriage_depot by depot id.
         String sql = "SELECT * FROM carriage_depot WHERE id_depot = ?";
@@ -85,48 +67,6 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
     }
 
     @Override
-    public void updateCarriageDepot(CarriageDepot carriageDepot) throws SQLException {
-        // SQL query to update an existing carriage_depot record.
-        String sql = "UPDATE carriage_depot SET time_entered = ?, time_exited = ?, status_of_carriage = ? WHERE id_depot = ? AND id_carriage = ?";
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setTimestamp(1, carriageDepot.getTimeEntered());
-            stmt.setTimestamp(2, carriageDepot.getTimeExited());
-            stmt.setString(3, carriageDepot.getStatusOfCarriage().name());
-            stmt.setInt(4, carriageDepot.getIdDepot());
-            stmt.setInt(5, carriageDepot.getIdCarriage());
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new SQLException("Error updating carriage_depot: " + carriageDepot.getIdDepot() + ", " + carriageDepot.getIdCarriage(), e);
-        }
-    }
-
-    @Override
-    public void deleteCarriageDepot(CarriageDepot carriageDepot) throws SQLException {
-        // SQL query to delete a carriage_depot record.
-        String sql = "DELETE FROM carriage_depot WHERE id_depot = ? AND id_carriage = ?";
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, carriageDepot.getIdDepot());
-            stmt.setInt(2, carriageDepot.getIdCarriage());
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new SQLException("Error deleting carriage_depot: " + carriageDepot.getIdDepot() + ", " + carriageDepot.getIdCarriage(), e);
-        }
-    }
-
-    @Override
-    public void deleteCarriageDepotByCarriage(int idCarriage) throws SQLException {
-        // SQL query to delete carriage_depot records by carriage id.
-        String sql = "DELETE FROM carriage_depot WHERE id_carriage = ?";
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idCarriage);
-            stmt.executeUpdate();
-        }
-    }
-
-    @Override
     public void deleteCarriageDepotByCarriageIfAvailable(int idCarriage) throws SQLException {
         // SQL query to delete available carriage_depot records by carriage id.
         String sql = "DELETE FROM carriage_depot WHERE id_carriage = ? AND status_of_carriage = 'AVAILABLE'";
@@ -158,26 +98,6 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
                         rs.getString("status_of_carriage"),
                         rs.getTimestamp("time_exited")
                 ));
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public List<domain.Carriage> findAvailableCarriagesForConvoyAdd(int idStation, String modelType) throws SQLException {
-        List<domain.Carriage> result = new ArrayList<>();
-        // SQL query to find available carriages for adding to a convoy.
-        String sql = "SELECT c.* FROM carriage_depot cd " +
-                "JOIN depot d ON cd.id_depot = d.id_depot " +
-                "JOIN carriage c ON cd.id_carriage = c.id_carriage " +
-                "WHERE d.id_depot = ? AND cd.status_of_carriage = 'AVAILABLE' AND c.model_type = ? AND c.id_convoy IS NULL AND cd.time_exited IS NULL";
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idStation);
-            stmt.setString(2, modelType);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                result.add(mapper.CarriageMapper.toDomain(rs));
             }
         }
         return result;

@@ -46,11 +46,6 @@ class ConvoyDaoImp implements ConvoyDao {
     private static final String removeCarriageFromConvoyQuery =
             "UPDATE carriage SET id_convoy = NULL WHERE id_carriage = ?";
     /**
-     * SQL query to find convoy id by carriage id.
-     */
-    private static final String findConvoyIdByCarriageIdQuery =
-            "SELECT id_convoy FROM carriage WHERE id_carriage = ?";
-    /**
      * SQL query to insert a new convoy and return its id.
      */
     private static final String insertConvoyQuery =
@@ -173,24 +168,6 @@ class ConvoyDaoImp implements ConvoyDao {
         } catch (SQLException e) {
             throw new SQLException("Error removing carriage " + carriage.getId() + " from convoy " + convoyId, e);
         }
-    }
-
-    @Override
-    public Integer findConvoyIdByCarriageId(int carriageId) throws SQLException {
-        try (
-                java.sql.Connection conn = PostgresConnection.getConnection();
-                java.sql.PreparedStatement pstmt = conn.prepareStatement(findConvoyIdByCarriageIdQuery)
-        ) {
-            pstmt.setInt(1, carriageId);
-            try (java.sql.ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt("id_convoy");
-                }
-            }
-        } catch (SQLException e) {
-            throw new SQLException("Error finding convoyId for carriageId: " + carriageId, e);
-        }
-        return null;
     }
 
     @Override

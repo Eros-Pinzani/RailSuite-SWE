@@ -21,15 +21,6 @@ public interface CarriageDepotDao {
     }
 
     /**
-     * Retrieves a CarriageDepot relation by depot and carriage id.
-     * @param idDepot the depot id
-     * @param idCarriage the carriage id
-     * @return the CarriageDepot object, or null if not found
-     * @throws SQLException if a database access error occurs
-     */
-    CarriageDepot getCarriageDepot(int idDepot, int idCarriage) throws SQLException;
-
-    /**
      * Retrieves all CarriageDepot relations for a given depot.
      * @param idDepot the depot id
      * @return a list of CarriageDepot objects
@@ -45,20 +36,6 @@ public interface CarriageDepotDao {
     void insertCarriageDepot(CarriageDepot carriageDepot) throws SQLException;
 
     /**
-     * Updates an existing CarriageDepot relation.
-     * @param carriageDepot the CarriageDepot object to update
-     * @throws SQLException if a database access error occurs
-     */
-    void updateCarriageDepot(CarriageDepot carriageDepot) throws SQLException;
-
-    /**
-     * Deletes a CarriageDepot relation.
-     * @param carriageDepot the CarriageDepot object to delete
-     * @throws SQLException if a database access error occurs
-     */
-    void deleteCarriageDepot(CarriageDepot carriageDepot) throws SQLException;
-
-    /**
      * Updates the status of carriages in depot and returns all available carriages (AVAILABLE, without id_convoy)
      * for a specific station and type, in a single query.
      * @param idStation the station id
@@ -67,13 +44,6 @@ public interface CarriageDepotDao {
      * @throws SQLException if a database access error occurs
      */
     List<domain.Carriage> findAvailableCarriagesForConvoy(int idStation, String modelType) throws SQLException;
-
-    /**
-     * Deletes all depot relations for a specific carriage (used when the carriage is assigned to a convoy).
-     * @param idCarriage the carriage id
-     * @throws SQLException if a database access error occurs
-     */
-    void deleteCarriageDepotByCarriage(int idCarriage) throws SQLException;
 
     /**
      * Deletes the depot relation only if the carriage is in AVAILABLE state.
@@ -89,15 +59,6 @@ public interface CarriageDepotDao {
      * @throws SQLException if a database access error occurs
      */
     List<CarriageDepotDTO> findCarriagesWithDepotStatusByConvoy(int idConvoy) throws SQLException;
-
-    /**
-     * Returns all carriages available for addition to a convoy (same type, in depot, AVAILABLE, without id_convoy).
-     * @param idStation the station id
-     * @param modelType the model type
-     * @return a list of available Carriage objects
-     * @throws SQLException if a database access error occurs
-     */
-    List<domain.Carriage> findAvailableCarriagesForConvoyAdd(int idStation, String modelType) throws SQLException;
 
     /**
      * Returns all model types of available carriages (in depot, AVAILABLE, without id_convoy) for a station, in a single query.

@@ -76,20 +76,4 @@ class LineDaoImp implements LineDao {
         }
         return lines;
     }
-
-    @Override
-    public List<Line> findByStation(int idStation) throws SQLException {
-        List<Line> lines = new ArrayList<>();
-        // SQL query to select lines by station id.
-        String sql = "SELECT DISTINCT id_line FROM line_station WHERE id_station = ?";
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idStation);
-            ResultSet rs = stmt.executeQuery();
-            while (rs.next()) {
-                lines.add(findById(rs.getInt("id_line")));
-            }
-        }
-        return lines;
-    }
 }

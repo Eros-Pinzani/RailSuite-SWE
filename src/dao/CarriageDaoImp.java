@@ -18,11 +18,6 @@ class CarriageDaoImp implements CarriageDao {
     private static final String selectCarriageQuery =
             "SELECT id_carriage, model, model_type, year_produced, capacity FROM carriage WHERE id_carriage = ?";
     /**
-     * SQL query to select all carriages.
-     */
-    private static final String selectAllCarriageQuery =
-            "SELECT id_carriage, model, model_type, year_produced, capacity FROM carriage";
-    /**
      * SQL query to select carriages by convoy id.
      */
     private static final String selectCarriagesByConvoyIdQuery =
@@ -52,23 +47,6 @@ class CarriageDaoImp implements CarriageDao {
             throw new SQLException("Error finding carriage by id: " + id, e);
         }
         return null;
-    }
-
-    @Override
-    public List<Carriage> selectAllCarriages() throws SQLException {
-        List<Carriage> results = new ArrayList<>();
-        try (
-                Connection conn = PostgresConnection.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(selectAllCarriageQuery);
-                ResultSet rs = pstmt.executeQuery()
-        ) {
-            while (rs.next()) {
-                results.add(CarriageMapper.toDomain(rs));
-            }
-        } catch (SQLException e) {
-            throw new SQLException("Error finding all carriages:", e);
-        }
-        return results;
     }
 
     @Override

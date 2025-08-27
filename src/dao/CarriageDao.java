@@ -27,13 +27,6 @@ public interface CarriageDao {
     Carriage selectCarriage(int id) throws SQLException;
 
     /**
-     * Retrieves all carriages from the database.
-     * @return a list of all Carriage objects
-     * @throws SQLException if a database access error occurs
-     */
-    List<Carriage> selectAllCarriages() throws SQLException;
-
-    /**
      * Retrieves all carriages assigned to a specific convoy.
      * @param convoyId the id of the convoy
      * @return a list of Carriage objects assigned to the convoy

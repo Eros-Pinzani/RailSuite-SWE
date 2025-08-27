@@ -147,7 +147,9 @@ public class CreateRunController {
                     setText(empty || item == null ? null : item.getStaffNameSurname());
                 }
             });
-            departureTimePicker.setItems(FXCollections.observableArrayList(createRunService.getAvailableDepartureTimes()));
+            // Popola la ComboBox degli orari in base alla data selezionata (default: oggi)
+            LocalDate selectedDate = datePicker.getValue() != null ? datePicker.getValue() : LocalDate.now();
+            departureTimePicker.setItems(FXCollections.observableArrayList(createRunService.getAvailableDepartureTimes(selectedDate)));
             convoyComboBox.setCellFactory(lv -> new ListCell<Convoy>() {
                 @Override
                 protected void updateItem(Convoy item, boolean empty) {
@@ -173,7 +175,13 @@ public class CreateRunController {
         lineComboBox.setOnAction(e -> onLineSelected());
         startStationComboHandler = e -> updatePoolsAvailability();
         startStationComboBox.setOnAction(startStationComboHandler);
-        datePicker.setOnAction(e -> updatePoolsAvailability());
+        // Aggiorna la ComboBox degli orari quando cambia la data
+        datePicker.setOnAction(e -> {
+            LocalDate selectedDate = datePicker.getValue();
+            departureTimePicker.setItems(FXCollections.observableArrayList(createRunService.getAvailableDepartureTimes(selectedDate)));
+            departureTimePicker.getSelectionModel().clearSelection();
+            updatePoolsAvailability();
+        });
         departureTimePicker.setOnAction(e -> updatePoolsAvailability());
 
         // Second set of filters

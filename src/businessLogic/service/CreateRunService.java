@@ -119,12 +119,21 @@ public class CreateRunService {
         };
     }
 
-    public List<String> getAvailableDepartureTimes() {
+    public List<String> getAvailableDepartureTimes(LocalDate selectedDate) {
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("HH:mm");
-        java.time.LocalTime now = java.time.LocalTime.now();
-        java.time.LocalTime start = now.withMinute((now.getMinute() / 15) * 15).plusMinutes(15);
+        java.time.LocalTime start;
         java.time.LocalTime end = java.time.LocalTime.of(22, 0);
         List<String> times = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+        if (selectedDate != null && selectedDate.isAfter(today)) {
+            start = java.time.LocalTime.of(6, 0);
+        } else {
+            java.time.LocalTime now = java.time.LocalTime.now();
+            start = now.withMinute((now.getMinute() / 15) * 15).plusMinutes(15);
+            if (start.isBefore(java.time.LocalTime.of(6, 0))) {
+                start = java.time.LocalTime.of(6, 0);
+            }
+        }
         for (java.time.LocalTime time = start; !time.isAfter(end); time = time.plusMinutes(15)) {
             times.add(time.format(formatter));
         }

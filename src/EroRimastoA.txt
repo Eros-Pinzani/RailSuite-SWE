@@ -1,16 +1,14 @@
 Devs_leo ore 23:27 del 10/08 :)
 
 
-todo Line deve diventare LineRaw
- todo TimeTableDTO deve andare nel domain non più un DTO con al suo interno oggetti di tipo LineStation con gli orari da implementare.
+todo TimeTableDTO deve andare nel domain non più un DTO con al suo interno oggetti di tipo LineStation con gli orari da implementare.
 
 Devs_leo ore 16:06 del 17/08/2025
 
 
 Controllare ogni volta che venga creato o modificata una run che il DB si aggiorni.
 
-todo togliere pulsante in rundetails
-todo fix selezione manageRun
-todo fix orario (dovrei averlo fixato, per testarlo prima va risolto il problema dei tempi tra una stazione e l'altra), warning assenza convoglio o personale, update del convoglio o personale in createRun
+todo fix logica orairio in TimeTable
+todo fix warning assenza convoglio o personale, update del convoglio o personale in createRun
 todo BUG quando crei la corsa la scena non cambia
 

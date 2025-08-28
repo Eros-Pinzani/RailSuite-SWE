@@ -73,15 +73,21 @@ public interface ConvoyDao {
      */
     class ConvoyAssignedRow {
         public final int convoyId;
+        public final int idLine;
+        public final int idStaff;
+        public final int idFirstStation;
+        public final java.sql.Timestamp timeDeparture;
         public final String departureStation;
-        public final String departureTime;
         public final String arrivalStation;
         public final String arrivalTime;
 
-        public ConvoyAssignedRow(int convoyId, String departureStation, String departureTime, String arrivalStation, String arrivalTime) {
+        public ConvoyAssignedRow(int convoyId, int idLine, int idStaff, int idFirstStation, java.sql.Timestamp timeDeparture, String departureStation, String arrivalStation, String arrivalTime) {
             this.convoyId = convoyId;
+            this.idLine = idLine;
+            this.idStaff = idStaff;
+            this.idFirstStation = idFirstStation;
+            this.timeDeparture = timeDeparture;
             this.departureStation = departureStation;
-            this.departureTime = departureTime;
             this.arrivalStation = arrivalStation;
             this.arrivalTime = arrivalTime;
         }

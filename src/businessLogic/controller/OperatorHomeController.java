@@ -56,7 +56,7 @@ public class OperatorHomeController {
     private void setupTableColumns() {
         convoyIdColumn.setCellValueFactory(data -> new SimpleStringProperty(String.valueOf(data.getValue().convoyId)));
         departureStationColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().departureStation));
-        departureTimeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().departureTime));
+        departureTimeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().timeDeparture != null ? data.getValue().timeDeparture.toString() : ""));
         arrivalStationColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().arrivalStation));
         arrivalTimeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().arrivalTime));
         detailsColumn.setCellFactory(_ -> new javafx.scene.control.TableCell<>() {
@@ -65,7 +65,7 @@ public class OperatorHomeController {
                 btn.setOnAction(_ -> {
                     OperatorHomeService.AssignedConvoyInfo data = getTableView().getItems().get(getIndex());
                     if (data != null) {
-                        openConvoyDetailsScene(data);
+                        openRunDetailsScene(data);
                     }
                 });
             }
@@ -127,5 +127,16 @@ public class OperatorHomeController {
     private void openConvoyDetailsScene(OperatorHomeService.AssignedConvoyInfo info) {
         businessLogic.controller.ConvoyDetailsController.setStaticConvoyInfo(info);
         SceneManager.getInstance().switchScene("/businessLogic/fxml/ConvoyDetails.fxml");
+    }
+
+    private void openRunDetailsScene(OperatorHomeService.AssignedConvoyInfo info) {
+        // Apri la schermata dettagli corsa con i parametri corretti
+        SceneManager.getInstance().openRunDetailsScene(
+            info.idLine,
+            info.convoyId,
+            info.idStaff,
+            info.timeDeparture,
+            info.idFirstStation
+        );
     }
 }

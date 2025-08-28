@@ -274,7 +274,7 @@ class ConvoyDaoImp implements ConvoyDao {
     @Override
     public List<ConvoyDao.ConvoyAssignedRow> selectAssignedConvoysRowsByStaff(int staffId) throws SQLException {
         List<ConvoyDao.ConvoyAssignedRow> result = new ArrayList<>();
-        String sql = "SELECT r.id_convoy, s1.location AS departure_station, r.time_departure, s2.location AS arrival_station, r.time_arrival " +
+        String sql = "SELECT r.id_convoy, r.id_line, r.id_staff, r.id_first_station, s1.location AS departure_station, r.time_departure, s2.location AS arrival_station, r.time_arrival " +
                 "FROM run r " +
                 "JOIN station s1 ON r.id_first_station = s1.id_station " +
                 "JOIN station s2 ON r.id_last_station = s2.id_station " +
@@ -287,14 +287,20 @@ class ConvoyDaoImp implements ConvoyDao {
             try (java.sql.ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     int convoyId = rs.getInt("id_convoy");
+                    int idLine = rs.getInt("id_line");
+                    int idStaff = rs.getInt("id_staff");
+                    int idFirstStation = rs.getInt("id_first_station");
+                    java.sql.Timestamp timeDeparture = rs.getTimestamp("time_departure");
                     String departureStation = rs.getString("departure_station");
-                    String departureTime = rs.getString("time_departure");
                     String arrivalStation = rs.getString("arrival_station");
                     String arrivalTime = rs.getString("time_arrival");
                     result.add(new ConvoyDao.ConvoyAssignedRow(
                             convoyId,
+                            idLine,
+                            idStaff,
+                            idFirstStation,
+                            timeDeparture,
                             departureStation != null ? departureStation : "",
-                            departureTime != null ? departureTime : "",
                             arrivalStation != null ? arrivalStation : "",
                             arrivalTime != null ? arrivalTime : ""
                     ));

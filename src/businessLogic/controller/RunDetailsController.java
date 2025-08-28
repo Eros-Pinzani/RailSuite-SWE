@@ -264,8 +264,10 @@ public class RunDetailsController implements Initializable {
             if (timeTable != null) {
                 timeTableView.getItems().clear();
                 timeTableView.setItems(FXCollections.observableArrayList(timeTable.getStationArrAndDepList()));
-                timeTableDetailSection.setVisible(false);
-                timeTableDetailSection.setManaged(false);
+                timeTableView.refresh();
+                // Forza la visibilità della sezione orari
+                timeTableDetailSection.setVisible(true);
+                timeTableDetailSection.setManaged(true);
             } else {
                 logger.warning("Tabella orari non disponibile");
             }

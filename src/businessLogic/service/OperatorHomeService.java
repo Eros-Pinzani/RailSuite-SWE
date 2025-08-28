@@ -1,9 +1,9 @@
 package businessLogic.service;
 
 import dao.ConvoyDao;
+import dao.LineStationDao;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Service for operator home functionalities.
@@ -13,15 +13,21 @@ public class OperatorHomeService {
 
     public static class AssignedConvoyInfo {
         public int convoyId;
+        public int idLine;
+        public int idStaff;
+        public int idFirstStation;
+        public java.sql.Timestamp timeDeparture;
         public String departureStation;
-        public String departureTime;
         public String arrivalStation;
         public String arrivalTime;
 
-        public AssignedConvoyInfo(int convoyId, String departureStation, String departureTime, String arrivalStation, String arrivalTime) {
+        public AssignedConvoyInfo(int convoyId, int idLine, int idStaff, int idFirstStation, java.sql.Timestamp timeDeparture, String departureStation, String arrivalStation, String arrivalTime) {
             this.convoyId = convoyId;
+            this.idLine = idLine;
+            this.idStaff = idStaff;
+            this.idFirstStation = idFirstStation;
+            this.timeDeparture = timeDeparture;
             this.departureStation = departureStation;
-            this.departureTime = departureTime;
             this.arrivalStation = arrivalStation;
             this.arrivalTime = arrivalTime;
         }
@@ -35,9 +41,39 @@ public class OperatorHomeService {
      */
     public List<AssignedConvoyInfo> getAssignedConvoysForOperator(int staffId) throws SQLException {
         ConvoyDao dao = ConvoyDao.of();
+        LineStationDao lineStationDao = LineStationDao.of();
         List<ConvoyDao.ConvoyAssignedRow> rows = dao.selectAssignedConvoysRowsByStaff(staffId);
+        java.time.LocalDate today = java.time.LocalDate.now();
         return rows.stream()
-            .map(r -> new AssignedConvoyInfo(r.convoyId, r.departureStation, r.departureTime, r.arrivalStation, r.arrivalTime))
-            .collect(Collectors.toList());
+            .filter(r -> {
+                try {
+                    java.time.LocalDate depDate = r.timeDeparture.toLocalDateTime().toLocalDate();
+                    return !depDate.isBefore(today);
+                } catch (Exception e) {
+                    return false;
+                }
+            })
+            .map(r -> {
+                String arrivalTime = r.arrivalTime;
+                try {
+                    // Calcolo l'orario di arrivo reale tramite la logica TimeTable
+                    String depTimeStr = r.timeDeparture.toLocalDateTime().toLocalTime().toString();
+                    List<domain.TimeTable.StationArrAndDep> timeTable = lineStationDao.findTimeTableForRun(r.idLine, r.idFirstStation, depTimeStr);
+                    if (timeTable != null && !timeTable.isEmpty()) {
+                        String lastArr = timeTable.get(timeTable.size() - 1).getArriveTime();
+                        if (lastArr != null && !lastArr.isBlank() && !lastArr.equals("------")) {
+                            // Formatto l'orario di arrivo con la stessa data della partenza
+                            java.time.LocalDate depDate = r.timeDeparture.toLocalDateTime().toLocalDate();
+                            java.time.LocalTime arrTime = java.time.LocalTime.parse(lastArr);
+                            java.time.LocalDateTime arrDateTime = java.time.LocalDateTime.of(depDate, arrTime);
+                            arrivalTime = arrDateTime.toString().replace('T', ' ');
+                        }
+                    }
+                } catch (Exception e) {
+                    // In caso di errore, fallback su quello del DB
+                }
+                return new AssignedConvoyInfo(r.convoyId, r.idLine, r.idStaff, r.idFirstStation, r.timeDeparture, r.departureStation, r.arrivalStation, arrivalTime);
+            })
+            .collect(java.util.stream.Collectors.toList());
     }
 }

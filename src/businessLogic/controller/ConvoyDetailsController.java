@@ -3,6 +3,8 @@ package businessLogic.controller;
 import businessLogic.service.ConvoyDetailsService;
 import businessLogic.service.ConvoyDetailsService.StationRow;
 import businessLogic.service.OperatorHomeService.AssignedConvoyInfo;
+import businessLogic.service.NotificationService;
+import java.sql.Timestamp;
 
 import domain.Staff;
 import javafx.collections.FXCollections;
@@ -45,6 +47,7 @@ public class ConvoyDetailsController {
     private final ConvoyDetailsService convoyDetailsService = new ConvoyDetailsService();
     private AssignedConvoyInfo convoyInfo;
     private static AssignedConvoyInfo staticConvoyInfo;
+    private NotificationService notificationService = new NotificationService();
 
     // Mappa: idCarrozza -> Set dei tipi di segnalazione già fatte ("MAINTENANCE", "CLEANING")
     private final java.util.Map<Integer, java.util.Set<String>> notifiedTypesByCarriage = new java.util.HashMap<>();
@@ -255,9 +258,18 @@ public class ConvoyDetailsController {
      * @param carriage la carrozza selezionata
      */
     private void handleTechnicalIssue(domain.Carriage carriage) {
-        convoyDetailsService.sendNotificationTechnicalIssue(carriage, convoyInfo);
-        notifiedTypesByCarriage.computeIfAbsent(carriage.getId(), k -> new java.util.HashSet<>()).add("MAINTENANCE");
-        if (carriageTable != null) carriageTable.refresh();
+        Staff staff = UserSession.getInstance().getStaff();
+        if (staff == null || convoyInfo == null || carriage == null) return;
+        notificationService.addNotification(
+            carriage.getId(),
+            carriage.getModelType(),
+            convoyInfo.convoyId,
+            "MAINTENANCE",
+            new Timestamp(System.currentTimeMillis()),
+            staff.getIdStaff(),
+            staff.getName(),
+            staff.getSurname()
+        );
     }
 
     /**
@@ -265,8 +277,17 @@ public class ConvoyDetailsController {
      * @param carriage la carrozza selezionata
      */
     private void handleCleaning(domain.Carriage carriage) {
-        convoyDetailsService.sendNotificationCleaning(carriage, convoyInfo);
-        notifiedTypesByCarriage.computeIfAbsent(carriage.getId(), k -> new java.util.HashSet<>()).add("CLEANING");
-        if (carriageTable != null) carriageTable.refresh();
+        Staff staff = UserSession.getInstance().getStaff();
+        if (staff == null || convoyInfo == null || carriage == null) return;
+        notificationService.addNotification(
+            carriage.getId(),
+            carriage.getModelType(),
+            convoyInfo.convoyId,
+            "CLEANING",
+            new Timestamp(System.currentTimeMillis()),
+            staff.getIdStaff(),
+            staff.getName(),
+            staff.getSurname()
+        );
     }
 }

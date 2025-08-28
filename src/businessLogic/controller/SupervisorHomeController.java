@@ -5,6 +5,7 @@ package businessLogic.controller;
  * Handles supervisor navigation and dashboard actions.
  */
 import businessLogic.service.NotificationService;
+import businessLogic.service.NotificationObserver;
 import dao.NotificationDao;
 import domain.Notification;
 import domain.Staff;
@@ -22,7 +23,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import javafx.beans.property.SimpleStringProperty;
 
-public class SupervisorHomeController {
+public class SupervisorHomeController implements NotificationObserver {
     @FXML
     private MenuItem logoutMenuItem;
     @FXML
@@ -46,6 +47,9 @@ public class SupervisorHomeController {
     private Button gestioneCorseButton;
     @FXML
     private Button gestioneConvogliButton;
+
+    private NotificationService notificationService;
+    private ObservableList<NotificationRow> data = FXCollections.observableArrayList();
 
     public static class NotificationRow {
         private final SimpleStringProperty typeOfCarriage;
@@ -103,8 +107,10 @@ public class SupervisorHomeController {
             }
         });
 
-        ObservableList<NotificationRow> data = FXCollections.observableArrayList();
-        NotificationService notificationService = new NotificationService();
+        notificationService = new NotificationService();
+        notificationService.addObserver(this);
+
+        data.clear();
         List<Notification> notifications = notificationService.getAllNotifications();
         for (Notification n : notifications) {
             data.add(new NotificationRow(
@@ -147,5 +153,16 @@ public class SupervisorHomeController {
      */
     private void handleExit() {
         javafx.application.Platform.exit();
+    }
+
+    @Override
+    public void onNotificationAdded(Notification notification) {
+        data.add(new NotificationRow(
+            notification.getTypeOfCarriage(),
+            notification.getDateTimeOfNotification().toString(),
+            notification.getStaffSurname(),
+            notification.getTypeOfNotification()
+        ));
+        adjustTableHeight();
     }
 }

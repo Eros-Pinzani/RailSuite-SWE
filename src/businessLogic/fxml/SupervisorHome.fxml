@@ -31,6 +31,8 @@
                         <TableColumn fx:id="convoyIdColumn" text="Id Convoglio" />
                         <TableColumn fx:id="stationColumn" text="Stazione" />
                         <TableColumn fx:id="typeColumn" text="Tipo di notifica" />
+                        <TableColumn fx:id="dateTimeColumn" text="Data/Ora" />
+                        <TableColumn fx:id="manageColumn" text="Gestisci" />
                         <TableColumn fx:id="approveColumn" text="Approva" />
                         <TableColumn fx:id="denyColumn" text="Nega" />
                     </columns>

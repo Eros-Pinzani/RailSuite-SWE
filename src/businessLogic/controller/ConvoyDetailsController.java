@@ -46,6 +46,9 @@ public class ConvoyDetailsController {
     private AssignedConvoyInfo convoyInfo;
     private static AssignedConvoyInfo staticConvoyInfo;
 
+    // Mappa: idCarrozza -> Set dei tipi di segnalazione già fatte ("MAINTENANCE", "CLEANING")
+    private final java.util.Map<Integer, java.util.Set<String>> notifiedTypesByCarriage = new java.util.HashMap<>();
+
     /**
      * Sets the static convoy info to be used when initializing the details view.
      * @param info The AssignedConvoyInfo object containing convoy details.
@@ -90,14 +93,26 @@ public class ConvoyDetailsController {
 
         if (notifyColumn != null) {
             notifyColumn.setCellFactory(col -> new TableCell<domain.Carriage, Void>() {
-                private final Button btnGuasto = new Button("Guasto tecnico");
-                private final Button btnPulizie = new Button("Pulizie");
-                private final HBox box = new HBox(10, btnGuasto, btnPulizie);
+                private final Button btnTechnicalIssue = new Button("Guasto tecnico");
+                private final Button btnCleaning = new Button("Pulizia");
+                private final HBox box = new HBox(10, btnTechnicalIssue, btnCleaning);
                 {
-                    btnGuasto.setStyle("-fx-background-color: #e57373; -fx-text-fill: white;");
-                    btnPulizie.setStyle("-fx-background-color: #64b5f6; -fx-text-fill: white;");
-                    btnGuasto.setFocusTraversable(false);
-                    btnPulizie.setFocusTraversable(false);
+                    btnTechnicalIssue.setStyle("-fx-background-color: #e57373; -fx-text-fill: white;");
+                    btnCleaning.setStyle("-fx-background-color: #64b5f6; -fx-text-fill: white;");
+                    btnTechnicalIssue.setFocusTraversable(false);
+                    btnCleaning.setFocusTraversable(false);
+                    btnTechnicalIssue.setOnAction(e -> {
+                        domain.Carriage carriage = getTableView().getItems().get(getIndex());
+                        handleTechnicalIssue(carriage);
+                        notifiedTypesByCarriage.computeIfAbsent(carriage.getId(), k -> new java.util.HashSet<>()).add("MAINTENANCE");
+                        getTableView().refresh();
+                    });
+                    btnCleaning.setOnAction(e -> {
+                        domain.Carriage carriage = getTableView().getItems().get(getIndex());
+                        handleCleaning(carriage);
+                        notifiedTypesByCarriage.computeIfAbsent(carriage.getId(), k -> new java.util.HashSet<>()).add("CLEANING");
+                        getTableView().refresh();
+                    });
                 }
                 @Override
                 protected void updateItem(Void item, boolean empty) {
@@ -105,6 +120,38 @@ public class ConvoyDetailsController {
                     if (empty) {
                         setGraphic(null);
                     } else {
+                        domain.Carriage carriage = getTableView().getItems().get(getIndex());
+                        java.util.Set<String> notified = notifiedTypesByCarriage.getOrDefault(carriage.getId(), java.util.Collections.emptySet());
+                        boolean technicalNotified = notified.contains("MAINTENANCE");
+                        boolean cleaningNotified = notified.contains("CLEANING");
+                        boolean inRun = false;
+                        if (convoyInfo != null && convoyInfo.timeDeparture != null && convoyInfo.arrivalTime != null) {
+                            try {
+                                java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                                java.time.LocalDateTime dep = convoyInfo.timeDeparture.toLocalDateTime();
+                                java.time.LocalDateTime arr;
+                                try {
+                                    arr = java.time.LocalDateTime.parse(convoyInfo.arrivalTime.replace(' ', 'T'));
+                                } catch (Exception e) {
+                                    arr = dep.plusHours(1);
+                                }
+                                inRun = (now.isEqual(dep) || now.isAfter(dep)) && (now.isBefore(arr) || now.isEqual(arr));
+                            } catch (Exception e) {
+                                inRun = false;
+                            }
+                        }
+                        btnTechnicalIssue.setDisable(!inRun || technicalNotified);
+                        btnCleaning.setDisable(!inRun || cleaningNotified);
+                        if (!inRun || technicalNotified) {
+                            btnTechnicalIssue.setStyle("-fx-background-color: #cccccc; -fx-text-fill: #888888;");
+                        } else {
+                            btnTechnicalIssue.setStyle("-fx-background-color: #e57373; -fx-text-fill: white;");
+                        }
+                        if (!inRun || cleaningNotified) {
+                            btnCleaning.setStyle("-fx-background-color: #cccccc; -fx-text-fill: #888888;");
+                        } else {
+                            btnCleaning.setStyle("-fx-background-color: #64b5f6; -fx-text-fill: white;");
+                        }
                         setGraphic(box);
                     }
                 }
@@ -169,6 +216,24 @@ public class ConvoyDetailsController {
         if (arrivalTimeLabel != null) arrivalTimeLabel.setText(dto.arrivalTime);
         if (carriageTable != null) carriageTable.setItems(FXCollections.observableArrayList(dto.carriages));
         if (stationTable != null) stationTable.setItems(FXCollections.observableArrayList(dto.stationRows));
+
+        // Recupera le notifiche dal DB e aggiorna la mappa notifiedTypesByCarriage
+        try {
+            java.util.List<domain.Notification> notifications = dao.NotificationDao.of().getAllNotifications();
+            notifiedTypesByCarriage.clear();
+            for (domain.Notification n : notifications) {
+                if (n.getIdConvoy() == Integer.parseInt(dto.convoyId)) {
+                    String type = n.getTypeOfNotification();
+                    if (type != null) type = type.trim().toUpperCase();
+                    if ("MAINTENANCE".equals(type) || "CLEANING".equals(type)) {
+                        notifiedTypesByCarriage.computeIfAbsent(n.getIdCarriage(), k -> new java.util.HashSet<>()).add(type);
+                    }
+                }
+            }
+            if (carriageTable != null) carriageTable.refresh();
+        } catch (Exception e) {
+            // In caso di errore, ignora e lascia la mappa vuota
+        }
     }
 
     /**
@@ -183,5 +248,25 @@ public class ConvoyDetailsController {
      */
     private void handleExit() {
         javafx.application.Platform.exit();
+    }
+
+    /**
+     * Gestisce la segnalazione di un guasto tecnico per una carrozza.
+     * @param carriage la carrozza selezionata
+     */
+    private void handleTechnicalIssue(domain.Carriage carriage) {
+        convoyDetailsService.sendNotificationTechnicalIssue(carriage, convoyInfo);
+        notifiedTypesByCarriage.computeIfAbsent(carriage.getId(), k -> new java.util.HashSet<>()).add("MAINTENANCE");
+        if (carriageTable != null) carriageTable.refresh();
+    }
+
+    /**
+     * Gestisce la segnalazione di necessità di pulizie per una carrozza.
+     * @param carriage la carrozza selezionata
+     */
+    private void handleCleaning(domain.Carriage carriage) {
+        convoyDetailsService.sendNotificationCleaning(carriage, convoyInfo);
+        notifiedTypesByCarriage.computeIfAbsent(carriage.getId(), k -> new java.util.HashSet<>()).add("CLEANING");
+        if (carriageTable != null) carriageTable.refresh();
     }
 }

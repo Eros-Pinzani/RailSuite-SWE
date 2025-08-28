@@ -4,3 +4,5 @@ todo fix warning assenza convoglio o personale, update del convoglio o personale
 todo BUG quando crei la corsa la scena non cambia
 
 todo sistema facade e usa tutti i metodi dai service li
+
+todo spostare dal dao tutto ciò che può andare nel mapper

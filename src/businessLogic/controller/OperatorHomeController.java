@@ -65,7 +65,7 @@ public class OperatorHomeController {
                 btn.setOnAction(_ -> {
                     OperatorHomeService.AssignedConvoyInfo data = getTableView().getItems().get(getIndex());
                     if (data != null) {
-                        openRunDetailsScene(data);
+                        openConvoyDetailsScene(data);
                     }
                 });
             }

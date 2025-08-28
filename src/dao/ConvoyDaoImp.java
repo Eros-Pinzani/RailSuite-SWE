@@ -196,6 +196,7 @@ class ConvoyDaoImp implements ConvoyDao {
         raw.convoyId = id;
         raw.lineName = "";
         raw.staffName = "";
+        raw.idStaff = -1;
         raw.departureStation = "";
         raw.departureTime = "";
         raw.arrivalStation = "";
@@ -207,20 +208,20 @@ class ConvoyDaoImp implements ConvoyDao {
                 java.sql.Connection conn = PostgresConnection.getConnection();
                 java.sql.PreparedStatement stmt = conn.prepareStatement(
                         "SELECT ca.id_carriage, ca.model, ca.model_type, ca.year_produced, ca.capacity, " +
-                                "l.id_line, l.name AS line_name, s.id_station, s.location AS station_name, ls.station_order, " +
-                                "r.time_departure, r.time_arrival, stf.name AS staff_name, stf.surname AS staff_surname, " +
-                                "r.id_first_station, r.id_last_station, s2.location AS departure_station, s3.location AS arrival_station " +
-                                "FROM convoy c " +
-                                "LEFT JOIN carriage ca ON ca.id_convoy = c.id_convoy " +
-                                "LEFT JOIN run r ON r.id_convoy = c.id_convoy " +
-                                "LEFT JOIN staff stf ON stf.id_staff = r.id_staff " +
-                                "LEFT JOIN line l ON l.id_line = r.id_line " +
-                                "LEFT JOIN line_station ls ON ls.id_line = l.id_line " +
-                                "LEFT JOIN station s ON s.id_station = ls.id_station " +
-                                "LEFT JOIN station s2 ON s2.id_station = r.id_first_station " +
-                                "LEFT JOIN station s3 ON s3.id_station = r.id_last_station " +
-                                "WHERE c.id_convoy = ? " +
-                                "ORDER BY ls.station_order"
+                        "l.id_line, l.name AS line_name, s.id_station, s.location AS station_name, ls.station_order, " +
+                        "r.time_departure, r.time_arrival, stf.name AS staff_name, stf.surname AS staff_surname, stf.id_staff, " +
+                        "r.id_first_station, r.id_last_station, s2.location AS departure_station, s3.location AS arrival_station " +
+                        "FROM convoy c " +
+                        "LEFT JOIN carriage ca ON ca.id_convoy = c.id_convoy " +
+                        "LEFT JOIN run r ON r.id_convoy = c.id_convoy " +
+                        "LEFT JOIN staff stf ON stf.id_staff = r.id_staff " +
+                        "LEFT JOIN line l ON l.id_line = r.id_line " +
+                        "LEFT JOIN line_station ls ON ls.id_line = l.id_line " +
+                        "LEFT JOIN station s ON s.id_station = ls.id_station " +
+                        "LEFT JOIN station s2 ON s2.id_station = r.id_first_station " +
+                        "LEFT JOIN station s3 ON s3.id_station = r.id_last_station " +
+                        "WHERE c.id_convoy = ? " +
+                        "ORDER BY ls.station_order"
                 )
         ) {
             stmt.setInt(1, id);
@@ -262,6 +263,9 @@ class ConvoyDaoImp implements ConvoyDao {
                         stationRows.add(new businessLogic.service.ConvoyDetailsService.StationRow(
                                 stationName, "", ""
                         ));
+                    }
+                    if (raw.idStaff == -1 && rs.getInt("id_staff") > 0) {
+                        raw.idStaff = rs.getInt("id_staff");
                     }
                 }
             }

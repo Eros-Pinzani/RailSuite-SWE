@@ -8,7 +8,7 @@ import java.util.List;
 
 class NotificationDaoImp implements NotificationDao {
     private static final String allNotificationsQuery = """
-            SELECT n.id_carriage, n.id_convoy, n.notify_time, n.work_type, n.id_staff, s.name, s.surname, c.model_type
+            SELECT n.id_carriage, n.id_convoy, n.notify_time, n.work_type, n.id_staff, s.name, s.surname, c.model
             FROM notification n JOIN staff s on s.id_staff = n.id_staff JOIN carriage c on c.id_carriage = n.id_carriage
             """;
 
@@ -49,7 +49,7 @@ class NotificationDaoImp implements NotificationDao {
     private Notification resultSetToNotification(ResultSet rs) throws SQLException {
         return Notification.of(
                 rs.getInt("id_carriage"),
-                rs.getString("model_type"),
+                rs.getString("model"),
                 rs.getInt("id_convoy"),
                 rs.getString("work_type"),
                 rs.getTimestamp("notify_time"),

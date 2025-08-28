@@ -4,17 +4,23 @@ package businessLogic.controller;
  * Controller for the Supervisor Home screen.
  * Handles supervisor navigation and dashboard actions.
  */
+import businessLogic.service.NotificationService;
+import dao.NotificationDao;
+import domain.Notification;
 import domain.Staff;
 import javafx.fxml.FXML;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import java.sql.Timestamp;
+import java.util.List;
+import javafx.beans.property.SimpleStringProperty;
 
 public class SupervisorHomeController {
     @FXML
@@ -27,50 +33,36 @@ public class SupervisorHomeController {
     @FXML
     private TableView<NotificationRow> notificationTable;
     @FXML
-    private TableColumn<NotificationRow, String> carriageIdColumn;
+    private TableColumn<NotificationRow, String> carriageTypeColumn;
     @FXML
-    private TableColumn<NotificationRow, String> convoyIdColumn;
+    private TableColumn<NotificationRow, String> dateTimeColumn;
     @FXML
-    private TableColumn<NotificationRow, String> stationColumn;
+    private TableColumn<NotificationRow, String> staffSurnameColumn;
     @FXML
     private TableColumn<NotificationRow, String> typeColumn;
     @FXML
-    private TableColumn<NotificationRow, Void> approveColumn;
-    @FXML
-    private TableColumn<NotificationRow, Void> denyColumn;
+    private TableColumn<NotificationRow, Void> manageColumn;
     @FXML
     private Button gestioneCorseButton;
     @FXML
     private Button gestioneConvogliButton;
 
-    public class NotificationRow {
-        private final String carriageId;
-        private final String convoyId;
-        private final String station;
-        private final String type;
+    public static class NotificationRow {
+        private final SimpleStringProperty typeOfCarriage;
+        private final SimpleStringProperty dateTimeOfNotification;
+        private final SimpleStringProperty staffSurname;
+        private final SimpleStringProperty typeOfNotification;
 
-        public NotificationRow(String carriageId, String convoyId, String station, String type) {
-            this.carriageId = carriageId;
-            this.convoyId = convoyId;
-            this.station = station;
-            this.type = type;
+        public NotificationRow(String typeOfCarriage, String dateTimeOfNotification, String staffSurname, String typeOfNotification) {
+            this.typeOfCarriage = new SimpleStringProperty(typeOfCarriage);
+            this.dateTimeOfNotification = new SimpleStringProperty(dateTimeOfNotification);
+            this.staffSurname = new SimpleStringProperty(staffSurname);
+            this.typeOfNotification = new SimpleStringProperty(typeOfNotification);
         }
-
-        public String getCarriageId() {
-            return carriageId;
-        }
-
-        public String getConvoyId() {
-            return convoyId;
-        }
-
-        public String getStation() {
-            return station;
-        }
-
-        public String getType() {
-            return type;
-        }
+        public String getTypeOfCarriage() { return typeOfCarriage.get(); }
+        public String getDateTimeOfNotification() { return dateTimeOfNotification.get(); }
+        public String getStaffSurname() { return staffSurname.get(); }
+        public String getTypeOfNotification() { return typeOfNotification.get(); }
     }
 
     /**
@@ -87,40 +79,23 @@ public class SupervisorHomeController {
         logoutMenuItem.setOnAction(_ -> handleLogout());
         exitMenuItem.setOnAction(_ -> handleExit());
 
-        carriageIdColumn.setReorderable(false);
-        convoyIdColumn.setReorderable(false);
-        stationColumn.setReorderable(false);
+        carriageTypeColumn.setReorderable(false);
+        dateTimeColumn.setReorderable(false);
+        staffSurnameColumn.setReorderable(false);
         typeColumn.setReorderable(false);
-        approveColumn.setReorderable(false);
-        denyColumn.setReorderable(false);
+        manageColumn.setReorderable(false);
 
-        carriageIdColumn.setCellValueFactory(new PropertyValueFactory<>("carriageId"));
-        convoyIdColumn.setCellValueFactory(new PropertyValueFactory<>("convoyId"));
-        stationColumn.setCellValueFactory(new PropertyValueFactory<>("station"));
-        typeColumn.setCellValueFactory(new PropertyValueFactory<>("type"));
+        carriageTypeColumn.setCellValueFactory(new PropertyValueFactory<>("typeOfCarriage"));
+        dateTimeColumn.setCellValueFactory(new PropertyValueFactory<>("dateTimeOfNotification"));
+        staffSurnameColumn.setCellValueFactory(new PropertyValueFactory<>("staffSurname"));
+        typeColumn.setCellValueFactory(new PropertyValueFactory<>("typeOfNotification"));
 
-        approveColumn.setCellFactory(col -> new TableCell<>() {
-            private final Button btn = new Button("Approva");
-
+        manageColumn.setCellFactory(col -> new TableCell<>() {
+            private final Button btn = new Button("Gestisci");
             {
-                btn.setStyle("-fx-background-color: #43a047; -fx-text-fill: white; -fx-font-weight: bold;");
-                btn.setOnAction(e -> {/* logica futura */});
+                btn.setStyle("-fx-background-color: #1976d2; -fx-text-fill: white; -fx-font-weight: bold;");
+                btn.setOnAction(e -> {/* logica futura per gestire la notifica */});
             }
-
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setGraphic(empty ? null : btn);
-            }
-        });
-        denyColumn.setCellFactory(col -> new TableCell<>() {
-            private final Button btn = new Button("Nega");
-
-            {
-                btn.setStyle("-fx-background-color: #e53935; -fx-text-fill: white; -fx-font-weight: bold;");
-                btn.setOnAction(e -> {/* logica futura */});
-            }
-
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
@@ -128,12 +103,18 @@ public class SupervisorHomeController {
             }
         });
 
-        ObservableList<NotificationRow> data = FXCollections.observableArrayList(
-                new NotificationRow("1", "A12", "Roma Termini", "Manutenzione"),
-                new NotificationRow("2", "B34", "Milano Centrale", "Pulizia")
-        );
+        ObservableList<NotificationRow> data = FXCollections.observableArrayList();
+        NotificationService notificationService = new NotificationService();
+        List<Notification> notifications = notificationService.getAllNotifications();
+        for (Notification n : notifications) {
+            data.add(new NotificationRow(
+                n.getTypeOfCarriage(),
+                n.getDateTimeOfNotification().toString(),
+                n.getStaffSurname(),
+                n.getTypeOfNotification()
+            ));
+        }
         notificationTable.setItems(data);
-
         notificationTable.getItems().addListener((javafx.collections.ListChangeListener<NotificationRow>) c -> adjustTableHeight());
         adjustTableHeight();
 

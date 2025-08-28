@@ -1,9 +1,3 @@
-Devs_leo ore 23:27 del 10/08 :)
-
-
-Devs_leo ore 16:06 del 17/08/2025
-
-
 Controllare ogni volta che venga creato o modificata una run che il DB si aggiorni.
 
 todo fix warning assenza convoglio o personale, update del convoglio o personale in createRun
@@ -11,3 +5,6 @@ todo BUG quando crei la corsa la scena non cambia
 
 todo sistema facade e usa tutti i metodi dai service li
 
+todo fare in mod oche nella sezione dell'app relativa all'operatore la lista si aggiorni in base al giorno:
+    devono essere visualizzati solo i treni a cui è assegnato dal giorno odierno in poi, quelli precedenti non devono
+    essere visibili. In realtà forse finito il giorno quei treni dovrebbero essere direttamente eliminati.

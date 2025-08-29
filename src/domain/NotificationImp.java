@@ -11,8 +11,9 @@ class NotificationImp implements Notification {
     private final int idStaff;
     private final String staffName;
     private final String staffSurname;
+    private final String status;
 
-    public NotificationImp(int idCarriage, String typeOfCarriage, int idConvoy, String typeOfNotification, Timestamp dateTimeOfNotification, int idStaff, String staffName, String staffSurname) {
+    public NotificationImp(int idCarriage, String typeOfCarriage, int idConvoy, String typeOfNotification, Timestamp dateTimeOfNotification, int idStaff, String staffName, String staffSurname, String status) {
         this.idCarriage = idCarriage;
         this.typeOfCarriage = typeOfCarriage;
         this.idConvoy = idConvoy;
@@ -21,6 +22,7 @@ class NotificationImp implements Notification {
         this.idStaff = idStaff;
         this.staffName = staffName;
         this.staffSurname = staffSurname;
+        this.status = status;
     }
 
     @Override
@@ -62,5 +64,9 @@ class NotificationImp implements Notification {
     public String getStaffSurname() {
         return staffSurname;
     }
-}
 
+    @Override
+    public String getStatus() {
+        return status;
+    }
+}

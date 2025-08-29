@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="businessLogic.controller.ManageNotificationPopupController" spacing="10" alignment="TOP_CENTER" prefWidth="500" prefHeight="400">
+    <Label text="Corse future associate alla carrozza" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 10 0 0 0;" />
+    <TableView fx:id="runTable" prefHeight="250" VBox.vgrow="NEVER">
+        <columns>
+            <TableColumn fx:id="convoyIdColumn" text="ID Convoglio" />
+            <TableColumn fx:id="dateColumn" text="Data" />
+            <TableColumn fx:id="staffSurnameColumn" text="Cognome Operatore" />
+        </columns>
+    </TableView>
+    <Label fx:id="noRunsLabel" text="Non sono state trovate corse future a cui la carrozza è assegnata" visible="false" style="-fx-text-fill: #b71c1c; -fx-font-weight: bold;" />
+    <HBox spacing="20" alignment="CENTER" style="-fx-padding: 20 0 0 0;">
+        <Button fx:id="approveButton" text="Approva" onAction="#handleApprove" style="-fx-background-color: #43a047; -fx-text-fill: white; -fx-font-weight: bold;" />
+        <Button fx:id="denyButton" text="Nega" onAction="#handleDeny" style="-fx-background-color: #e53935; -fx-text-fill: white; -fx-font-weight: bold;" />
+    </HBox>
+</VBox>

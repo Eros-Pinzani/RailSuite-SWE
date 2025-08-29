@@ -52,17 +52,23 @@ public class SupervisorHomeController implements NotificationObserver {
     private ObservableList<NotificationRow> data = FXCollections.observableArrayList();
 
     public static class NotificationRow {
+        private final Notification notification;
+        private final int idCarriage;
         private final SimpleStringProperty typeOfCarriage;
         private final SimpleStringProperty dateTimeOfNotification;
         private final SimpleStringProperty staffSurname;
         private final SimpleStringProperty typeOfNotification;
 
-        public NotificationRow(String typeOfCarriage, String dateTimeOfNotification, String staffSurname, String typeOfNotification) {
+        public NotificationRow(Notification notification, int idCarriage, String typeOfCarriage, String dateTimeOfNotification, String staffSurname, String typeOfNotification) {
+            this.notification = notification;
+            this.idCarriage = idCarriage;
             this.typeOfCarriage = new SimpleStringProperty(typeOfCarriage);
             this.dateTimeOfNotification = new SimpleStringProperty(dateTimeOfNotification);
             this.staffSurname = new SimpleStringProperty(staffSurname);
             this.typeOfNotification = new SimpleStringProperty(typeOfNotification);
         }
+        public Notification getNotification() { return notification; }
+        public int getIdCarriage() { return idCarriage; }
         public String getTypeOfCarriage() { return typeOfCarriage.get(); }
         public String getDateTimeOfNotification() { return dateTimeOfNotification.get(); }
         public String getStaffSurname() { return staffSurname.get(); }
@@ -98,7 +104,10 @@ public class SupervisorHomeController implements NotificationObserver {
             private final Button btn = new Button("Gestisci");
             {
                 btn.setStyle("-fx-background-color: #1976d2; -fx-text-fill: white; -fx-font-weight: bold;");
-                btn.setOnAction(e -> {/* logica futura per gestire la notifica */});
+                btn.setOnAction(e -> {
+                    NotificationRow row = getTableView().getItems().get(getIndex());
+                    openManageNotificationPopup(row.getNotification());
+                });
             }
             @Override
             protected void updateItem(Void item, boolean empty) {
@@ -109,18 +118,7 @@ public class SupervisorHomeController implements NotificationObserver {
 
         notificationService = new NotificationService();
         notificationService.addObserver(this);
-
-        data.clear();
-        List<Notification> notifications = notificationService.getAllNotifications();
-        for (Notification n : notifications) {
-            data.add(new NotificationRow(
-                n.getTypeOfCarriage(),
-                n.getDateTimeOfNotification().toString(),
-                n.getStaffSurname(),
-                n.getTypeOfNotification()
-            ));
-        }
-        notificationTable.setItems(data);
+        refreshNotificationsTable();
         notificationTable.getItems().addListener((javafx.collections.ListChangeListener<NotificationRow>) c -> adjustTableHeight());
         adjustTableHeight();
 
@@ -157,12 +155,57 @@ public class SupervisorHomeController implements NotificationObserver {
 
     @Override
     public void onNotificationAdded(Notification notification) {
-        data.add(new NotificationRow(
-            notification.getTypeOfCarriage(),
-            notification.getDateTimeOfNotification().toString(),
-            notification.getStaffSurname(),
-            notification.getTypeOfNotification()
-        ));
+        if (notification.getStatus() != null && notification.getStatus().equals("INVIATA")) {
+            data.add(new NotificationRow(
+                notification,
+                notification.getIdCarriage(),
+                notification.getTypeOfCarriage(),
+                notification.getDateTimeOfNotification().toString(),
+                notification.getStaffSurname(),
+                notification.getTypeOfNotification()
+            ));
+            adjustTableHeight();
+        }
+    }
+
+    /**
+     * Ricarica la tabella delle notifiche dal database.
+     */
+    private void refreshNotificationsTable() {
+        data.clear();
+        List<Notification> notifications = notificationService.getAllNotifications();
+        for (Notification n : notifications) {
+            if (n.getStatus() != null && n.getStatus().equals("INVIATA")) {
+                data.add(new NotificationRow(
+                    n,
+                    n.getIdCarriage(),
+                    n.getTypeOfCarriage(),
+                    n.getDateTimeOfNotification().toString(),
+                    n.getStaffSurname(),
+                    n.getTypeOfNotification()
+                ));
+            }
+        }
+        notificationTable.setItems(data);
         adjustTableHeight();
+    }
+
+    private void openManageNotificationPopup(Notification notification) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/businessLogic/fxml/ManageNotificationPopup.fxml"));
+            javafx.scene.Parent root = loader.load();
+            ManageNotificationPopupController controller = loader.getController();
+            controller.setNotification(notification);
+            controller.loadRunsForCarriage(notification.getIdCarriage());
+            javafx.stage.Stage stage = new javafx.stage.Stage();
+            stage.setTitle("Gestione Notifica Carrozza");
+            stage.setScene(new javafx.scene.Scene(root));
+            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            stage.showAndWait();
+            // Dopo la chiusura del popup, aggiorna la tabella
+            refreshNotificationsTable();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

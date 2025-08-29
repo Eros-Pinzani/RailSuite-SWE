@@ -49,8 +49,10 @@ public class ConvoyDetailsController {
     private static AssignedConvoyInfo staticConvoyInfo;
     private NotificationService notificationService = new NotificationService();
 
-    // Mappa: idCarrozza -> Set dei tipi di segnalazione già fatte ("MAINTENANCE", "CLEANING")
+    // Mappa: idCarrozza -> Set dei tipi di segnalazione già fatte (per TUTTI gli operatori)
     private final java.util.Map<Integer, java.util.Set<String>> notifiedTypesByCarriage = new java.util.HashMap<>();
+    // Mappa: idCarrozza -> Set dei tipi di segnalazione gi�� fatte (SOLO per l'operatore corrente)
+    private final java.util.Map<Integer, java.util.Set<String>> notifiedTypesByCarriagePerStaff = new java.util.HashMap<>();
 
     /**
      * Sets the static convoy info to be used when initializing the details view.
@@ -107,13 +109,11 @@ public class ConvoyDetailsController {
                     btnTechnicalIssue.setOnAction(e -> {
                         domain.Carriage carriage = getTableView().getItems().get(getIndex());
                         handleTechnicalIssue(carriage);
-                        notifiedTypesByCarriage.computeIfAbsent(carriage.getId(), k -> new java.util.HashSet<>()).add("MAINTENANCE");
                         getTableView().refresh();
                     });
                     btnCleaning.setOnAction(e -> {
                         domain.Carriage carriage = getTableView().getItems().get(getIndex());
                         handleCleaning(carriage);
-                        notifiedTypesByCarriage.computeIfAbsent(carriage.getId(), k -> new java.util.HashSet<>()).add("CLEANING");
                         getTableView().refresh();
                     });
                 }
@@ -124,9 +124,13 @@ public class ConvoyDetailsController {
                         setGraphic(null);
                     } else {
                         domain.Carriage carriage = getTableView().getItems().get(getIndex());
-                        java.util.Set<String> notified = notifiedTypesByCarriage.getOrDefault(carriage.getId(), java.util.Collections.emptySet());
-                        boolean technicalNotified = notified.contains("MAINTENANCE");
-                        boolean cleaningNotified = notified.contains("CLEANING");
+                        boolean technicalNotified = false;
+                        boolean cleaningNotified = false;
+                        var types = notifiedTypesByCarriagePerStaff.get(carriage.getId());
+                        if (types != null) {
+                            technicalNotified = types.contains("MAINTENANCE");
+                            cleaningNotified = types.contains("CLEANING");
+                        }
                         boolean inRun = false;
                         if (convoyInfo != null && convoyInfo.timeDeparture != null && convoyInfo.arrivalTime != null) {
                             try {
@@ -222,14 +226,39 @@ public class ConvoyDetailsController {
 
         // Recupera le notifiche dal DB e aggiorna la mappa notifiedTypesByCarriage
         try {
-            java.util.List<domain.Notification> notifications = dao.NotificationDao.of().getAllNotifications();
+            var notifications = dao.NotificationDao.of().getNotificationsByConvoyId(Integer.parseInt(dto.convoyId));
             notifiedTypesByCarriage.clear();
-            for (domain.Notification n : notifications) {
-                if (n.getIdConvoy() == Integer.parseInt(dto.convoyId)) {
+            if (notifications != null) {
+                for (var n : notifications) {
                     String type = n.getTypeOfNotification();
-                    if (type != null) type = type.trim().toUpperCase();
-                    if ("MAINTENANCE".equals(type) || "CLEANING".equals(type)) {
-                        notifiedTypesByCarriage.computeIfAbsent(n.getIdCarriage(), k -> new java.util.HashSet<>()).add(type);
+                    if (type == null) continue;
+                    switch (type) {
+                        case "MAINTENANCE":
+                        case "CLEANING":
+                            notifiedTypesByCarriage.computeIfAbsent(n.getIdCarriage(), k -> new java.util.HashSet<>()).add(type);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            // Popola la mappa delle notifiche per l'operatore corrente
+            Staff staff = UserSession.getInstance().getStaff();
+            notifiedTypesByCarriagePerStaff.clear();
+            if (staff != null) {
+                var staffNotifications = dao.NotificationDao.of().getAllNotificationsForConvoyAndStaff(Integer.parseInt(dto.convoyId), staff.getIdStaff());
+                if (staffNotifications != null) {
+                    for (var n : staffNotifications) {
+                        String type = n.getTypeOfNotification();
+                        if (type == null) continue;
+                        switch (type) {
+                            case "MAINTENANCE":
+                            case "CLEANING":
+                                notifiedTypesByCarriagePerStaff.computeIfAbsent(n.getIdCarriage(), k -> new java.util.HashSet<>()).add(type);
+                                break;
+                            default:
+                                break;
+                        }
                     }
                 }
             }
@@ -268,8 +297,12 @@ public class ConvoyDetailsController {
             new Timestamp(System.currentTimeMillis()),
             staff.getIdStaff(),
             staff.getName(),
-            staff.getSurname()
+            staff.getSurname(),
+            "INVIATA" // status
         );
+        // Aggiorna subito la mappa per disabilitare il pulsante
+        notifiedTypesByCarriagePerStaff.computeIfAbsent(carriage.getId(), k -> new java.util.HashSet<>()).add("MAINTENANCE");
+        if (carriageTable != null) carriageTable.refresh();
     }
 
     /**
@@ -287,7 +320,11 @@ public class ConvoyDetailsController {
             new Timestamp(System.currentTimeMillis()),
             staff.getIdStaff(),
             staff.getName(),
-            staff.getSurname()
+            staff.getSurname(),
+            "INVIATA" // status
         );
+        // Aggiorna subito la mappa per disabilitare il pulsante
+        notifiedTypesByCarriagePerStaff.computeIfAbsent(carriage.getId(), k -> new java.util.HashSet<>()).add("CLEANING");
+        if (carriageTable != null) carriageTable.refresh();
     }
 }

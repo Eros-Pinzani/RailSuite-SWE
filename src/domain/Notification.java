@@ -1,8 +1,8 @@
 package domain;
 
 public interface Notification {
-    static Notification of(int idCarriage, String typeOfCarriage, int idConvoy, String typeOfNotification, java.sql.Timestamp dateTimeOfNotification, int idStaff, String staffName, String staffSurname) {
-        return new NotificationImp(idCarriage, typeOfCarriage, idConvoy,  typeOfNotification, dateTimeOfNotification, idStaff, staffName, staffSurname);
+    static Notification of(int idCarriage, String typeOfCarriage, int idConvoy, String typeOfNotification, java.sql.Timestamp dateTimeOfNotification, int idStaff, String staffName, String staffSurname, String status) {
+        return new NotificationImp(idCarriage, typeOfCarriage, idConvoy,  typeOfNotification, dateTimeOfNotification, idStaff, staffName, staffSurname, status);
     }
 
     int getIdCarriage();
@@ -13,4 +13,5 @@ public interface Notification {
     int getIdStaff();
     String getStaffName();
     String getStaffSurname();
+    String getStatus();
 }

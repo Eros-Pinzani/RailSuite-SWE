@@ -68,7 +68,6 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
 
     @Override
     public void deleteCarriageDepotByCarriageIfAvailable(int idCarriage) throws SQLException {
-        // SQL query to delete available carriage_depot records by carriage id.
         String sql = "DELETE FROM carriage_depot WHERE id_carriage = ? AND status_of_carriage = 'AVAILABLE'";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -258,5 +257,20 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
             }
         }
         return carriages;
+    }
+
+    @Override
+    public void updateCarriageDepotStatusAndExitTime(int idDepot, int idCarriage, String status, java.sql.Timestamp timeExited) throws SQLException {
+        String sql = "UPDATE carriage_depot SET status_of_carriage = ?, time_exited = ? WHERE id_depot = ? AND id_carriage = ? AND time_exited IS NULL";
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, status);
+            stmt.setTimestamp(2, timeExited);
+            stmt.setInt(3, idDepot);
+            stmt.setInt(4, idCarriage);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new SQLException("Error updating carriage_depot status and exit time for depot: " + idDepot + ", carriage: " + idCarriage, e);
+        }
     }
 }

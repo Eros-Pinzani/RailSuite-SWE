@@ -1,73 +1,96 @@
 package businessLogic.service;
 
-import dao.RunDao;
+import dao.*;
 import domain.*;
+import java.util.List;
+import java.util.logging.Logger;
 
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.util.*;
-
-/**
- * Service for managing train runs.
- * Provides business logic for filtering and searching runs using DAO classes.
- */
 public class ManageRunService {
-    private final RunDao runDao = RunDao.of();
-    private List<Run> runs;
-
+    private static final Logger logger = Logger.getLogger(ManageRunService.class.getName());
     /**
-     * Constructs the ManageRunService and loads all Run data from the database.
-     * Throws a RuntimeException if data cannot be loaded.
+     * Gestisce la logica di fine corsa: rimuove le carrozze segnalate dal convoglio, le inserisce nel deposito associato
+     * alla stazione di coda con lo status corretto, e imposta il timer per la disponibilità futura.
+     * Da chiamare quando una corsa viene completata.
      */
-    public ManageRunService() {
+    public void completeRun(Run run) {
         try {
-            runs = RunDao.of().selectAllRun();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+            int convoyId = run.getIdConvoy();
+            int tailStationId = run.getIdLastStation();
+            List<Notification> approvedNotifications = NotificationDao.of().selectApprovedNotificationsByConvoy(convoyId);
+            for (Notification notif : approvedNotifications) {
+                int carriageId = notif.getIdCarriage();
+                // Rimuovi la carrozza dal convoglio
+                CarriageDao.of().updateCarriageConvoy(carriageId, null);
+                // Propaga la rimozione alle corse future
+                List<Run> futureRuns = RunDao.of().selectRunsForConvoyAfterTime(convoyId, run.getTimeArrival());
+                for (Run _ : futureRuns) {
+                    CarriageDao.of().updateCarriageConvoy(carriageId, null); // Assicura che la carrozza non sia più assegnata
+                }
+                // Trova il deposito associato alla stazione di coda
+                Depot depot = DepotDao.of().getDepotByStationId(tailStationId);
+                if (depot != null) {
+                    int depotId = depot.getIdDepot();
+                    CarriageDepot.StatusOfCarriage status =
+                        notif.getTypeOfNotification().equalsIgnoreCase("CLEANING") ?
+                        CarriageDepot.StatusOfCarriage.CLEANING :
+                        CarriageDepot.StatusOfCarriage.MAINTENANCE;
+                    java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+                    CarriageDepot carriageDepot = CarriageDepot.of(depotId, carriageId, now, null, status);
+                    CarriageDepotDao.of().insertCarriageDepot(carriageDepot);
+                    long millisToAdd = status == CarriageDepot.StatusOfCarriage.CLEANING ? 3_600_000L : 21_600_000L;
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(millisToAdd);
+                            java.sql.Timestamp exited = new java.sql.Timestamp(System.currentTimeMillis());
+                            CarriageDepotDao.of().updateCarriageDepotStatusAndExitTime(depotId, carriageId, CarriageDepot.StatusOfCarriage.AVAILABLE.name(), exited);
+                        } catch (Exception e) {
+                            // Gestione errore silenziosa
+                        }
+                    }).start();
+                }
+            }
+        } catch (Exception e) {
+            logger.severe("Errore in completeRun: " + e.getMessage());
         }
     }
 
     /**
-     * Returns an unmodifiable list of all Run objects loaded at service initialization.
-     * @return list of Run objects
+     * Restituisce tutte le corse presenti nel sistema.
      */
     public List<Run> getAllRun() {
-        return runs = Collections.unmodifiableList(runs);
+        try {
+            return RunDao.of().selectAllRun();
+        } catch (Exception e) {
+            logger.severe("Errore in getAllRun: " + e.getMessage());
+            return java.util.Collections.emptyList();
+        }
     }
 
     /**
-     * Filters Run objects based on the provided parameters. Any parameter can be null.
-     * @param lineName the line name to filter (nullable)
-     * @param convoyId the convoy id to filter (nullable)
-     * @param staffNameSurname the staff name and surname to filter (nullable)
-     * @param firstStationName the first station name to filter (nullable)
-     * @param timeDeparture the departure time to filter (nullable)
-     * @return filtered list of Run objects
+     * Filtra le corse in base ai parametri forniti.
      */
-    public List<Run> filterRunRaws(String lineName, String convoyId, String staffNameSurname, String firstStationName, java.sql.Timestamp timeDeparture) {
-        return runs.stream()
-                .filter(r -> lineName == null || (r.getLineName() != null && r.getLineName().equals(lineName)))
-                .filter(r -> convoyId == null || (r.getIdConvoy() != null && String.valueOf(r.getIdConvoy()).equals(convoyId)))
-                .filter(r -> staffNameSurname == null || (r.getStaffNameSurname() != null && r.getStaffNameSurname().equals(staffNameSurname)))
-                .filter(r -> firstStationName == null || (r.getFirstStationName() != null && r.getFirstStationName().equals(firstStationName)))
-                .filter(r -> timeDeparture == null || (r.getTimeDeparture() != null && r.getTimeDeparture().equals(timeDeparture)))
-                .toList();
+    public List<Run> filterRunRaws(String line, String convoy, String operator, String firstStation, java.sql.Timestamp dayStart) {
+        List<Run> allRuns = getAllRun();
+        return allRuns.stream().filter(run -> {
+            boolean match = true;
+            if (line != null) match &= line.equals(run.getLineName());
+            if (convoy != null) match &= convoy.equals(String.valueOf(run.getIdConvoy()));
+            if (operator != null) match &= operator.equals(run.getStaffNameSurname());
+            if (firstStation != null) match &= firstStation.equals(run.getFirstStationName());
+            if (dayStart != null) match &= run.getTimeDeparture().after(dayStart);
+            return match;
+        }).toList();
     }
 
     /**
-     * Searches for Run objects using the provided filters and a date range (entire day).
-     * Uses a single DAO call, which returns an empty list if no runs are found.
-     * @param lineName the line name to filter (nullable)
-     * @param convoyId the convoy id to filter (nullable)
-     * @param staffNameSurname the staff name and surname to filter (nullable)
-     * @param firstStationName the first station name to filter (nullable)
-     * @param dayStart the start timestamp of the day (inclusive)
-     * @param dayEnd the end timestamp of the day (inclusive)
-     * @return list of Run objects matching the filters and date range
-     * @throws SQLException if a database access error occurs
+     * Restituisce le corse per giorno e filtri.
      */
-    public List<Run> searchRunsByDay(String lineName, String convoyId, String staffNameSurname, String firstStationName, Timestamp dayStart, Timestamp dayEnd) throws SQLException {
-        List<Run> runs = runDao.searchRunsByDay(lineName, convoyId, staffNameSurname, firstStationName, dayStart, dayEnd);
-        return runs == null ? List.of() : runs;
+    public List<Run> searchRunsByDay(String line, String convoy, String operator, String firstStation, java.sql.Timestamp dayStart, java.sql.Timestamp dayEnd) {
+        try {
+            return RunDao.of().searchRunsByDay(line, convoy, operator, firstStation, dayStart, dayEnd);
+        } catch (Exception e) {
+            logger.severe("Errore in searchRunsByDay: " + e.getMessage());
+            return java.util.Collections.emptyList();
+        }
     }
 }

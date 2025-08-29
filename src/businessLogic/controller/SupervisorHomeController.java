@@ -1,12 +1,7 @@
 package businessLogic.controller;
 
-/**
- * Controller for the Supervisor Home screen.
- * Handles supervisor navigation and dashboard actions.
- */
 import businessLogic.service.NotificationService;
 import businessLogic.service.NotificationObserver;
-import dao.NotificationDao;
 import domain.Notification;
 import domain.Staff;
 import javafx.fxml.FXML;
@@ -19,9 +14,15 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import java.sql.Timestamp;
 import java.util.List;
 import javafx.beans.property.SimpleStringProperty;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * Controller for the Supervisor Home screen.
+ * Handles supervisor navigation and dashboard actions.
+ */
 
 public class SupervisorHomeController implements NotificationObserver {
     @FXML
@@ -49,7 +50,7 @@ public class SupervisorHomeController implements NotificationObserver {
     private Button gestioneConvogliButton;
 
     private NotificationService notificationService;
-    private ObservableList<NotificationRow> data = FXCollections.observableArrayList();
+    private final ObservableList<NotificationRow> data = FXCollections.observableArrayList();
 
     public static class NotificationRow {
         private final Notification notification;
@@ -69,10 +70,10 @@ public class SupervisorHomeController implements NotificationObserver {
         }
         public Notification getNotification() { return notification; }
         public int getIdCarriage() { return idCarriage; }
-        public String getTypeOfCarriage() { return typeOfCarriage.get(); }
-        public String getDateTimeOfNotification() { return dateTimeOfNotification.get(); }
+        public String getTypeOfCarriage() { return typeOfCarriage.get(); } // Usato da JavaFX per il binding
+        public String getDateTimeOfNotification() { return dateTimeOfNotification.get(); } // Usato da JavaFX per il binding
         public String getStaffSurname() { return staffSurname.get(); }
-        public String getTypeOfNotification() { return typeOfNotification.get(); }
+        public String getTypeOfNotification() { return typeOfNotification.get(); } // Usato da JavaFX per il binding
     }
 
     /**
@@ -100,11 +101,11 @@ public class SupervisorHomeController implements NotificationObserver {
         staffSurnameColumn.setCellValueFactory(new PropertyValueFactory<>("staffSurname"));
         typeColumn.setCellValueFactory(new PropertyValueFactory<>("typeOfNotification"));
 
-        manageColumn.setCellFactory(col -> new TableCell<>() {
+        manageColumn.setCellFactory(_ -> new TableCell<>() {
             private final Button btn = new Button("Gestisci");
             {
                 btn.setStyle("-fx-background-color: #1976d2; -fx-text-fill: white; -fx-font-weight: bold;");
-                btn.setOnAction(e -> {
+                btn.setOnAction(_ -> {
                     NotificationRow row = getTableView().getItems().get(getIndex());
                     openManageNotificationPopup(row.getNotification());
                 });
@@ -119,11 +120,11 @@ public class SupervisorHomeController implements NotificationObserver {
         notificationService = new NotificationService();
         notificationService.addObserver(this);
         refreshNotificationsTable();
-        notificationTable.getItems().addListener((javafx.collections.ListChangeListener<NotificationRow>) c -> adjustTableHeight());
+        notificationTable.getItems().addListener((javafx.collections.ListChangeListener<NotificationRow>) _ -> adjustTableHeight());
         adjustTableHeight();
 
-        gestioneCorseButton.setOnAction(e -> SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageRun.fxml"));
-        gestioneConvogliButton.setOnAction(e -> SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageConvoy.fxml"));
+        gestioneCorseButton.setOnAction(_ -> SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageRun.fxml"));
+        gestioneConvogliButton.setOnAction(_ -> SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageConvoy.fxml"));
     }
 
     /**
@@ -174,6 +175,7 @@ public class SupervisorHomeController implements NotificationObserver {
     private void refreshNotificationsTable() {
         data.clear();
         List<Notification> notifications = notificationService.getAllNotifications();
+        if (notifications == null) notifications = java.util.Collections.emptyList();
         for (Notification n : notifications) {
             if (n.getStatus() != null && n.getStatus().equals("INVIATA")) {
                 data.add(new NotificationRow(
@@ -205,7 +207,7 @@ public class SupervisorHomeController implements NotificationObserver {
             // Dopo la chiusura del popup, aggiorna la tabella
             refreshNotificationsTable();
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.getLogger(SupervisorHomeController.class.getName()).log(Level.SEVERE, "Errore nell'apertura del popup di gestione notifica", e);
         }
     }
 }

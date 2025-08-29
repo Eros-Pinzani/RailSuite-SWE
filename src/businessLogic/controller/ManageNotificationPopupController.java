@@ -1,7 +1,6 @@
 package businessLogic.controller;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -16,16 +15,14 @@ import java.util.stream.Collectors;
 import java.sql.SQLException;
 import domain.Notification;
 import dao.NotificationDao;
-import java.sql.Timestamp;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class ManageNotificationPopupController {
     @FXML private TableView<Run> runTable;
-    @FXML private TableColumn<Run, String> runIdColumn;
     @FXML private TableColumn<Run, Integer> convoyIdColumn;
     @FXML private TableColumn<Run, String> dateColumn;
     @FXML private TableColumn<Run, String> staffSurnameColumn;
-    @FXML private Button approveButton;
-    @FXML private Button denyButton;
     @FXML private Label noRunsLabel;
 
     private Notification notification;
@@ -46,7 +43,7 @@ public class ManageNotificationPopupController {
             List<Integer> convoyIds = allConvoys.stream()
                 .filter(convoy -> convoy.getCarriages().stream().anyMatch(c -> c.getId() == idCarriage))
                 .map(Convoy::getId)
-                .collect(Collectors.toList());
+                .toList();
             if (convoyIds.isEmpty()) {
                 runTable.setItems(FXCollections.observableArrayList());
                 runTable.setVisible(false);
@@ -71,7 +68,7 @@ public class ManageNotificationPopupController {
                 noRunsLabel.setVisible(false);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger(ManageNotificationPopupController.class.getName()).log(Level.SEVERE, "Errore nel caricamento delle corse per la carrozza", e);
             runTable.setItems(FXCollections.observableArrayList());
             runTable.setVisible(false);
             noRunsLabel.setVisible(true);
@@ -85,14 +82,55 @@ public class ManageNotificationPopupController {
     @FXML
     private void handleApprove() {
         try {
-            NotificationDao.of().updateNotificationStatus(
+            // Recupera la Run associata alla notifica tramite idConvoy, idStaff e data compatibile
+            Run run = null;
+            try {
+                List<Run> runs = dao.RunDao.of().selectRunsByConvoy(notification.getIdConvoy());
+                for (Run r : runs) {
+                    boolean staffMatch = r.getIdStaff() == notification.getIdStaff();
+                    if (staffMatch) {
+                        run = r;
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                Logger.getLogger(ManageNotificationPopupController.class.getName()).log(Level.SEVERE, "Errore nel recupero delle corse per il convoglio", e);
+            }
+            if (run != null) {
+                // Controllo se la carrozza è impegnata in una corsa in corso
+                List<Run> allRuns = dao.RunDao.of().selectRunsByConvoy(notification.getIdConvoy());
+                java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
+                boolean inCorso = false;
+                for (Run r : allRuns) {
+                    if (r.getTimeDeparture() != null && r.getTimeArrival() != null &&
+                        !now.before(r.getTimeDeparture()) && !now.after(r.getTimeArrival())) {
+                        inCorso = true;
+                        break;
+                    }
+                }
+                if (!inCorso) {
+                    new businessLogic.service.ManageRunService().completeRun(run);
+                }
+            }
+            // Sposta la notifica nello storico con stato APPROVATA
+            dao.NotificationDao.of().moveNotificationToHistory(
                 notification.getIdCarriage(),
                 notification.getIdConvoy(),
                 notification.getDateTimeOfNotification(),
+                notification.getTypeOfNotification(),
+                notification.getIdStaff(),
+                notification.getStaffName(),
+                notification.getStaffSurname(),
                 "APPROVATA"
             );
+            // Elimina la notifica dalla tabella principale
+            dao.NotificationDao.of().deleteNotification(
+                notification.getIdCarriage(),
+                notification.getIdConvoy(),
+                notification.getDateTimeOfNotification()
+            );
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.getLogger(ManageNotificationPopupController.class.getName()).log(Level.SEVERE, "Errore nell'approvazione della notifica", e);
         }
         close();
     }
@@ -118,7 +156,7 @@ public class ManageNotificationPopupController {
                 notification.getDateTimeOfNotification()
             );
         } catch (Exception e) {
-            e.printStackTrace();
+            Logger.getLogger(ManageNotificationPopupController.class.getName()).log(Level.SEVERE, "Errore nella negazione della notifica", e);
         }
         close();
     }

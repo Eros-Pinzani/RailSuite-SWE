@@ -1,6 +1,7 @@
 package dao;
 
 import domain.Notification;
+import mapper.NotificationMapper;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -34,8 +35,6 @@ class NotificationDaoImp implements NotificationDao {
         ) AS combined
         """;
 
-    private static final String updateStatusQuery = "UPDATE notification SET status = ? WHERE id_carriage = ? AND id_convoy = ? AND notify_time = ?";
-
     private static final String notificationsByConvoyIdQuery = """
             SELECT n.id_carriage, n.id_convoy, n.notify_time, n.work_type, n.id_staff, s.name, s.surname, c.model, n.status
             FROM notification n JOIN staff s on s.id_staff = n.id_staff JOIN carriage c on c.id_carriage = n.id_carriage
@@ -43,17 +42,16 @@ class NotificationDaoImp implements NotificationDao {
             """;
 
     private static final String allNotificationsForConvoyAndStaffQuery = """
-        SELECT n.id_carriage, n.id_convoy, n.notify_time, n.work_type, n.id_staff, s.name, s.surname, c.model, n.status
-        FROM notification n
-        JOIN staff s on s.id_staff = n.id_staff
-        JOIN carriage c on c.id_carriage = n.id_carriage
-        WHERE n.id_convoy = ? AND n.id_staff = ?
-        UNION ALL
-        SELECT nh.id_carriage, nh.id_convoy, nh.notify_time, nh.work_type, nh.id_staff, nh.staff_name as name, nh.staff_surname as surname, c.model, nh.status
-        FROM notification_history nh
-        JOIN carriage c on c.id_carriage = nh.id_carriage
-        WHERE nh.id_convoy = ? AND nh.id_staff = ?
-        
+    SELECT n.id_carriage, n.id_convoy, n.notify_time, n.work_type, n.id_staff, s.name, s.surname, c.model, n.status
+    FROM notification n
+    JOIN staff s on s.id_staff = n.id_staff
+    JOIN carriage c on c.id_carriage = n.id_carriage
+    WHERE n.id_convoy = ? AND n.id_staff = ?
+    UNION ALL
+    SELECT nh.id_carriage, nh.id_convoy, nh.notify_time, nh.work_type, nh.id_staff, nh.staff_name as name, nh.staff_surname as surname, c.model, nh.status
+    FROM notification_history nh
+    JOIN carriage c on c.id_carriage = nh.id_carriage
+    WHERE nh.id_convoy = ? AND nh.id_staff = ?
     """;
 
     public NotificationDaoImp() {
@@ -111,14 +109,13 @@ class NotificationDaoImp implements NotificationDao {
     }
 
     @Override
-    public boolean deleteNotification(int idCarriage, int idConvoy, Timestamp notifyTime) throws SQLException {
+    public void deleteNotification(int idCarriage, int idConvoy, Timestamp notifyTime) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(deleteNotificationQuery)) {
             stmt.setInt(1, idCarriage);
             stmt.setInt(2, idConvoy);
             stmt.setTimestamp(3, notifyTime);
-            int affectedRows = stmt.executeUpdate();
-            return affectedRows > 0;
+            stmt.executeUpdate();
         } catch (SQLException e) {
             throw new SQLException("Error deleting notification: ", e);
         }
@@ -165,18 +162,6 @@ class NotificationDaoImp implements NotificationDao {
     }
 
     @Override
-    public void updateNotificationStatus(int idCarriage, int idConvoy, Timestamp notifyTime, String status) throws SQLException {
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(updateStatusQuery)) {
-            stmt.setString(1, status);
-            stmt.setInt(2, idCarriage);
-            stmt.setInt(3, idConvoy);
-            stmt.setTimestamp(4, notifyTime);
-            stmt.executeUpdate();
-        }
-    }
-
-    @Override
     public List<Notification> getNotificationsByConvoyId(int convoyId) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(notificationsByConvoyIdQuery)) {
@@ -201,5 +186,26 @@ class NotificationDaoImp implements NotificationDao {
         } catch (SQLException e) {
             throw new SQLException("Error finding notifications for convoy and staff: ", e);
         }
+    }
+
+    @Override
+    public List<Notification> selectApprovedNotificationsByConvoy(int convoyId) throws SQLException {
+        List<Notification> approved = new ArrayList<>();
+        String sql = "SELECT n.id_carriage, n.id_convoy, n.notify_time, n.work_type, n.id_staff, s.name, s.surname, c.model, n.status " +
+                "FROM notification_history n " +
+                "JOIN staff s ON s.id_staff = n.id_staff " +
+                "JOIN carriage c ON c.id_carriage = n.id_carriage " +
+                "WHERE n.id_convoy = ? AND n.status = 'APPROVATA'";
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, convoyId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                approved.add(NotificationMapper.toDomain(rs));
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Errore nel recupero delle notifiche APPROVATE per il convoglio: " + convoyId, e);
+        }
+        return approved;
     }
 }

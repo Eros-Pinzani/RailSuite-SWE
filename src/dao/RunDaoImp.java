@@ -67,11 +67,16 @@ public class RunDaoImp implements RunDao {
             FROM run r
             WHERE r.id_staff = ? AND r.time_departure > ?
             """;
-    private static final String selectRunsForConvoyAfterTimeQuery = """
-            SELECT r.id_line, r.id_convoy, r.id_staff, r.time_departure
-            FROM run r
-            WHERE r.id_line = ? AND r.id_convoy = ? AND r.id_staff = ? AND r.time_departure > ?
-            """;
+    // Query per tutte le corse future di un convoglio dopo un certo orario
+    private static final String selectRunsForConvoyAfterTimeSimpleQuery = """
+        SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
+               r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
+        FROM run r
+            LEFT JOIN line l ON r.id_line = l.id_line
+            LEFT JOIN staff s ON r.id_staff = s.id_staff
+            LEFT JOIN station fs ON r.id_first_station = fs.id_station
+            LEFT JOIN station ls ON r.id_last_station = ls.id_station
+        WHERE r.id_convoy = ? AND r.time_departure > ?""";
     private static final String selectConvoyTableDTOQuery = """
         SELECT c.id_convoy,
                MIN(car.model) AS model,
@@ -291,11 +296,9 @@ public class RunDaoImp implements RunDao {
     @Override
     public boolean findRunsByConvoyAfterTime(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(selectRunsForConvoyAfterTimeQuery)) {
-            pstmt.setInt(1, idLine);
-            pstmt.setInt(2, idConvoy);
-            pstmt.setInt(3, idStaff);
-            pstmt.setTimestamp(4, timeDeparture);
+             PreparedStatement pstmt = conn.prepareStatement(selectRunsForConvoyAfterTimeSimpleQuery)) {
+            pstmt.setInt(1, idConvoy);
+            pstmt.setTimestamp(2, timeDeparture);
             try (ResultSet rs = pstmt.executeQuery()) {
                 return rs.next();
             }
@@ -407,5 +410,22 @@ public class RunDaoImp implements RunDao {
                 return resultSetToRunList(rs);
             }
         }
+    }
+
+    @Override
+    public List<Run> selectRunsForConvoyAfterTime(int idConvoy, java.sql.Timestamp afterTime) throws SQLException {
+        List<Run> runs;
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(selectRunsForConvoyAfterTimeSimpleQuery)) {
+            pstmt.setInt(1, idConvoy);
+            pstmt.setTimestamp(2, afterTime);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                runs = resultSetToRunList(rs);
+            }
+        } catch (SQLException e) {
+            throw new SQLException("Errore nel recupero delle corse future del convoglio", e);
+        }
+        if (runs == null) return new ArrayList<>();
+        return runs;
     }
 }

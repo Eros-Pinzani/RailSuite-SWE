@@ -45,4 +45,12 @@ public interface DepotDao {
      * @throws SQLException if a database access error occurs
      */
     void deleteDepot(int idDepot) throws SQLException;
+
+    /**
+     * Retrieves the depot associated with a station (assumption: id_depot == idStation).
+     * @param idStation the id of the station
+     * @return the associated Depot, or null if not found
+     * @throws SQLException if a database access error occurs
+     */
+    Depot getDepotByStationId(int idStation) throws SQLException;
 }

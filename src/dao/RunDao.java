@@ -151,4 +151,13 @@ public interface RunDao {
      * @throws SQLException if a database access error occurs
      */
     List<Run> selectAllRun() throws SQLException;
+
+    /**
+     * Restituisce tutte le corse future di un convoglio dopo un certo orario.
+     * @param idConvoy id del convoglio
+     * @param afterTime timestamp di riferimento
+     * @return lista di Run future
+     * @throws SQLException se si verifica un errore di accesso al database
+     */
+    List<Run> selectRunsForConvoyAfterTime(int idConvoy, java.sql.Timestamp afterTime) throws SQLException;
 }

@@ -94,4 +94,10 @@ class DepotDaoImp implements DepotDao {
             throw new SQLException("Error deleting depot: " + idDepot, e);
         }
     }
+
+    @Override
+    public Depot getDepotByStationId(int idStation) throws SQLException {
+        // Assunzione: id_depot == idStation
+        return getDepot(idStation);
+    }
 }

@@ -36,6 +36,16 @@ public interface CarriageDepotDao {
     void insertCarriageDepot(CarriageDepot carriageDepot) throws SQLException;
 
     /**
+     * Updates the status and exit time of a carriage in the depot.
+     * @param idDepot the depot id
+     * @param idCarriage the carriage id
+     * @param status the new status of the carriage
+     * @param timeExited the new exit time of the carriage
+     * @throws SQLException if a database access error occurs
+     */
+    void updateCarriageDepotStatusAndExitTime(int idDepot, int idCarriage, String status, java.sql.Timestamp timeExited) throws SQLException;
+
+    /**
      * Updates the status of carriages in depot and returns all available carriages (AVAILABLE, without id_convoy)
      * for a specific station and type, in a single query.
      * @param idStation the station id

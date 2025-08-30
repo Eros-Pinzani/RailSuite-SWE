@@ -102,4 +102,11 @@ public interface CarriageDepotDao {
      * @throws SQLException if a database access error occurs
      */
     List<Carriage> getCarriagesByConvoyPosition(int idConvoy) throws SQLException;
+
+    /**
+     * Restituisce tutte le carrozze in stato CLEANING o MAINTENANCE con time_exited NULL.
+     * @return lista di CarriageDepot
+     * @throws SQLException
+     */
+    List<CarriageDepot> getCarriagesInCleaningOrMaintenance() throws SQLException;
 }

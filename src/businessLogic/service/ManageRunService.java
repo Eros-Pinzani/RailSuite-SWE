@@ -37,16 +37,7 @@ public class ManageRunService {
                     java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
                     CarriageDepot carriageDepot = CarriageDepot.of(depotId, carriageId, now, null, status);
                     CarriageDepotDao.of().insertCarriageDepot(carriageDepot);
-                    long millisToAdd = status == CarriageDepot.StatusOfCarriage.CLEANING ? 3_600_000L : 21_600_000L;
-                    new Thread(() -> {
-                        try {
-                            Thread.sleep(millisToAdd);
-                            java.sql.Timestamp exited = new java.sql.Timestamp(System.currentTimeMillis());
-                            CarriageDepotDao.of().updateCarriageDepotStatusAndExitTime(depotId, carriageId, CarriageDepot.StatusOfCarriage.AVAILABLE.name(), exited);
-                        } catch (Exception e) {
-                            // Gestione errore silenziosa
-                        }
-                    }).start();
+                    // RIMOSSA LA LOGICA A THREAD: ora la gestione del tempo è demandata a updateCarriageDepotStatuses()
                 }
             }
         } catch (Exception e) {
@@ -91,6 +82,30 @@ public class ManageRunService {
         } catch (Exception e) {
             logger.severe("Errore in searchRunsByDay: " + e.getMessage());
             return java.util.Collections.emptyList();
+        }
+    }
+    /**
+     * Aggiorna lo stato delle carrozze in deposito che hanno terminato il tempo di CLEANING o MAINTENANCE.
+     * Può essere chiamato periodicamente o all'avvio dell'applicazione.
+     */
+    public void updateCarriageDepotStatuses() {
+        try {
+            List<CarriageDepot> depots = CarriageDepotDao.of().getCarriagesInCleaningOrMaintenance();
+            long now = System.currentTimeMillis();
+            for (CarriageDepot depot : depots) {
+                long entered = depot.getTimeEntered().getTime();
+                long millisToWait = depot.getStatusOfCarriage() == CarriageDepot.StatusOfCarriage.CLEANING ? 3_600_000L : 21_600_000L;
+                if (now - entered >= millisToWait) {
+                    CarriageDepotDao.of().updateCarriageDepotStatusAndExitTime(
+                        depot.getIdDepot(),
+                        depot.getIdCarriage(),
+                        CarriageDepot.StatusOfCarriage.AVAILABLE.name(),
+                        new java.sql.Timestamp(now)
+                    );
+                }
+            }
+        } catch (Exception e) {
+            logger.severe("Errore in updateCarriageDepotStatuses: " + e.getMessage());
         }
     }
 }

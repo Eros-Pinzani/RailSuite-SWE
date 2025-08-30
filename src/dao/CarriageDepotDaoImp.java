@@ -273,4 +273,18 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
             throw new SQLException("Error updating carriage_depot status and exit time for depot: " + idDepot + ", carriage: " + idCarriage, e);
         }
     }
+
+    @Override
+    public List<CarriageDepot> getCarriagesInCleaningOrMaintenance() throws SQLException {
+        String sql = "SELECT * FROM carriage_depot WHERE (status_of_carriage = 'CLEANING' OR status_of_carriage = 'MAINTENANCE') AND time_exited IS NULL";
+        List<CarriageDepot> carriages = new ArrayList<>();
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                carriages.add(mapResultSetToCarriageDepot(rs));
+            }
+        }
+        return carriages;
+    }
 }

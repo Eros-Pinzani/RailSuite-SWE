@@ -8,6 +8,8 @@ import javafx.stage.Stage;
 public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
+        // Aggiorna lo stato delle carrozze in deposito all'avvio
+        new businessLogic.service.ManageRunService().updateCarriageDepotStatuses();
         SceneManager.getInstance().setStage(primaryStage);
         var resource = getClass().getResource("/businessLogic/fxml/LogIn.fxml");
         if (resource == null) {

@@ -111,4 +111,21 @@ public class CarriageDepotMapper {
         stmt.setInt(1, idConvoy);
         stmt.setInt(2, idConvoy);
     }
+
+    /**
+     * Mappa una riga del ResultSet in un oggetto CarriageDepotDTO.
+     * @param rs il ResultSet contenente i dati
+     * @return un oggetto CarriageDepotDTO
+     * @throws SQLException se si verifica un errore di accesso al database
+     */
+    public static domain.DTO.CarriageDepotDTO toCarriageDepotDTO(ResultSet rs) throws SQLException {
+        return new domain.DTO.CarriageDepotDTO(
+            rs.getInt("id_carriage"),
+            rs.getString("model"),
+            rs.getInt("year_produced"),
+            rs.getInt("capacity"),
+            rs.getString("status_of_carriage"),
+            rs.getTimestamp("time_exited")
+        );
+    }
 }

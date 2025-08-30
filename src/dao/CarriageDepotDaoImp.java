@@ -85,7 +85,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
             stmt.setInt(1, idConvoy);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                result.add(mapper.CarriageDepotDTOMapper.toDTO(rs));
+                result.add(mapper.CarriageDepotMapper.toCarriageDepotDTO(rs));
             }
         }
         return result;

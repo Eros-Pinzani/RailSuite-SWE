@@ -55,11 +55,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
         String sql = "INSERT INTO carriage_depot (id_depot, id_carriage, time_entered, time_exited, status_of_carriage) VALUES (?, ?, ?, ?, ?)";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, carriageDepot.getIdDepot());
-            stmt.setInt(2, carriageDepot.getIdCarriage());
-            stmt.setTimestamp(3, carriageDepot.getTimeEntered());
-            stmt.setTimestamp(4, carriageDepot.getTimeExited());
-            stmt.setString(5, carriageDepot.getStatusOfCarriage().name());
+            mapper.CarriageDepotMapper.toPreparedStatement(stmt, carriageDepot);
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new SQLException("Error inserting carriage_depot: " + carriageDepot.getIdDepot() + ", " + carriageDepot.getIdCarriage(), e);
@@ -89,14 +85,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
             stmt.setInt(1, idConvoy);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                result.add(new CarriageDepotDTO(
-                        rs.getInt("id_carriage"),
-                        rs.getString("model"),
-                        rs.getInt("year_produced"),
-                        rs.getInt("capacity"),
-                        rs.getString("status_of_carriage"),
-                        rs.getTimestamp("time_exited")
-                ));
+                result.add(mapper.CarriageDepotDTOMapper.toDTO(rs));
             }
         }
         return result;
@@ -128,9 +117,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
                         "  AND cd.time_exited IS NULL";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idStation);
-            stmt.setInt(2, idStation);
-            stmt.setString(3, modelType);
+            mapper.CarriageDepotMapper.toPreparedStatementForFindAvailableCarriagesForConvoy(stmt, idStation, modelType);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 result.add(mapper.CarriageMapper.toDomain(rs));
@@ -164,8 +151,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
                         "  AND cd.time_exited IS NULL";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idStation);
-            stmt.setInt(2, idStation);
+            mapper.CarriageDepotMapper.toPreparedStatementForFindAvailableCarriageTypesForConvoy(stmt, idStation);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 result.add(rs.getString("model_type"));
@@ -201,8 +187,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
                 "WHERE d.id_depot = ? AND c.model_type = ? AND cd.status_of_carriage = 'AVAILABLE' AND c.id_convoy IS NULL AND cd.time_exited IS NULL";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idStation);
-            stmt.setString(2, modelType);
+            mapper.CarriageDepotMapper.toPreparedStatementForFindAvailableCarriageModelsForConvoy(stmt, idStation, modelType);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 models.add(rs.getString("model"));
@@ -248,8 +233,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
                 updateStmt.executeUpdate();
             }
             try (PreparedStatement selectStmt = conn.prepareStatement(getCarriagesByConvoyPositionQuery)) {
-                selectStmt.setInt(1, idConvoy);
-                selectStmt.setInt(2, idConvoy);
+                mapper.CarriageDepotMapper.toPreparedStatementForGetCarriagesByConvoyPosition(selectStmt, idConvoy);
                 ResultSet rs = selectStmt.executeQuery();
                 while (rs.next()) {
                     carriages.add(mapper.CarriageMapper.toDomain(rs));
@@ -264,10 +248,7 @@ class CarriageDepotDaoImp implements CarriageDepotDao {
         String sql = "UPDATE carriage_depot SET status_of_carriage = ?, time_exited = ? WHERE id_depot = ? AND id_carriage = ? AND time_exited IS NULL";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, status);
-            stmt.setTimestamp(2, timeExited);
-            stmt.setInt(3, idDepot);
-            stmt.setInt(4, idCarriage);
+            mapper.CarriageDepotMapper.toPreparedStatementForUpdateStatusAndExitTime(stmt, status, timeExited, idDepot, idCarriage);
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new SQLException("Error updating carriage_depot status and exit time for depot: " + idDepot + ", carriage: " + idCarriage, e);

@@ -20,12 +20,11 @@ class LineStationDaoImp implements LineStationDao {
 
     @Override
     public List<LineStation> findByLine(int idLine) throws SQLException {
-        // SQL query to get all LineStation relations for a line, ordered by station_order
         String sql = "SELECT * FROM line_station WHERE id_line = ? ORDER BY station_order";
         List<LineStation> stations = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idLine);
+            mapper.LineStationMapper.setIdLine(stmt, idLine);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 stations.add(mapper.LineStationMapper.toDomain(rs));
@@ -34,26 +33,9 @@ class LineStationDaoImp implements LineStationDao {
         return stations;
     }
 
-    private static Duration parsePgInterval(String intervalStr) {
-        if (intervalStr == null) return null;
-        // Gestisce solo formato HH:mm:ss
-        String[] parts = intervalStr.split(":");
-        int hours = 0, minutes = 0, seconds = 0;
-        if (parts.length == 3) {
-            hours = Integer.parseInt(parts[0]);
-            minutes = Integer.parseInt(parts[1]);
-            seconds = Integer.parseInt(parts[2]);
-        } else if (parts.length == 2) {
-            hours = Integer.parseInt(parts[0]);
-            minutes = Integer.parseInt(parts[1]);
-        } else if (parts.length == 1) {
-            hours = Integer.parseInt(parts[0]);
-        }
-        return Duration.ofHours(hours).plusMinutes(minutes).plusSeconds(seconds);
-    }
-
     /**
      * Restituisce la tabella orari per una corsa: ogni stazione con orario di arrivo e partenza.
+     *
      * @param idLine id della linea
      * @param idStartStation id della stazione di partenza
      * @param departureTime orario di partenza (formato HH:mm)
@@ -93,9 +75,7 @@ class LineStationDaoImp implements LineStationDao {
 
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(findTimeTableForRunSQL)) {
-            stmt.setInt(1, idLine);
-            stmt.setInt(2, idStartStation);
-            stmt.setInt(3, idLine);
+            mapper.LineStationMapper.setFindTimeTableForRunParams(stmt, idLine, idStartStation);
             ResultSet rs = stmt.executeQuery();
 
             // Leggo tutte le righe in una lista di oggetti
@@ -105,7 +85,7 @@ class LineStationDaoImp implements LineStationDao {
                 String location = rs.getString("location");
                 int stationOrder = rs.getInt("station_order");
                 String intervalStr = rs.getString("time_to_next_station");
-                Duration d = parsePgInterval(intervalStr); // può ritornare null
+                Duration d = mapper.LineStationMapper.parseDurationFromPgInterval(intervalStr); // può ritornare null
                 rows.add(new LineStationRow(idStation, location, stationOrder, d));
             }
 

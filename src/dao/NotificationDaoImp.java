@@ -71,7 +71,7 @@ class NotificationDaoImp implements NotificationDao {
     private List<Notification> resultSetToNotificationList(ResultSet rs) throws SQLException {
         List<Notification> notifications = new ArrayList<>();
         while (rs.next()) {
-            notifications.add(resultSetToNotification(rs));
+            notifications.add(mapper.NotificationMapper.toDomain(rs));
         }
         if (notifications.isEmpty()) {
             return null;
@@ -79,29 +79,11 @@ class NotificationDaoImp implements NotificationDao {
         return notifications;
     }
 
-    private Notification resultSetToNotification(ResultSet rs) throws SQLException {
-        return Notification.of(
-                rs.getInt("id_carriage"),
-                rs.getString("model"),
-                rs.getInt("id_convoy"),
-                rs.getString("work_type"),
-                rs.getTimestamp("notify_time"),
-                rs.getInt("id_staff"),
-                rs.getString("name"),
-                rs.getString("surname"),
-                rs.getString("status")
-        );
-    }
-
     @Override
     public void addNotification(int idCarriage, int idConvoy, Timestamp notifyTime, String workType, int idStaff) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(addNotificationQuery)) {
-            stmt.setInt(1, idCarriage);
-            stmt.setInt(2, idConvoy);
-            stmt.setTimestamp(3, notifyTime);
-            stmt.setString(4, workType);
-            stmt.setInt(5, idStaff);
+            mapper.NotificationMapper.setAddNotificationParams(stmt, idCarriage, idConvoy, notifyTime, workType, idStaff);
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new SQLException("Error adding notification: ", e);
@@ -112,9 +94,7 @@ class NotificationDaoImp implements NotificationDao {
     public void deleteNotification(int idCarriage, int idConvoy, Timestamp notifyTime) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(deleteNotificationQuery)) {
-            stmt.setInt(1, idCarriage);
-            stmt.setInt(2, idConvoy);
-            stmt.setTimestamp(3, notifyTime);
+            mapper.NotificationMapper.setDeleteNotificationParams(stmt, idCarriage, idConvoy, notifyTime);
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new SQLException("Error deleting notification: ", e);
@@ -125,14 +105,7 @@ class NotificationDaoImp implements NotificationDao {
     public void moveNotificationToHistory(int idCarriage, int idConvoy, Timestamp notifyTime, String workType, int idStaff, String staffName, String staffSurname, String status) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(insertNotificationHistoryQuery)) {
-            stmt.setInt(1, idCarriage);
-            stmt.setInt(2, idConvoy);
-            stmt.setTimestamp(3, notifyTime);
-            stmt.setString(4, workType);
-            stmt.setInt(5, idStaff);
-            stmt.setString(6, staffName);
-            stmt.setString(7, staffSurname);
-            stmt.setString(8, status);
+            mapper.NotificationMapper.setInsertNotificationHistoryParams(stmt, idCarriage, idConvoy, notifyTime, workType, idStaff, staffName, staffSurname, status);
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new SQLException("Error moving notification to history: ", e);
@@ -145,12 +118,7 @@ class NotificationDaoImp implements NotificationDao {
     public boolean existsNotificationOrHistory(int idCarriage, int idStaff, String workType) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(existsNotificationOrHistoryQuery)) {
-            stmt.setInt(1, idCarriage);
-            stmt.setInt(2, idStaff);
-            stmt.setString(3, workType);
-            stmt.setInt(4, idCarriage);
-            stmt.setInt(5, idStaff);
-            stmt.setString(6, workType);
+            mapper.NotificationMapper.setExistsNotificationOrHistoryParams(stmt, idCarriage, idStaff, workType);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 return rs.getInt("cnt") > 0;
@@ -165,7 +133,7 @@ class NotificationDaoImp implements NotificationDao {
     public List<Notification> getNotificationsByConvoyId(int convoyId) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(notificationsByConvoyIdQuery)) {
-            stmt.setInt(1, convoyId);
+            mapper.NotificationMapper.setNotificationsByConvoyIdParams(stmt, convoyId);
             ResultSet rs = stmt.executeQuery();
             return resultSetToNotificationList(rs);
         } catch (SQLException e) {
@@ -177,10 +145,7 @@ class NotificationDaoImp implements NotificationDao {
     public List<Notification> getAllNotificationsForConvoyAndStaff(int convoyId, int staffId) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(allNotificationsForConvoyAndStaffQuery)) {
-            stmt.setInt(1, convoyId);
-            stmt.setInt(2, staffId);
-            stmt.setInt(3, convoyId);
-            stmt.setInt(4, staffId);
+            mapper.NotificationMapper.setAllNotificationsForConvoyAndStaffParams(stmt, convoyId, staffId);
             ResultSet rs = stmt.executeQuery();
             return resultSetToNotificationList(rs);
         } catch (SQLException e) {

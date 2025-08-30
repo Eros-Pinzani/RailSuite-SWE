@@ -16,7 +16,7 @@ class CarriageDaoImp implements CarriageDao {
      * SQL query to select a carriage by id.
      */
     private static final String selectCarriageQuery =
-            "SELECT id_carriage, model, model_type, year_produced, capacity FROM carriage WHERE id_carriage = ?";
+            "SELECT id_carriage, model, model_type, year_produced, capacity, id_convoy FROM carriage WHERE id_carriage = ?";
     /**
      * SQL query to select carriages by convoy id.
      */

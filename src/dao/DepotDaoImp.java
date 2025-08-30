@@ -16,11 +16,10 @@ class DepotDaoImp implements DepotDao {
 
     @Override
     public Depot getDepot(int idDepot) throws SQLException {
-        // SQL query to select a depot by id.
         String sql = "SELECT * FROM depot WHERE id_depot = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idDepot);
+            mapper.DepotMapper.setIdDepot(stmt, idDepot);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
                 Depot depot = DepotMapper.toDomain(rs);
@@ -76,7 +75,7 @@ class DepotDaoImp implements DepotDao {
         String sql = "INSERT INTO depot (id_depot) VALUES (?)";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idDepot);
+            mapper.DepotMapper.setIdDepot(stmt, idDepot);
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new SQLException("Error inserting depot: " + idDepot, e);
@@ -88,7 +87,7 @@ class DepotDaoImp implements DepotDao {
         String sql = "DELETE FROM depot WHERE id_depot = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, idDepot);
+            mapper.DepotMapper.setIdDepot(stmt, idDepot);
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new SQLException("Error deleting depot: " + idDepot, e);

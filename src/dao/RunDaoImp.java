@@ -97,27 +97,11 @@ public class RunDaoImp implements RunDao {
     """;
 
 
-    private Run resultSetToRun(ResultSet rs) throws SQLException {
-        return Run.of(
-                rs.getInt("id_line"),
-                rs.getString("line_name"),
-                rs.getInt("id_convoy"),
-                rs.getInt("id_staff"),
-                rs.getString("name"),
-                rs.getString("surname"),
-                rs.getInt("id_first_station"),
-                rs.getString("first_station_name"),
-                rs.getInt("id_last_station"),
-                rs.getString("last_station_name"),
-                rs.getTimestamp("time_departure"),
-                rs.getTimestamp("time_arrival")
-        );
-    }
-
+    // --- MAPPING IN RUNMAPPER ---
     private List<Run> resultSetToRunList(ResultSet rs) throws SQLException {
         List<Run> runs = new ArrayList<>();
         while (rs.next()) {
-            runs.add(resultSetToRun(rs));
+            runs.add(mapper.RunMapper.toDomain(rs));
         }
         if (runs.isEmpty()) {
             return null;
@@ -125,17 +109,18 @@ public class RunDaoImp implements RunDao {
         return runs;
     }
 
+    private Run resultSetToRun(ResultSet rs) throws SQLException {
+        return mapper.RunMapper.toDomain(rs);
+    }
+
     @Override
     public Run selectRunByLineConvoyAndStaff(int idLine, int idConvoy, int idStaff) throws SQLException {
-        // Executes the query to get a run by line, convoy, and staff
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectRunByLineConvoyAndStaffQuery)) {
-            pstmt.setInt(1, idLine);
-            pstmt.setInt(2, idConvoy);
-            pstmt.setInt(3, idStaff);
+            mapper.RunMapper.setRunKeyParams(pstmt, idLine, idConvoy, idStaff, null);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return resultSetToRun(rs);
+                    return mapper.RunMapper.toDomain(rs);
                 }
             }
         }
@@ -144,13 +129,9 @@ public class RunDaoImp implements RunDao {
 
     @Override
     public boolean deleteRun(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException {
-        // Executes the query to delete a specific run
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(deleteRunQuery)) {
-            pstmt.setInt(1, idLine);
-            pstmt.setInt(2, idConvoy);
-            pstmt.setInt(3, idStaff);
-            pstmt.setTimestamp(4, timeDeparture);
+            mapper.RunMapper.setRunKeyParams(pstmt, idLine, idConvoy, idStaff, timeDeparture);
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
@@ -160,31 +141,20 @@ public class RunDaoImp implements RunDao {
 
     @Override
     public boolean createRun(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture, Timestamp timeArrival, int idFirstStation, int idLastStation) throws SQLException {
-        // Executes the query to insert a new run into the database
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(insertRunQuery)) {
-            pstmt.setInt(1, idLine);
-            pstmt.setInt(2, idConvoy);
-            pstmt.setInt(3, idStaff);
-            pstmt.setTimestamp(4, timeDeparture);
-            pstmt.setTimestamp(5, timeArrival);
-            pstmt.setInt(6, idFirstStation);
-            pstmt.setInt(7, idLastStation);
+            mapper.RunMapper.setInsertRunParams(pstmt, idLine, idConvoy, idStaff, timeDeparture, timeArrival, idFirstStation, idLastStation);
             int affectedRows = pstmt.executeUpdate();
-            if (affectedRows > 0) {
-                return true;
-            }
+            return affectedRows > 0;
         } catch (SQLException e) {
             throw new SQLException("Error creating run", e);
         }
-        return false;
     }
 
     private List<Run> getRuns(int id, String query) throws SQLException {
-        // Utility method to execute queries that return multiple runs filtered by a parameter
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setInt(1, id);
+            mapper.RunMapper.setIdParam(pstmt, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 return resultSetToRunList(rs);
             }
@@ -240,7 +210,7 @@ public class RunDaoImp implements RunDao {
             try (ResultSet rs = pstmt.executeQuery()) {
                 List<Run> runs = new ArrayList<>();
                 while (rs.next()) {
-                    runs.add(resultSetToRun(rs));
+                    runs.add(mapper.RunMapper.toDomain(rs));
                 }
                 return runs;
             }
@@ -250,26 +220,12 @@ public class RunDaoImp implements RunDao {
 
     @Override
     public RunDTO selectRunDTODetails(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException {
-        // Executes the query to get run details as a RunDTO
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectRunDTOdetails)) {
-            pstmt.setInt(1, idLine);
-            pstmt.setInt(2, idConvoy);
-            pstmt.setInt(3, idStaff);
-            pstmt.setTimestamp(4, timeDeparture);
+            mapper.RunMapper.setRunKeyParams(pstmt, idLine, idConvoy, idStaff, timeDeparture);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return new RunDTO(
-                            rs.getInt("id_line"),
-                            rs.getString("name"),
-                            rs.getInt("id_convoy"),
-                            rs.getInt("id_staff"),
-                            rs.getString("staff_name"),
-                            rs.getString("surname"),
-                            rs.getString("email"),
-                            rs.getTimestamp("time_departure"),
-                            rs.getString("location")
-                    );
+                    return mapper.RunMapper.toRunDTO(rs);
                 }
             }
         } catch (SQLException e) {
@@ -283,8 +239,7 @@ public class RunDaoImp implements RunDao {
         // Executes the query to check if there are runs for a staff member after a specific time
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectRunsForOperatorAfterTimeQuery)) {
-            pstmt.setInt(1, idStaff);
-            pstmt.setTimestamp(2, timeDeparture);
+            mapper.RunMapper.setIdAndTimestampParams(pstmt, idStaff, timeDeparture);
             try (ResultSet rs = pstmt.executeQuery()) {
                 return rs.next();
             }
@@ -297,8 +252,7 @@ public class RunDaoImp implements RunDao {
     public boolean findRunsByConvoyAfterTime(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectRunsForConvoyAfterTimeSimpleQuery)) {
-            pstmt.setInt(1, idConvoy);
-            pstmt.setTimestamp(2, timeDeparture);
+            mapper.RunMapper.setIdAndTimestampParams(pstmt, idConvoy, timeDeparture);
             try (ResultSet rs = pstmt.executeQuery()) {
                 return rs.next();
             }
@@ -311,18 +265,11 @@ public class RunDaoImp implements RunDao {
     public List<ConvoyTableDTO> selectRunsByConvoyAndTimeForTakeFutureRuns(int idConvoy, Timestamp timeDeparture) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectConvoyTableDTOQuery)) {
-            pstmt.setInt(1, idConvoy);
+            mapper.RunMapper.setIdParam(pstmt, idConvoy);
             List<ConvoyTableDTO> convoyTableDTOList = new ArrayList<>();
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    convoyTableDTOList.add(new ConvoyTableDTO(
-                            rs.getInt("id_convoy"),
-                            rs.getString("model"),
-                            rs.getString("status"),
-                            rs.getInt("carriage_count"),
-                            rs.getInt("capacity"),
-                            rs.getString("model_type")
-                    ));
+                    convoyTableDTOList.add(mapper.RunMapper.toConvoyTableDTO(rs));
                 }
             }
             return convoyTableDTOList;
@@ -345,16 +292,11 @@ public class RunDaoImp implements RunDao {
         int affectedRows = 0;
         try (Connection conn = PostgresConnection.getConnection()) {
             try (PreparedStatement pstmt = conn.prepareStatement(replaceFutureRunsConvoyQuery)) {
-                pstmt.setInt(1, newIdConvoy);
-                pstmt.setInt(2, idConvoy);
+                mapper.RunMapper.setReplaceFutureRunsParams(pstmt, newIdConvoy, idConvoy);
                 affectedRows += pstmt.executeUpdate();
             }
             try (PreparedStatement pstmt = conn.prepareStatement(selectConvoyByIdQuery)) {
-                pstmt.setInt(1, newIdConvoy);
-                pstmt.setInt(2, idConvoy);
-                pstmt.setTimestamp(3, run.getTimeDeparture());
-                pstmt.setInt(4, run.getIdLine());
-                pstmt.setInt(5, run.getIdStaff());
+                mapper.RunMapper.setReplaceFutureRunsWithTimeParams(pstmt, newIdConvoy, idConvoy, run.getTimeDeparture(), run.getIdLine(), run.getIdStaff());
                 affectedRows += pstmt.executeUpdate();
             }
         }
@@ -366,11 +308,7 @@ public class RunDaoImp implements RunDao {
         String sql = "UPDATE run SET id_staff = ? WHERE id_line = ? AND id_convoy = ? AND id_staff = ? AND time_departure = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, idStaff1);
-            pstmt.setInt(2, idLine);
-            pstmt.setInt(3, idConvoy);
-            pstmt.setInt(4, idStaff);
-            pstmt.setTimestamp(5, timeDeparture);
+            mapper.RunMapper.setUpdateRunStaffParams(pstmt, idStaff1, idLine, idConvoy, idStaff, timeDeparture);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new SQLException("Error updating run staff", e);
@@ -382,11 +320,7 @@ public class RunDaoImp implements RunDao {
         String sql = "UPDATE run SET time_departure = ? WHERE id_line = ? AND id_convoy = ? AND id_staff = ? AND time_departure = ?";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setTimestamp(1, newDeparture);
-            ps.setInt(2, idLine);
-            ps.setInt(3, idConvoy);
-            ps.setInt(4, idStaff);
-            ps.setTimestamp(5, oldDeparture);
+            mapper.RunMapper.setUpdateRunDepartureTimeParams(ps, newDeparture, idLine, idConvoy, idStaff, oldDeparture);
             int affected = ps.executeUpdate();
             return affected > 0;
         }

@@ -84,21 +84,16 @@ class ConvoyDaoImp implements ConvoyDao {
 
     @Override
     public Convoy selectConvoy(int id) throws SQLException {
-        List<Carriage> carriages = new java.util.ArrayList<>();
         try (
                 java.sql.Connection conn = PostgresConnection.getConnection();
                 java.sql.PreparedStatement convoyStmt = conn.prepareStatement(selectConvoyQuery);
                 java.sql.PreparedStatement carriageStmt = conn.prepareStatement(selectCarriagesByConvoyIdQuery)
         ) {
-            convoyStmt.setInt(1, id);
+            mapper.ConvoyMapper.setConvoyId(convoyStmt, id);
             try (java.sql.ResultSet convoyRs = convoyStmt.executeQuery()) {
                 if (!convoyRs.next()) return null;
-                carriageStmt.setInt(1, id);
-                try (java.sql.ResultSet rs = carriageStmt.executeQuery()) {
-                    while (rs.next()) {
-                        carriages.add(mapper.CarriageMapper.toDomain(rs));
-                    }
-                }
+                mapper.ConvoyMapper.setConvoyId(carriageStmt, id);
+                List<Carriage> carriages = mapper.ConvoyMapper.toCarriageList(carriageStmt.executeQuery());
                 return mapper.ConvoyMapper.toDomain(convoyRs, carriages);
             }
         } catch (SQLException e) {
@@ -115,7 +110,7 @@ class ConvoyDaoImp implements ConvoyDao {
                 java.sql.ResultSet convoyIdsRs = convoyIdsStmt.executeQuery()
         ) {
             while (convoyIdsRs.next()) {
-                int convoyId = convoyIdsRs.getInt("id_convoy");
+                int convoyId = mapper.ConvoyMapper.getConvoyId(convoyIdsRs);
                 convoys.add(selectConvoy(convoyId));
             }
         } catch (SQLException e) {
@@ -131,9 +126,9 @@ class ConvoyDaoImp implements ConvoyDao {
                 java.sql.PreparedStatement updateCarriageStmt = conn.prepareStatement("UPDATE carriage SET id_convoy = NULL WHERE id_convoy = ?");
                 java.sql.PreparedStatement deleteConvoyStmt = conn.prepareStatement(deleteConvoyQuery)
         ) {
-            updateCarriageStmt.setInt(1, id);
+            mapper.ConvoyMapper.setConvoyId(updateCarriageStmt, id);
             updateCarriageStmt.executeUpdate();
-            deleteConvoyStmt.setInt(1, id);
+            mapper.ConvoyMapper.setConvoyId(deleteConvoyStmt, id);
             int affectedRows = deleteConvoyStmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
@@ -147,7 +142,7 @@ class ConvoyDaoImp implements ConvoyDao {
                 java.sql.Connection conn = PostgresConnection.getConnection();
                 java.sql.PreparedStatement pstmt = conn.prepareStatement(removeCarriageFromConvoyQuery)
         ) {
-            pstmt.setInt(1, carriage.getId());
+            mapper.ConvoyMapper.setCarriageId(pstmt, carriage);
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
@@ -164,7 +159,7 @@ class ConvoyDaoImp implements ConvoyDao {
         ) {
             try (java.sql.ResultSet rs = insertConvoyStmt.executeQuery()) {
                 if (rs.next()) {
-                    generatedId = rs.getInt(1);
+                    generatedId = mapper.ConvoyMapper.getConvoyId(rs);
                 } else {
                     throw new SQLException("Failed to retrieve generated convoy id");
                 }
@@ -172,8 +167,7 @@ class ConvoyDaoImp implements ConvoyDao {
             if (carriages != null && !carriages.isEmpty()) {
                 try (java.sql.PreparedStatement updateCarriageStmt = conn.prepareStatement(updateCarriageConvoyQuery)) {
                     for (Carriage carriage : carriages) {
-                        updateCarriageStmt.setInt(1, generatedId);
-                        updateCarriageStmt.setInt(2, carriage.getId());
+                        mapper.ConvoyMapper.setConvoyAndCarriageId(updateCarriageStmt, generatedId, carriage);
                         updateCarriageStmt.addBatch();
                     }
                     int[] results = updateCarriageStmt.executeBatch();
@@ -192,18 +186,6 @@ class ConvoyDaoImp implements ConvoyDao {
 
     @Override
     public businessLogic.service.ConvoyDetailsService.ConvoyDetailsRaw selectConvoyDetailsById(int id) throws SQLException {
-        businessLogic.service.ConvoyDetailsService.ConvoyDetailsRaw raw = new businessLogic.service.ConvoyDetailsService.ConvoyDetailsRaw();
-        raw.convoyId = id;
-        raw.lineName = "";
-        raw.staffName = "";
-        raw.idStaff = -1;
-        raw.departureStation = "";
-        raw.departureTime = "";
-        raw.arrivalStation = "";
-        raw.arrivalTime = "";
-        java.util.List<domain.Carriage> carriages = new java.util.ArrayList<>();
-        java.util.Set<Integer> carriageIds = new java.util.HashSet<>();
-        java.util.List<businessLogic.service.ConvoyDetailsService.StationRow> stationRows = new java.util.ArrayList<>();
         try (
                 java.sql.Connection conn = PostgresConnection.getConnection();
                 java.sql.PreparedStatement stmt = conn.prepareStatement(
@@ -224,55 +206,11 @@ class ConvoyDaoImp implements ConvoyDao {
                         "ORDER BY ls.station_order"
                 )
         ) {
-            stmt.setInt(1, id);
+            mapper.ConvoyMapper.setConvoyId(stmt, id);
             try (java.sql.ResultSet rs = stmt.executeQuery()) {
-                while (rs.next()) {
-                    int carriageId = rs.getInt("id_carriage");
-                    if (carriageId > 0 && !carriageIds.contains(carriageId)) {
-                        carriages.add(Carriage.of(
-                                carriageId,
-                                rs.getString("model"),
-                                rs.getString("model_type"),
-                                rs.getInt("year_produced"),
-                                rs.getInt("capacity"),
-                                id
-                        ));
-                        carriageIds.add(carriageId);
-                    }
-                    if (raw.lineName.isEmpty() && rs.getString("line_name") != null) {
-                        raw.lineName = rs.getString("line_name");
-                    }
-                    if (raw.staffName.isEmpty() && rs.getString("staff_name") != null) {
-                        raw.staffName = rs.getString("staff_name") + " " + rs.getString("staff_surname");
-                    }
-                    if (raw.departureStation.isEmpty() && rs.getString("departure_station") != null) {
-                        raw.departureStation = rs.getString("departure_station");
-                    }
-                    if (raw.arrivalStation.isEmpty() && rs.getString("arrival_station") != null) {
-                        raw.arrivalStation = rs.getString("arrival_station");
-                    }
-                    if (raw.departureTime.isEmpty() && rs.getString("time_departure") != null) {
-                        raw.departureTime = rs.getString("time_departure");
-                    }
-                    if (raw.arrivalTime.isEmpty() && rs.getString("time_arrival") != null) {
-                        raw.arrivalTime = rs.getString("time_arrival");
-                    }
-                    int stationId = rs.getInt("id_station");
-                    String stationName = rs.getString("station_name");
-                    if (stationId > 0 && stationName != null && stationRows.stream().noneMatch(s -> s.stationName.equals(stationName))) {
-                        stationRows.add(new businessLogic.service.ConvoyDetailsService.StationRow(
-                                stationName, "", ""
-                        ));
-                    }
-                    if (raw.idStaff == -1 && rs.getInt("id_staff") > 0) {
-                        raw.idStaff = rs.getInt("id_staff");
-                    }
-                }
+                return mapper.ConvoyMapper.toConvoyDetailsRaw(rs, id);
             }
         }
-        raw.carriages = carriages;
-        raw.stationRows = stationRows;
-        return raw;
     }
 
     @Override
@@ -287,27 +225,10 @@ class ConvoyDaoImp implements ConvoyDao {
                 java.sql.Connection conn = PostgresConnection.getConnection();
                 java.sql.PreparedStatement stmt = conn.prepareStatement(sql)
         ) {
-            stmt.setInt(1, staffId);
+            mapper.ConvoyMapper.setStaffId(stmt, staffId);
             try (java.sql.ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    int convoyId = rs.getInt("id_convoy");
-                    int idLine = rs.getInt("id_line");
-                    int idStaff = rs.getInt("id_staff");
-                    int idFirstStation = rs.getInt("id_first_station");
-                    java.sql.Timestamp timeDeparture = rs.getTimestamp("time_departure");
-                    String departureStation = rs.getString("departure_station");
-                    String arrivalStation = rs.getString("arrival_station");
-                    String arrivalTime = rs.getString("time_arrival");
-                    result.add(new ConvoyDao.ConvoyAssignedRow(
-                            convoyId,
-                            idLine,
-                            idStaff,
-                            idFirstStation,
-                            timeDeparture,
-                            departureStation != null ? departureStation : "",
-                            arrivalStation != null ? arrivalStation : "",
-                            arrivalTime != null ? arrivalTime : ""
-                    ));
+                    result.add(mapper.ConvoyMapper.toConvoyAssignedRow(rs));
                 }
             }
         }
@@ -321,34 +242,9 @@ class ConvoyDaoImp implements ConvoyDao {
              PreparedStatement stmt = conn.prepareStatement(convoyForNewRunQuery)) {
             java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(dateDeparture, java.time.LocalTime.parse(timeDeparture));
             java.sql.Timestamp departureTimestamp = java.sql.Timestamp.valueOf(dateTime);
-            stmt.setInt(1, idStation);
-            stmt.setTimestamp(2, departureTimestamp);
-            stmt.setTimestamp(3, departureTimestamp);
-            stmt.setInt(4, idLine);
+            mapper.ConvoyMapper.setConvoysForNewRunParams(stmt, idStation, departureTimestamp, idLine);
             try (java.sql.ResultSet rs = stmt.executeQuery()) {
-                int lastConvoyId = -1;
-                List<Carriage> carriages = new ArrayList<>();
-                while (rs.next()) {
-                    int convoyId = rs.getInt("id_convoy");
-                    if (convoyId != lastConvoyId && lastConvoyId != -1) {
-                        convoys.add(domain.Convoy.of(lastConvoyId, new ArrayList<>(carriages)));
-                        carriages.clear();
-                    }
-                    lastConvoyId = convoyId;
-                    if (rs.getInt("id_carriage") != 0) {
-                        carriages.add(domain.Carriage.of(
-                                rs.getInt("id_carriage"),
-                                rs.getString("model"),
-                                rs.getString("model_type"),
-                                rs.getInt("year_produced"),
-                                rs.getInt("capacity"),
-                                convoyId
-                        ));
-                    }
-                }
-                if (lastConvoyId != -1) {
-                    convoys.add(domain.Convoy.of(lastConvoyId, carriages));
-                }
+                convoys = mapper.ConvoyMapper.toConvoyListForNewRun(rs);
             }
         }
         return convoys;
@@ -368,10 +264,7 @@ class ConvoyDaoImp implements ConvoyDao {
         sql.append(")");
         try (Connection conn = PostgresConnection.getConnection()) {
             PreparedStatement pstmt = conn.prepareStatement(sql.toString());
-            pstmt.setInt(1, id);
-            for (int j = 0; j < carriages.size(); j++) {
-                pstmt.setInt(j + 2, carriages.get(j).getId());
-            }
+            mapper.ConvoyMapper.setAddCarriagesToConvoyParams(pstmt, id, carriages);
             pstmt.executeUpdate();
         }
     }

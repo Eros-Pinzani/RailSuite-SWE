@@ -48,27 +48,14 @@ public class StaffPoolDaoImp implements StaffPoolDao {
     @Override
     public List<domain.DTO.StaffDTO> findAvailableOperatorsForRun(int idStation, java.time.LocalDate date, String time) {
         List<domain.DTO.StaffDTO> result = new java.util.ArrayList<>();
-
         try (Connection conn = dao.PostgresConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_AVAILABLE_OPERATORS_FOR_RUN)) {
-            ps.setInt(1, idStation);
-            ps.setDate(2, java.sql.Date.valueOf(date));
             java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(date, java.time.LocalTime.parse(time));
             java.sql.Timestamp departureTimestamp = java.sql.Timestamp.valueOf(dateTime);
-            ps.setTimestamp(3, departureTimestamp);
-            ps.setTimestamp(4, departureTimestamp);
-            ps.setTimestamp(5, departureTimestamp);
-            ps.setDate(6, java.sql.Date.valueOf(date));
-            ps.setDate(7, java.sql.Date.valueOf(date));
+            mapper.StaffPoolMapper.setFindAvailableOperatorsParams(ps, idStation, date, departureTimestamp);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    result.add(
-                            new StaffDTO(
-                                    rs.getInt("id_staff"),
-                                    rs.getString("name"),
-                                    rs.getString("surname")
-                            )
-                    );
+                    result.add(mapper.StaffPoolMapper.toStaffDTO(rs));
                 }
             }
         } catch (Exception e) {

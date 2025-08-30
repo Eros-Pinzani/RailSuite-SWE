@@ -28,15 +28,7 @@ class LineDaoImp implements LineDao {
              ResultSet rs = stmt.executeQuery()) {
             List<Line> lines = new ArrayList<>();
             while (rs.next()) {
-                Line line = Line.of(
-                        rs.getInt("id_line"),
-                        rs.getString("name"),
-                        rs.getInt("id_first_station"),
-                        rs.getString("first_station_location"),
-                        rs.getInt("id_last_station"),
-                        rs.getString("last_station_location")
-                );
-                lines.add(line);
+                lines.add(mapper.LineMapper.toDomain(rs));
             }
             return lines;
         } catch (SQLException e) {

@@ -17,6 +17,7 @@ public class CarriageMapper {
         try {
             idConvoy = rs.getObject("id_convoy") != null ? rs.getInt("id_convoy") : null;
         } catch (SQLException | IllegalArgumentException e) {
+            // id_convoy non presente o non valido, lasciamo null
         }
         return Carriage.of(
             rs.getInt("id_carriage"),

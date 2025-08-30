@@ -83,7 +83,7 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
     public ConvoyPool getConvoyPoolById(int idConvoy) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_BY_ID)) {
-            ps.setInt(1, idConvoy);
+            mapper.ConvoyPoolMapper.setIdConvoy(ps, idConvoy);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return mapper.ConvoyPoolMapper.toDomain(rs);
@@ -98,16 +98,10 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
         List<ConvoyTableDTO> result = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(SELECT_TABLE_DATA_BY_STATION)) {
-            ps.setInt(1, idStation);
+            mapper.ConvoyPoolMapper.setIdStation(ps, idStation);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    int idConvoy = rs.getInt("id_convoy");
-                    String status = rs.getString("status");
-                    int carriageCount = rs.getInt("carriage_count");
-                    int capacity = rs.getInt("sum");
-                    String modelType = rs.getString("model_types");
-                    String model = rs.getString("model");
-                    result.add(new ConvoyTableDTO(idConvoy, model, status, carriageCount, capacity, modelType));
+                    result.add(mapper.ConvoyPoolMapper.toConvoyTableDTO(rs));
                 }
             }
         }
@@ -118,9 +112,7 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
     public void insertConvoyPool(domain.ConvoyPool pool) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(INSERT)) {
-            ps.setInt(1, pool.getIdConvoy());
-            ps.setInt(2, pool.getIdStation());
-            ps.setString(3, pool.getConvoyStatus().name());
+            mapper.ConvoyPoolMapper.setInsertConvoyPool(ps, pool);
             ps.executeUpdate();
         }
     }
@@ -129,8 +121,7 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
     public boolean checkAndUpdateConvoyStatus(int idConvoy) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(checkConvoyStatus)) {
-            ps.setInt(1, idConvoy);
-            ps.setInt(2, idConvoy);
+            mapper.ConvoyPoolMapper.setCheckConvoyStatus(ps, idConvoy);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     boolean inMaintenance = rs.getBoolean("in_maintenance");
@@ -150,11 +141,11 @@ class ConvoyPoolDaoImp implements ConvoyPoolDao {
         List<ConvoyTableDTO> availableConvoys = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection()) {
             try (PreparedStatement psUpdate = conn.prepareStatement(updateConvoyStatus)) {
-                psUpdate.setInt(1, idStation);
+                mapper.ConvoyPoolMapper.setIdStation(psUpdate, idStation);
                 psUpdate.executeUpdate();
             }
             try {
-                getConvoyTableDataByStation(idStation);
+                availableConvoys = getConvoyTableDataByStation(idStation);
             } catch (SQLException e) {
                 throw new SQLException("Error retrieving convoy table data", e);
             }

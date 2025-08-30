@@ -14,20 +14,15 @@ class StaffDaoImp implements StaffDao {
     StaffDaoImp() {
     }
 
-    private static Staff mapResultSetToStaff(ResultSet rs) throws SQLException {
-        return mapper.StaffMapper.toDomain(rs);
-    }
-
     @Override
     public Staff findByEmail(String email) throws SQLException {
-        // SQL query to get a staff member by email
         String sql = "SELECT * FROM staff WHERE email = ? LIMIT 1";
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, email);
+            mapper.StaffMapper.setEmail(stmt, email);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return mapResultSetToStaff(rs);
+                return mapper.StaffMapper.toDomain(rs);
             }
         } catch (SQLException e) {
             throw new SQLException("Error finding staff by email: " + email, e);
@@ -37,7 +32,6 @@ class StaffDaoImp implements StaffDao {
 
     @Override
     public List<Staff> findByType(Staff.TypeOfStaff type) throws SQLException {
-        // SQL query to get all staff members by type
         String sql = "SELECT * FROM staff WHERE type_of_staff LIKE ?";
         try {
             return getStaffListWithType(sql, type);
@@ -50,10 +44,10 @@ class StaffDaoImp implements StaffDao {
         List<Staff> staffList = new ArrayList<>();
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, "%" + type.name() + "%");
+            mapper.StaffMapper.setTypeOfStaff(stmt, type);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                staffList.add(mapResultSetToStaff(rs));
+                staffList.add(mapper.StaffMapper.toDomain(rs));
             }
         } catch (SQLException e) {
             throw new SQLException("Error retrieving staff list by type", e);
@@ -242,7 +236,7 @@ class StaffDaoImp implements StaffDao {
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                availableStaff.add(mapResultSetToStaff(rs));
+                availableStaff.add(mapper.StaffMapper.toDomain(rs));
             }
         } catch (SQLException e) {
             throw new SQLException("Errore nel controllo disponibilità operatori", e);

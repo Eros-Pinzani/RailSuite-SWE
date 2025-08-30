@@ -12,10 +12,12 @@ import domain.Carriage;
 import java.util.List;
 
 import businessLogic.service.OperatorHomeService.AssignedConvoyInfo;
+import businessLogic.RailSuiteFacade;
 
 
 public class ConvoyDetailsService {
     private static final Logger logger = Logger.getLogger(ConvoyDetailsService.class.getName());
+    private final RailSuiteFacade facade = new RailSuiteFacade();
 
     public static class ConvoyDetailsDTO {
         public final String convoyId;
@@ -65,14 +67,12 @@ public class ConvoyDetailsService {
     public ConvoyDetailsDTO getConvoyDetailsDTO(AssignedConvoyInfo convoyInfo) {
         if (convoyInfo == null) return null;
         try {
-            dao.ConvoyDao convoyDao = dao.ConvoyDao.of();
-            ConvoyDetailsRaw raw = convoyDao.selectConvoyDetailsById(convoyInfo.convoyId);
+            ConvoyDetailsRaw raw = facade.selectConvoyDetailsById(convoyInfo.convoyId);
             // Recupero la tabella oraria reale
             List<StationRow> stationRows;
             try {
-                dao.LineStationDao lineStationDao = dao.LineStationDao.of();
                 String depTimeStr = convoyInfo.timeDeparture.toLocalDateTime().toLocalTime().toString();
-                List<domain.TimeTable.StationArrAndDep> timeTable = lineStationDao.findTimeTableForRun(convoyInfo.idLine, convoyInfo.idFirstStation, depTimeStr);
+                List<domain.TimeTable.StationArrAndDep> timeTable = facade.findTimeTableForRun(convoyInfo.idLine, convoyInfo.idFirstStation, depTimeStr);
                 stationRows = new java.util.ArrayList<>();
                 if (timeTable != null) {
                     for (domain.TimeTable.StationArrAndDep s : timeTable) {
@@ -124,13 +124,12 @@ public class ConvoyDetailsService {
 
     private void sendNotification(Carriage carriage, String workType, AssignedConvoyInfo convoyDetailsDTO) {
         try {
-            dao.NotificationDao notificationDao = dao.NotificationDao.of();
-            notificationDao.addNotification(
-                    carriage.getId(),
-                    carriage.getIdConvoy(),
-                    new java.sql.Timestamp(System.currentTimeMillis()),
-                    workType,
-                    convoyDetailsDTO.idStaff
+            facade.addNotification(
+                carriage.getId(),
+                carriage.getIdConvoy(),
+                new java.sql.Timestamp(System.currentTimeMillis()),
+                workType,
+                convoyDetailsDTO.idStaff
             );
         } catch (Exception e) {
             logger.severe("Error sending notification: " + e.getMessage());

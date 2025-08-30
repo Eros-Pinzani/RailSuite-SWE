@@ -1,12 +1,13 @@
 package businessLogic.service;
 
-import dao.*;
+import businessLogic.RailSuiteFacade;
 import domain.*;
 import java.util.List;
 import java.util.logging.Logger;
 
 public class ManageRunService {
     private static final Logger logger = Logger.getLogger(ManageRunService.class.getName());
+    private final RailSuiteFacade facade = new RailSuiteFacade();
     /**
      * Gestisce la logica di fine corsa: rimuove le carrozze segnalate dal convoglio, le inserisce nel deposito associato
      * alla stazione di coda con lo status corretto, e imposta il timer per la disponibilità futura.
@@ -16,18 +17,18 @@ public class ManageRunService {
         try {
             int convoyId = run.getIdConvoy();
             int tailStationId = run.getIdLastStation();
-            List<Notification> approvedNotifications = NotificationDao.of().selectApprovedNotificationsByConvoy(convoyId);
+            List<Notification> approvedNotifications = facade.selectApprovedNotificationsByConvoy(convoyId);
             for (Notification notif : approvedNotifications) {
                 int carriageId = notif.getIdCarriage();
                 // Rimuovi la carrozza dal convoglio
-                CarriageDao.of().updateCarriageConvoy(carriageId, null);
+                facade.updateCarriageConvoy(carriageId, null);
                 // Propaga la rimozione alle corse future
-                List<Run> futureRuns = RunDao.of().selectRunsForConvoyAfterTime(convoyId, run.getTimeArrival());
+                List<Run> futureRuns = facade.selectRunsForConvoyAfterTime(convoyId, run.getTimeArrival());
                 for (Run _ : futureRuns) {
-                    CarriageDao.of().updateCarriageConvoy(carriageId, null); // Assicura che la carrozza non sia più assegnata
+                    facade.updateCarriageConvoy(carriageId, null); // Assicura che la carrozza non sia più assegnata
                 }
                 // Trova il deposito associato alla stazione di coda
-                Depot depot = DepotDao.of().getDepotByStationId(tailStationId);
+                Depot depot = facade.getDepotByStationId(tailStationId);
                 if (depot != null) {
                     int depotId = depot.getIdDepot();
                     CarriageDepot.StatusOfCarriage status =
@@ -36,8 +37,7 @@ public class ManageRunService {
                         CarriageDepot.StatusOfCarriage.MAINTENANCE;
                     java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
                     CarriageDepot carriageDepot = CarriageDepot.of(depotId, carriageId, now, null, status);
-                    CarriageDepotDao.of().insertCarriageDepot(carriageDepot);
-                    // RIMOSSA LA LOGICA A THREAD: ora la gestione del tempo è demandata a updateCarriageDepotStatuses()
+                    facade.insertCarriageDepot(carriageDepot);
                 }
             }
         } catch (Exception e) {
@@ -50,7 +50,7 @@ public class ManageRunService {
      */
     public List<Run> getAllRun() {
         try {
-            return RunDao.of().selectAllRun();
+            return facade.selectAllRun();
         } catch (Exception e) {
             logger.severe("Errore in getAllRun: " + e.getMessage());
             return java.util.Collections.emptyList();
@@ -78,7 +78,7 @@ public class ManageRunService {
      */
     public List<Run> searchRunsByDay(String line, String convoy, String operator, String firstStation, java.sql.Timestamp dayStart, java.sql.Timestamp dayEnd) {
         try {
-            return RunDao.of().searchRunsByDay(line, convoy, operator, firstStation, dayStart, dayEnd);
+            return facade.searchRunsByDay(line, convoy, operator, firstStation, dayStart, dayEnd);
         } catch (Exception e) {
             logger.severe("Errore in searchRunsByDay: " + e.getMessage());
             return java.util.Collections.emptyList();
@@ -90,13 +90,13 @@ public class ManageRunService {
      */
     public void updateCarriageDepotStatuses() {
         try {
-            List<CarriageDepot> depots = CarriageDepotDao.of().getCarriagesInCleaningOrMaintenance();
+            List<CarriageDepot> depots = facade.getCarriagesInCleaningOrMaintenance();
             long now = System.currentTimeMillis();
             for (CarriageDepot depot : depots) {
                 long entered = depot.getTimeEntered().getTime();
                 long millisToWait = depot.getStatusOfCarriage() == CarriageDepot.StatusOfCarriage.CLEANING ? 3_600_000L : 21_600_000L;
                 if (now - entered >= millisToWait) {
-                    CarriageDepotDao.of().updateCarriageDepotStatusAndExitTime(
+                    facade.updateCarriageDepotStatusAndExitTime(
                         depot.getIdDepot(),
                         depot.getIdCarriage(),
                         CarriageDepot.StatusOfCarriage.AVAILABLE.name(),

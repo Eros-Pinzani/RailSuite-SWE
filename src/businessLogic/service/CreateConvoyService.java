@@ -1,6 +1,6 @@
 package businessLogic.service;
 
-import dao.CarriageDepotDao;
+import businessLogic.RailSuiteFacade;
 import domain.Carriage;
 import java.util.List;
 
@@ -9,6 +9,8 @@ import java.util.List;
  * Provides business logic for selecting available carriages and creating convoys.
  */
 public class CreateConvoyService {
+    private final RailSuiteFacade facade = new RailSuiteFacade();
+
     /**
      * Returns available carriages in the depot for a given station and model type.
      * Used to select carriages for convoy creation.
@@ -18,8 +20,7 @@ public class CreateConvoyService {
      */
     public List<Carriage> getAvailableDepotCarriages(int idStation, String modelType) {
         try {
-            CarriageDepotDao depotDao = CarriageDepotDao.of();
-            return depotDao.findAvailableCarriagesForConvoy(idStation, modelType);
+            return facade.findAvailableCarriagesForConvoy(idStation, modelType);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -53,8 +54,7 @@ public class CreateConvoyService {
      */
     public List<String> getAvailableDepotCarriageModels(int idStation, String modelType) {
         try {
-            CarriageDepotDao depotDao = CarriageDepotDao.of();
-            return depotDao.findAvailableCarriageModelsForConvoy(idStation, modelType);
+            return facade.findAvailableCarriageModelsForConvoy(idStation, modelType);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

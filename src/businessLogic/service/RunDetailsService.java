@@ -1,7 +1,6 @@
 package businessLogic.service;
 
-
-import dao.*;
+import businessLogic.RailSuiteFacade;
 import domain.Convoy;
 import domain.DTO.ConvoyTableDTO;
 import domain.DTO.RunDTO;
@@ -9,29 +8,23 @@ import domain.TimeTable;
 import domain.Run;
 import domain.Staff;
 
-
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-
 import java.time.Duration;
 import java.util.List;
 
 public class RunDetailsService {
-    private final RunDao runDao = RunDao.of();
+    private final RailSuiteFacade facade = new RailSuiteFacade();
     private RunDTO run;
-    private final LineStationDao lineStationDao = LineStationDao.of();
     private TimeTable timeTable;
-    private final ConvoyDao convoyDao = ConvoyDao.of();
     private Convoy convoy;
-    private final ConvoyPoolDao convoyPoolDao = ConvoyPoolDao.of();
-    private final StaffDao staffDao = StaffDao.of();
 
     public RunDetailsService () {}
 
     public RunDTO selectRun(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture)  {
         if (run != null) return run;
         try {
-            return run = runDao.selectRunDTODetails(idLine, idConvoy, idStaff, timeDeparture);
+            return run = facade.selectRun(idLine, idConvoy, idStaff, timeDeparture);
         } catch (Exception e) {
             throw new RuntimeException("Error selecting run details", e);
         }
@@ -44,7 +37,7 @@ public class RunDetailsService {
 
     public TimeTable selectTimeTable(int idLine, int idFirstStation, String departureTime) {
         try {
-            List<TimeTable.StationArrAndDep> stationArrAndDepList = lineStationDao.findTimeTableForRun(idLine, idFirstStation, departureTime);
+            List<TimeTable.StationArrAndDep> stationArrAndDepList = facade.findTimeTableForRun(idLine, idFirstStation, departureTime);
             this.timeTable = new TimeTable(idLine, stationArrAndDepList);
             return this.timeTable;
         } catch (Exception e) {
@@ -55,7 +48,7 @@ public class RunDetailsService {
     public Convoy selectConvoy(int idConvoy) {
         if (convoy != null && convoy.getId() == idConvoy) return convoy;
         try {
-            return convoy = convoyDao.selectConvoy(idConvoy);
+            return convoy = facade.selectConvoy(idConvoy);
         } catch (Exception e) {
             throw new RuntimeException("Error selecting convoy", e);
         }
@@ -69,7 +62,7 @@ public class RunDetailsService {
      */
     public boolean hasOperatorConflicts(int idStaff, Timestamp timeDeparture) {
         try {
-            return runDao.findRunsByStaffAfterTime(idStaff, timeDeparture);
+            return facade.hasOperatorConflicts(idStaff, timeDeparture);
         } catch (Exception e) {
             throw new RuntimeException("Error checking operator conflicts", e);
         }
@@ -78,7 +71,7 @@ public class RunDetailsService {
     public boolean hasRunConflict() {
         if ( run != null) {
             try {
-                return runDao.findRunsByConvoyAfterTime(run.getIdLine(), run.getIdConvoy(), run.getIdStaff(), run.getTimeDeparture());
+                return facade.hasRunConflict(run.getIdLine(), run.getIdConvoy(), run.getIdStaff(), run.getTimeDeparture());
             } catch (Exception e) {
                 throw new RuntimeException("Error checking convoy conflicts", e);
             }
@@ -90,7 +83,7 @@ public class RunDetailsService {
     public boolean deleteRun(){
         if (run != null) {
             try {
-                return runDao.deleteRun(run.getIdLine(), run.getIdConvoy(), run.getIdStaff(), run.getTimeDeparture());
+                return facade.removeRun(run.getIdLine(), run.getIdConvoy(), run.getIdStaff(), run.getTimeDeparture());
             } catch (Exception e) {
                 throw new RuntimeException("Error deleting run", e);
             }
@@ -102,7 +95,7 @@ public class RunDetailsService {
     public boolean hasConvoyConflict() {
         if (convoy != null) {
             try {
-                return convoyPoolDao.checkAndUpdateConvoyStatus(convoy.getId());
+                return facade.hasConvoyConflict(convoy.getId());
             } catch (Exception e) {
                 throw new RuntimeException("Error checking convoy conflict", e);
             }
@@ -115,7 +108,7 @@ public class RunDetailsService {
         int firstStation = timeTable.getStationArrAndDepList().getFirst().getIdStation();
         if (convoy != null) {
             try {
-                return convoyPoolDao.checkConvoyAvailability(firstStation);
+                return facade.checkConvoyAvailability(firstStation);
             } catch (Exception e) {
                 throw new RuntimeException("Error checking convoy availability", e);
             }
@@ -126,7 +119,7 @@ public class RunDetailsService {
 
     public List<ConvoyTableDTO> getFutureRunsOfCurrentConvoy(int idConvoy, Timestamp timeDeparture) {
         try {
-            return runDao.selectRunsByConvoyAndTimeForTakeFutureRuns(idConvoy, timeDeparture);
+            return facade.getFutureRunsOfCurrentConvoy(idConvoy, timeDeparture);
         } catch (Exception e) {
             throw new RuntimeException("Error selecting run details", e);
         }
@@ -134,7 +127,7 @@ public class RunDetailsService {
 
     public void replaceFutureRunsConvoy(int idConvoy, int newIdConvoy) {
         try {
-            if(!runDao.replaceFutureRunsConvoy(idConvoy, newIdConvoy, run)) {
+            if(!facade.replaceFutureRunsConvoy(idConvoy, newIdConvoy, run)) {
                 throw new RuntimeException("Failed to replace future runs convoy");
             }
             run = selectRun(run.getIdLine(), newIdConvoy, run.getIdStaff(), run.getTimeDeparture());
@@ -147,7 +140,7 @@ public class RunDetailsService {
 
     public List<Staff> checkAvailabilityOfOperator() {
         try {
-            return staffDao.checkOperatorAvailability(run.getIdStaff(), run.getIdLine(), run.getTimeDeparture());
+            return facade.checkOperatorAvailability();
         } catch (Exception e) {
             throw new RuntimeException("Error checking operator availability", e);
         }
@@ -155,7 +148,7 @@ public class RunDetailsService {
 
     public void changeOperator(Staff selectedStaff) {
         try {
-            runDao.updateRunStaff(run.getIdLine(), run.getIdConvoy(), run.getIdStaff(), run.getTimeDeparture(), selectedStaff.getIdStaff());
+            facade.updateRunStaff(run.getIdLine(), run.getIdConvoy(), run.getIdStaff(), run.getTimeDeparture(), selectedStaff.getIdStaff());
         } catch (Exception e) {
             throw new RuntimeException("Error changing operator", e);
         }
@@ -177,7 +170,7 @@ public class RunDetailsService {
             return false;
         }
         try {
-            List<Run> staffRuns = runDao.selectRunsByStaff(staffId);
+            List<Run> staffRuns = facade.selectRunsByStaff(staffId);
             for (Run r : staffRuns) {
                 LocalDateTime rDep = r.getTimeDeparture().toLocalDateTime();
                 LocalDateTime rArr = r.getTimeArrival().toLocalDateTime();
@@ -192,7 +185,7 @@ public class RunDetailsService {
             return false;
         }
         try {
-            List<Run> convoyRuns = runDao.selectRunsByConvoy(convoyId);
+            List<Run> convoyRuns = facade.selectRunsByConvoy(convoyId);
             for (Run r : convoyRuns) {
                 LocalDateTime rDep = r.getTimeDeparture().toLocalDateTime();
                 LocalDateTime rArr = r.getTimeArrival().toLocalDateTime();
@@ -206,10 +199,9 @@ public class RunDetailsService {
         return true;
     }
 
-
     public boolean updateRunDepartureTime(int lineId, int convoyId, int staffId, Timestamp oldDeparture, Timestamp newDeparture) {
         try {
-            return runDao.updateRunDepartureTime(lineId, convoyId, staffId, oldDeparture, newDeparture);
+            return facade.updateRunDepartureTime(lineId, convoyId, staffId, oldDeparture, newDeparture);
         } catch (Exception e) {
             throw new RuntimeException("Error updating departure time", e);
         }

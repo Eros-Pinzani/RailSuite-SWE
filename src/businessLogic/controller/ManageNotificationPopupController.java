@@ -1,5 +1,6 @@
 package businessLogic.controller;
 
+import businessLogic.RailSuiteFacade;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -26,6 +27,7 @@ public class ManageNotificationPopupController {
     @FXML private Label noRunsLabel;
 
     private Notification notification;
+    private final RailSuiteFacade facade = new RailSuiteFacade();
 
     public void initialize() {
         convoyIdColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleObjectProperty<>(cellData.getValue().getIdConvoy()));
@@ -39,7 +41,7 @@ public class ManageNotificationPopupController {
 
     public void loadRunsForCarriage(int idCarriage) {
         try {
-            List<Convoy> allConvoys = ConvoyDao.of().selectAllConvoys();
+            List<Convoy> allConvoys = facade.selectAllConvoys();
             List<Integer> convoyIds = allConvoys.stream()
                 .filter(convoy -> convoy.getCarriages().stream().anyMatch(c -> c.getId() == idCarriage))
                 .map(Convoy::getId)
@@ -52,7 +54,7 @@ public class ManageNotificationPopupController {
             }
             List<Run> filteredRuns = new java.util.ArrayList<>();
             for (Integer convoyId : convoyIds) {
-                filteredRuns.addAll(RunDao.of().selectRunsByConvoy(convoyId));
+                filteredRuns.addAll(facade.selectRunsByConvoy(convoyId));
             }
             java.time.LocalDateTime now = java.time.LocalDateTime.now();
             List<Run> futureRuns = filteredRuns.stream()
@@ -82,10 +84,9 @@ public class ManageNotificationPopupController {
     @FXML
     private void handleApprove() {
         try {
-            // Recupera la Run associata alla notifica tramite idConvoy, idStaff e data compatibile
             Run run = null;
             try {
-                List<Run> runs = dao.RunDao.of().selectRunsByConvoy(notification.getIdConvoy());
+                List<Run> runs = facade.selectRunsByConvoy(notification.getIdConvoy());
                 for (Run r : runs) {
                     boolean staffMatch = r.getIdStaff() == notification.getIdStaff();
                     if (staffMatch) {
@@ -97,8 +98,7 @@ public class ManageNotificationPopupController {
                 Logger.getLogger(ManageNotificationPopupController.class.getName()).log(Level.SEVERE, "Errore nel recupero delle corse per il convoglio", e);
             }
             if (run != null) {
-                // Controllo se la carrozza è impegnata in una corsa in corso
-                List<Run> allRuns = dao.RunDao.of().selectRunsByConvoy(notification.getIdConvoy());
+                List<Run> allRuns = facade.selectRunsByConvoy(notification.getIdConvoy());
                 java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
                 boolean inCorso = false;
                 for (Run r : allRuns) {
@@ -112,8 +112,7 @@ public class ManageNotificationPopupController {
                     new businessLogic.service.ManageRunService().completeRun(run);
                 }
             }
-            // Sposta la notifica nello storico con stato APPROVATA
-            dao.NotificationDao.of().moveNotificationToHistory(
+            facade.moveNotificationToHistory(
                 notification.getIdCarriage(),
                 notification.getIdConvoy(),
                 notification.getDateTimeOfNotification(),
@@ -123,8 +122,7 @@ public class ManageNotificationPopupController {
                 notification.getStaffSurname(),
                 "APPROVATA"
             );
-            // Elimina la notifica dalla tabella principale
-            dao.NotificationDao.of().deleteNotification(
+            facade.deleteNotification(
                 notification.getIdCarriage(),
                 notification.getIdConvoy(),
                 notification.getDateTimeOfNotification()
@@ -138,8 +136,7 @@ public class ManageNotificationPopupController {
     @FXML
     private void handleDeny() {
         try {
-            // Sposta la notifica nello storico con stato NEGATA
-            NotificationDao.of().moveNotificationToHistory(
+            facade.moveNotificationToHistory(
                 notification.getIdCarriage(),
                 notification.getIdConvoy(),
                 notification.getDateTimeOfNotification(),
@@ -149,8 +146,7 @@ public class ManageNotificationPopupController {
                 notification.getStaffSurname(),
                 "NEGATA"
             );
-            // Elimina la notifica dalla tabella principale
-            NotificationDao.of().deleteNotification(
+            facade.deleteNotification(
                 notification.getIdCarriage(),
                 notification.getIdConvoy(),
                 notification.getDateTimeOfNotification()

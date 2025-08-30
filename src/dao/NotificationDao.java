@@ -20,10 +20,6 @@ public interface NotificationDao {
      */
     void moveNotificationToHistory(int idCarriage, int idConvoy, Timestamp notifyTime, String workType, int idStaff, String staffName, String staffSurname, String status) throws SQLException;
 
-    /**
-     * Verifica se esiste una notifica (aperta o storicizzata) per la stessa carrozza, operatore e tipo.
-     */
-    boolean existsNotificationOrHistory(int idCarriage, int idStaff, String workType) throws SQLException;
     List<Notification> getNotificationsByConvoyId(int convoyId) throws SQLException;
     List<Notification> getAllNotificationsForConvoyAndStaff(int convoyId, int staffId) throws SQLException;
 

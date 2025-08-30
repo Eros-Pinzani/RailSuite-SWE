@@ -1,5 +1,6 @@
 package businessLogic.controller;
 
+import businessLogic.RailSuiteFacade;
 import businessLogic.service.ConvoyDetailsService;
 import businessLogic.service.ConvoyDetailsService.StationRow;
 import businessLogic.service.OperatorHomeService.AssignedConvoyInfo;
@@ -45,9 +46,10 @@ public class ConvoyDetailsController {
     @FXML private Button toggleStationTableButton;
 
     private final ConvoyDetailsService convoyDetailsService = new ConvoyDetailsService();
+    private final RailSuiteFacade facade = new RailSuiteFacade();
     private AssignedConvoyInfo convoyInfo;
     private static AssignedConvoyInfo staticConvoyInfo;
-    private NotificationService notificationService = new NotificationService();
+    private final NotificationService notificationService = new NotificationService(facade);
 
     // Mappa: idCarrozza -> Set dei tipi di segnalazione già fatte (per TUTTI gli operatori)
     private final java.util.Map<Integer, java.util.Set<String>> notifiedTypesByCarriage = new java.util.HashMap<>();
@@ -226,7 +228,7 @@ public class ConvoyDetailsController {
 
         // Recupera le notifiche dal DB e aggiorna la mappa notifiedTypesByCarriage
         try {
-            var notifications = dao.NotificationDao.of().getNotificationsByConvoyId(Integer.parseInt(dto.convoyId));
+            var notifications = facade.getNotificationsByConvoyId(Integer.parseInt(dto.convoyId));
             notifiedTypesByCarriage.clear();
             if (notifications != null) {
                 for (var n : notifications) {
@@ -246,7 +248,7 @@ public class ConvoyDetailsController {
             Staff staff = UserSession.getInstance().getStaff();
             notifiedTypesByCarriagePerStaff.clear();
             if (staff != null) {
-                var staffNotifications = dao.NotificationDao.of().getAllNotificationsForConvoyAndStaff(Integer.parseInt(dto.convoyId), staff.getIdStaff());
+                var staffNotifications = facade.getAllNotificationsForConvoyAndStaff(Integer.parseInt(dto.convoyId), staff.getIdStaff());
                 if (staffNotifications != null) {
                     for (var n : staffNotifications) {
                         String type = n.getTypeOfNotification();

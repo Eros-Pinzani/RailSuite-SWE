@@ -27,14 +27,6 @@ class NotificationDaoImp implements NotificationDao {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
-    private static final String existsNotificationOrHistoryQuery = """
-        SELECT COUNT(*) as cnt FROM (
-            SELECT id_carriage, id_staff, work_type FROM notification WHERE id_carriage = ? AND id_staff = ? AND work_type = ?
-            UNION ALL
-            SELECT id_carriage, id_staff, work_type FROM notification_history WHERE id_carriage = ? AND id_staff = ? AND work_type = ?
-        ) AS combined
-        """;
-
     private static final String notificationsByConvoyIdQuery = """
             SELECT n.id_carriage, n.id_convoy, n.notify_time, n.work_type, n.id_staff, s.name, s.surname, c.model, n.status
             FROM notification n JOIN staff s on s.id_staff = n.id_staff JOIN carriage c on c.id_carriage = n.id_carriage
@@ -112,21 +104,6 @@ class NotificationDaoImp implements NotificationDao {
         }
         // Dopo aver inserito nello storico, cancella dalla tabella principale
         deleteNotification(idCarriage, idConvoy, notifyTime);
-    }
-
-    @Override
-    public boolean existsNotificationOrHistory(int idCarriage, int idStaff, String workType) throws SQLException {
-        try (Connection conn = PostgresConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(existsNotificationOrHistoryQuery)) {
-            mapper.NotificationMapper.setExistsNotificationOrHistoryParams(stmt, idCarriage, idStaff, workType);
-            ResultSet rs = stmt.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("cnt") > 0;
-            }
-            return false;
-        } catch (SQLException e) {
-            throw new SQLException("Error checking notification or history existence: ", e);
-        }
     }
 
     @Override

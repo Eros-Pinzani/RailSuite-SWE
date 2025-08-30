@@ -3,6 +3,5 @@ Controllare ogni volta che venga creato o modificata una run che il DB si aggior
 todo fix warning assenza convoglio o personale, update del convoglio o personale in createRun
 todo BUG quando crei la corsa la scena non cambia
 
-todo sistema facade e usa tutti i metodi dai service li
-
-todo spostare dal dao tutto ciò che può andare nel mapper
+todo risolvere tutti i warning (in particolare nella facade ci sono molti metodi non usati,
+   nel caso in cui non servano effettivamente vanno eliminati e se ci sono anche i rispettivi metodi nel dao)

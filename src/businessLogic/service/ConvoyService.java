@@ -5,10 +5,6 @@ package businessLogic.service;
  * Provides business logic for creating, updating, deleting, and retrieving convoys and their carriages.
  */
 import businessLogic.RailSuiteFacade;
-import dao.ConvoyPoolDao;
-import dao.ConvoyDao;
-import dao.CarriageDao;
-import dao.CarriageDepotDao;
 import domain.Convoy;
 import domain.Carriage;
 import domain.ConvoyPool;
@@ -44,27 +40,23 @@ public class ConvoyService {
      */
     public void createConvoy(List<Carriage> carriages) {
         try {
-            ConvoyDao convoyDao = ConvoyDao.of();
-            CarriageDao carriageDao = CarriageDao.of();
-            CarriageDepotDao depotDao = CarriageDepotDao.of();
-            Convoy newConvoy = convoyDao.createConvoy(carriages);
+            Convoy newConvoy = facade.createConvoy(carriages);
             int newConvoyId = newConvoy.getId();
             Integer idStation = null;
             if (!carriages.isEmpty()) {
-                domain.CarriageDepot depot = depotDao.findActiveDepotByCarriage(carriages.getFirst().getId());
+                domain.CarriageDepot depot = facade.findActiveDepotByCarriage(carriages.getFirst().getId());
                 if (depot != null) {
                     idStation = depot.getIdDepot();
                 }
             }
             if (idStation != null) {
-                ConvoyPoolDao convoyPoolDao = ConvoyPoolDao.of();
                 ConvoyPool pool = ConvoyPool.of(newConvoyId, idStation, ConvoyPool.ConvoyStatus.WAITING);
-                convoyPoolDao.insertConvoyPool(pool);
+                facade.insertConvoyPool(pool);
             }
             for (Carriage carriage : carriages) {
                 carriage.setIdConvoy(newConvoyId);
-                carriageDao.updateCarriageConvoy(carriage.getId(), newConvoyId);
-                depotDao.deleteCarriageDepotByCarriageIfAvailable(carriage.getId());
+                facade.updateCarriageConvoy(carriage.getId(), newConvoyId);
+                facade.deleteCarriageDepotByCarriageIfAvailable(carriage.getId());
             }
         } catch (Exception e) {
             logger.severe("Error creating convoy: " + e.getMessage());
@@ -80,8 +72,7 @@ public class ConvoyService {
      */
     public List<ConvoyTableDTO> getConvoyTableByStation(int stationId) {
         try {
-            dao.ConvoyPoolDao convoyPoolDao = dao.ConvoyPoolDao.of();
-            return convoyPoolDao.getConvoyTableDataByStation(stationId);
+            return facade.getConvoyTableDataByStation(stationId);
         } catch (Exception e) {
             logger.severe("Error getting convoy table by station: " + e.getMessage());
             throw new RuntimeException(e);
@@ -97,8 +88,7 @@ public class ConvoyService {
      */
     public List<Carriage> getAvailableDepotCarriages(int idStation, String modelType) {
         try {
-            CarriageDepotDao depotDao = CarriageDepotDao.of();
-            return depotDao.findAvailableCarriagesForConvoy(idStation, modelType);
+            return facade.findAvailableCarriagesForConvoy(idStation, modelType);
         } catch (Exception e) {
             logger.severe("Error getting available depot carriages: " + e.getMessage());
             throw new RuntimeException(e);
@@ -113,8 +103,7 @@ public class ConvoyService {
      */
     public List<String> getAvailableDepotCarriageTypes(int idStation) {
         try {
-            dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();
-            return depotDao.findAvailableCarriageTypesForConvoy(idStation);
+            return facade.findAvailableCarriageTypesForConvoy(idStation);
         } catch (Exception e) {
             logger.severe("Error getting available depot carriage types: " + e.getMessage());
             throw new RuntimeException(e);
@@ -129,18 +118,15 @@ public class ConvoyService {
      */
     public void deleteConvoy(int idConvoy, int idStation) {
         try {
-            dao.ConvoyDao convoyDao = dao.ConvoyDao.of();
-            dao.CarriageDao carriageDao = dao.CarriageDao.of();
-            dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();
-            List<Carriage> carriages = carriageDao.selectCarriagesByConvoyId(idConvoy);
+            List<Carriage> carriages = facade.selectCarriagesByConvoyId(idConvoy);
             java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
             for (Carriage carriage : carriages) {
                 carriage.setIdConvoy(null);
-                carriageDao.updateCarriageConvoy(carriage.getId(), null);
+                facade.updateCarriageConvoy(carriage.getId(), null);
                 domain.CarriageDepot cd = domain.CarriageDepot.of(idStation, carriage.getId(), now, null, domain.CarriageDepot.StatusOfCarriage.AVAILABLE);
-                depotDao.insertCarriageDepot(cd);
+                facade.insertCarriageDepot(cd);
             }
-            convoyDao.removeConvoy(idConvoy);
+            facade.removeConvoy(idConvoy);
         } catch (Exception e) {
             logger.severe("Error deleting convoy: " + e.getMessage());
             throw new RuntimeException(e);
@@ -154,8 +140,7 @@ public class ConvoyService {
      */
     public void updateDepotCarriageAvailability(int idStation) {
         try {
-            dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();
-            depotDao.findAvailableCarriagesForConvoy(idStation, null);
+            facade.findAvailableCarriagesForConvoy(idStation, null);
         } catch (Exception e) {
             logger.severe("Error updating depot carriage availability: " + e.getMessage());
             throw new RuntimeException(e);
@@ -170,8 +155,7 @@ public class ConvoyService {
      */
     public List<CarriageDepotDTO> getCarriagesWithDepotStatusByConvoy(int idConvoy) {
         try {
-            dao.CarriageDepotDao depotDao = dao.CarriageDepotDao.of();
-            return depotDao.findCarriagesWithDepotStatusByConvoy(idConvoy);
+            return facade.findCarriagesWithDepotStatusByConvoy(idConvoy);
         } catch (Exception e) {
             logger.severe("Error getting carriages with depot status by convoy: " + e.getMessage());
             throw new RuntimeException(e);

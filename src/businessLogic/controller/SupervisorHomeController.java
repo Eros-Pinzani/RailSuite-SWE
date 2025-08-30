@@ -117,7 +117,9 @@ public class SupervisorHomeController implements NotificationObserver {
             }
         });
 
-        notificationService = new NotificationService();
+        // Inizializza la facade e passa al NotificationService
+        businessLogic.RailSuiteFacade facade = new businessLogic.RailSuiteFacade();
+        notificationService = new NotificationService(facade);
         notificationService.addObserver(this);
         refreshNotificationsTable();
         notificationTable.getItems().addListener((javafx.collections.ListChangeListener<NotificationRow>) _ -> adjustTableHeight());

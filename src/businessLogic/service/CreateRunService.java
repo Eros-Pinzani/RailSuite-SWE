@@ -1,7 +1,7 @@
 package businessLogic.service;
 
 
-import dao.*;
+import businessLogic.RailSuiteFacade;
 import domain.*;
 import domain.DTO.StaffDTO;
 import javafx.scene.control.DateCell;
@@ -15,9 +15,7 @@ import java.util.List;
 
 
 public class CreateRunService {
-    private final LineDao lineDao = LineDao.of();
-    private final ConvoyDao convoyDao = ConvoyDao.of();
-    private final LineStationDao lineStationDao = LineStationDao.of();
+    private final RailSuiteFacade facade = new RailSuiteFacade();
 
     private final List<Convoy> convoysPoolAvailable = new ArrayList<>();
     private final List<Convoy> convoysPoolAvailableFilteredByType = new ArrayList<>();
@@ -48,7 +46,7 @@ public class CreateRunService {
 
     public List<Line> getAllLines() {
         try {
-            return lineDao.getAllLines();
+            return facade.findAllLines();
         } catch (Exception e) {
             throw new RuntimeException("Error while retrieving lines: " + e.getMessage(), e);
         }
@@ -56,9 +54,8 @@ public class CreateRunService {
 
     public Duration calculateTravelTime(Line selectedLine) {
         try {
-            List<LineStation> stations = lineStationDao.findByLine(selectedLine.getIdLine());
+            List<LineStation> stations = facade.findLineStationsByLineId(selectedLine.getIdLine());
             if (stations.isEmpty()) return Duration.ZERO;
-
             Duration totalTime = Duration.ZERO;
             for (int i = 0; i < stations.size() - 1; i++) {
                 totalTime = totalTime.plus(stations.get(i).getTimeToNextStation());
@@ -72,7 +69,7 @@ public class CreateRunService {
 
     public void setConvoyPools(int idStation, String timeDeparture, LocalDate dateDeparture, int idLine) {
         try {
-            setConvoysPoolAvailable(convoyDao.getConvoysForNewRun(idStation, timeDeparture, dateDeparture, idLine));
+            setConvoysPoolAvailable(facade.getConvoysForNewRun(idStation, timeDeparture, dateDeparture, idLine));
         } catch (Exception e) {
             throw new RuntimeException("Error while retrieving convoy pools: " + e.getMessage(), e);
         }
@@ -100,7 +97,7 @@ public class CreateRunService {
 
     public List<StaffDTO> getStaffPools(int idStation, LocalDate dateDeparture, String timeDeparture) {
         try {
-            return StaffPoolDao.of().findAvailableOperatorsForRun(idStation, dateDeparture, timeDeparture);
+            return facade.findAvailableOperatorsForRun(idStation, dateDeparture, timeDeparture);
         } catch (Exception e) {
             throw new RuntimeException("Error while retrieving staff pools: " + e.getMessage(), e);
         }
@@ -142,7 +139,7 @@ public class CreateRunService {
 
     public List<TimeTable.StationArrAndDep> getTimeTableForRun(int idLine, int idStartStation, String departureTime) {
         try {
-            return lineStationDao.findTimeTableForRun(idLine, idStartStation, departureTime);
+            return facade.findTimeTableForRun(idLine, idStartStation, departureTime);
         } catch (Exception e) {
             throw new RuntimeException("Errore nel calcolo della tabella orari: " + e.getMessage(), e);
         }
@@ -153,11 +150,10 @@ public class CreateRunService {
             if (travelTime == null) {
                 travelTime = waitForTravelTime(line);
             }
-            RunDao runDao = RunDao.of();
             java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(date, java.time.LocalTime.parse(time));
             java.sql.Timestamp departureTimestamp = java.sql.Timestamp.valueOf(dateTime);
             java.sql.Timestamp arrivalTimestamp = java.sql.Timestamp.valueOf(dateTime.plus(travelTime));
-            runDao.createRun(
+            facade.createRun(
                 line.getIdLine(),
                 convoy.getId(),
                 operator.getIdStaff(),
@@ -166,11 +162,7 @@ public class CreateRunService {
                 line.getIdFirstStation(),
                 line.getIdLastStation()
             );
-            return runDao.selectRunByLineConvoyAndStaff(
-                line.getIdLine(),
-                convoy.getId(),
-                operator.getIdStaff()
-            );
+            return facade.selectRun(line.getIdLine(), convoy.getId(), operator.getIdStaff());
         }catch (Exception e) {
             throw new RuntimeException("Error while creating run: " + e.getMessage(), e);
         }

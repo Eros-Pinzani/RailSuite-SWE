@@ -1,17 +1,17 @@
 package businessLogic.service;
 
-/**
- * Service for managing carriages in a convoy.
- * Provides business logic for adding, removing, and retrieving carriages with depot status.
- */
-import dao.CarriageDepotDao;
-import dao.CarriageDao;
-import dao.ConvoyPoolDao;
+import businessLogic.RailSuiteFacade;
 import domain.Carriage;
 import domain.DTO.CarriageDepotDTO;
 import java.util.List;
 
+/**
+ * Service for managing carriages in a convoy.
+ * Provides business logic for adding, removing, and retrieving carriages with depot status.
+ */
 public class ManageCarriagesService {
+    private final RailSuiteFacade facade = new RailSuiteFacade();
+
     /**
      * Returns all carriages in a convoy, including their depot status.
      * Used to display the status of each carriage in a convoy.
@@ -20,8 +20,7 @@ public class ManageCarriagesService {
      */
     public List<CarriageDepotDTO> getCarriagesWithDepotStatusByConvoy(int idConvoy) {
         try {
-            CarriageDepotDao depotDao = CarriageDepotDao.of();
-            return depotDao.findCarriagesWithDepotStatusByConvoy(idConvoy);
+            return facade.findCarriagesWithDepotStatusByConvoy(idConvoy);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -36,8 +35,7 @@ public class ManageCarriagesService {
      */
     public List<Carriage> getAvailableDepotCarriages(int idStation, String modelType) {
         try {
-            CarriageDepotDao depotDao = CarriageDepotDao.of();
-            return depotDao.findAvailableCarriagesForConvoy(idStation, modelType);
+            return facade.findAvailableCarriagesForConvoy(idStation, modelType);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -51,8 +49,8 @@ public class ManageCarriagesService {
      */
     public void addCarriageToConvoy(int idCarriage, int idConvoy) {
         try {
-            CarriageDao.of().updateCarriageConvoy(idCarriage, idConvoy);
-            CarriageDepotDao.of().deleteCarriageDepotByCarriageIfAvailable(idCarriage);
+            facade.updateCarriageConvoy(idCarriage, idConvoy);
+            facade.deleteCarriageDepotByCarriageIfAvailable(idCarriage);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -66,27 +64,19 @@ public class ManageCarriagesService {
      */
     public void removeCarriageFromConvoy(int idCarriage, int idConvoy) {
         try {
-            CarriageDepotDao depotDao = CarriageDepotDao.of();
-            CarriageDao carriageDao = CarriageDao.of();
-            // Verifica se la carriage è già in depot (cioè esiste una riga carriage_depot con time_exited IS NULL)
-            domain.CarriageDepot depot = depotDao.findActiveDepotByCarriage(idCarriage);
+            domain.CarriageDepot depot = facade.findActiveDepotByCarriage(idCarriage);
             if (depot != null && depot.getIdCarriage() == idCarriage) {
-                // La carriage è già in depot: elimina solo la reference al convoglio
-                carriageDao.updateCarriageConvoy(idCarriage, null);
+                facade.updateCarriageConvoy(idCarriage, null);
             } else {
-                // La carriage NON è in depot: aggiorna la reference e inserisci in depot del convoy
-                // Recupera id_depot del convoy
-                ConvoyPoolDao convoyPoolDao = ConvoyPoolDao.of();
-                domain.ConvoyPool pool = convoyPoolDao.getConvoyPoolById(idConvoy);
+                domain.ConvoyPool pool = facade.getConvoyPoolById(idConvoy);
                 if (pool != null) {
                     int idDepot = pool.getIdStation();
-                    carriageDao.updateCarriageConvoy(idCarriage, null);
+                    facade.updateCarriageConvoy(idCarriage, null);
                     java.sql.Timestamp now = new java.sql.Timestamp(System.currentTimeMillis());
                     domain.CarriageDepot cd = domain.CarriageDepot.of(idDepot, idCarriage, now, null, domain.CarriageDepot.StatusOfCarriage.AVAILABLE);
-                    depotDao.insertCarriageDepot(cd);
+                    facade.insertCarriageDepot(cd);
                 } else {
-                    // fallback: elimina solo la reference
-                    carriageDao.updateCarriageConvoy(idCarriage, null);
+                    facade.updateCarriageConvoy(idCarriage, null);
                 }
             }
         } catch (Exception e) {
@@ -102,8 +92,7 @@ public class ManageCarriagesService {
      */
     public List<String> getAvailableDepotCarriageTypes(int idStation) {
         try {
-            CarriageDepotDao depotDao = CarriageDepotDao.of();
-            return depotDao.findAvailableCarriageTypesForConvoy(idStation);
+            return facade.findAvailableCarriageTypesForConvoy(idStation);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -118,8 +107,7 @@ public class ManageCarriagesService {
      */
     public List<String> getAvailableDepotCarriageModels(int idStation, String modelType) {
         try {
-            CarriageDepotDao depotDao = CarriageDepotDao.of();
-            return depotDao.findAvailableCarriageModelsForConvoy(idStation, modelType);
+            return facade.findAvailableCarriageModelsForConvoy(idStation, modelType);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

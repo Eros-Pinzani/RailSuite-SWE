@@ -106,7 +106,7 @@ public class OperatorHomeController {
      * @param staffId The ID of the operator staff.
      */
     private void populateAssignedTrainsTable(int staffId) {
-        OperatorHomeService service = new OperatorHomeService();
+        OperatorHomeService service = new OperatorHomeService(new businessLogic.RailSuiteFacade());
         try {
             List<OperatorHomeService.AssignedConvoyInfo> convoys = service.getAssignedConvoysForOperator(staffId);
             boolean hasConvoys = !convoys.isEmpty();

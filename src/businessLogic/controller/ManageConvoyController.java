@@ -5,9 +5,9 @@ package businessLogic.controller;
  * Handles the display, creation, and removal of convoys for a selected station.
  */
 import businessLogic.service.ConvoyService;
+import businessLogic.RailSuiteFacade;
 import domain.DTO.ConvoyTableDTO;
 import domain.Station;
-import dao.StationDao;
 import domain.Staff;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -31,6 +31,7 @@ public class ManageConvoyController {
     @FXML private Button backButton;
 
     private final ConvoyService convoyService = new ConvoyService();
+    private final RailSuiteFacade facade = new RailSuiteFacade();
 
     /**
      * Initializes the controller after its root element has been completely processed.
@@ -59,7 +60,7 @@ public class ManageConvoyController {
 
         // Carica le stazioni head nella ComboBox
         try {
-            List<Station> stations = StationDao.of().findAllHeadStations();
+            List<Station> stations = facade.findAllHeadStations();
             stationComboBox.setItems(FXCollections.observableArrayList(stations));
         } catch (Exception e) {
             stationComboBox.setItems(FXCollections.observableArrayList());
@@ -182,7 +183,7 @@ public class ManageConvoyController {
         Station selectedStation = stationComboBox.getValue();
         if (selectedStation != null) {
             try {
-                // Chiama il service/dao per aggiornare la disponibilità delle vetture nel deposito associato
+                // Chiama il service per aggiornare la disponibilità delle vetture nel deposito associato
                 convoyService.updateDepotCarriageAvailability(selectedStation.getIdStation());
             } catch (Exception e) {
                 showError("Errore durante l'aggiornamento della disponibilità delle vetture in deposito: " + e.getMessage());

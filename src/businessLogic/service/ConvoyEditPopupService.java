@@ -1,13 +1,13 @@
 package businessLogic.service;
 
-import dao.ConvoyDao;
+import businessLogic.RailSuiteFacade;
 import domain.Carriage;
 import domain.Convoy;
 
 import java.util.List;
 
 public class ConvoyEditPopupService {
-    ConvoyDao convoyDao = ConvoyDao.of();
+    private final RailSuiteFacade facade = new RailSuiteFacade();
 
     public void removeCarriageFromConvoy(Convoy convoy, Carriage selectedCarriage) throws Exception {
         if (convoy == null || selectedCarriage == null) {
@@ -18,7 +18,7 @@ public class ConvoyEditPopupService {
         }
         convoy.getCarriages().remove(selectedCarriage);
         try {
-            convoyDao.removeCarriageFromConvoy(convoy.getId(), selectedCarriage);
+            facade.removeCarriageFromConvoy(convoy.getId(), selectedCarriage);
         }
         catch (Exception e) {
             throw new Exception("Error removing carriage from convoy: " + e.getMessage(), e);
@@ -36,7 +36,7 @@ public class ConvoyEditPopupService {
             convoy.getCarriages().add(carriage);
         }
         try {
-            convoyDao.addCarriagesToConvoy(convoy.getId(), carriages);
+            facade.addCarriagesToConvoy(convoy.getId(), carriages);
         } catch (Exception e) {
             throw new RuntimeException("Error adding carriages to convoy: " + e.getMessage(), e);
         }

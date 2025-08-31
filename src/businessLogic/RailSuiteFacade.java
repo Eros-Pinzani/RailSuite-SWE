@@ -430,7 +430,7 @@ public class RailSuiteFacade {
      * Restituisce gli operatori disponibili per una corsa.
      */
     public java.util.List<domain.DTO.StaffDTO> findAvailableOperatorsForRun(int idStation, java.time.LocalDate dateDeparture, String timeDeparture) throws SQLException {
-        return StaffPoolDao.of().findAvailableOperatorsForRun(idStation, dateDeparture, timeDeparture);
+        return staffPoolDao.findAvailableOperatorsForRun(idStation, dateDeparture, timeDeparture);
     }
 
     /**

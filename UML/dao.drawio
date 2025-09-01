@@ -1,0 +1,279 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36" version="28.1.2">
+  <diagram id="82uCqq8HSNTGh2xujvIe" name="Pagina-1">
+    <mxGraphModel dx="4151" dy="1061" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" background="none" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="iw9ax4rHFalOD17Yx98J-1" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;dao&lt;/font&gt;" style="shape=folder;fontStyle=1;tabWidth=110;tabHeight=30;tabPosition=left;html=1;boundedLbl=1;labelInHeader=1;container=1;collapsible=0;recursiveResize=0;whiteSpace=wrap;align=center;" vertex="1" parent="1">
+          <mxGeometry x="-809" y="8" width="2480" height="2700" as="geometry" />
+        </mxCell>
+        <mxCell id="node15" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;CarriageDao&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ selectCarriagesByConvoyId(int): List&amp;lt;Carriage&amp;gt;&lt;br/&gt;+ updateCarriageConvoy(int, Integer): boolean&lt;br/&gt;+ of(): CarriageDao&lt;br/&gt;+ selectCarriage(int): Carriage&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="1299" y="94" width="347" height="169" as="geometry" />
+        </mxCell>
+        <mxCell id="node18" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;CarriageDaoImp&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- selectCarriageQuery: String&lt;br/&gt;- selectCarriagesByConvoyIdQuery: String&lt;br/&gt;- updateCarriageConvoyQuery: String&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ selectCarriagesByConvoyId(int): List&amp;lt;Carriage&amp;gt;&lt;br/&gt;+ selectCarriage(int): Carriage&lt;br/&gt;+ updateCarriageConvoy(int, Integer): boolean&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="1299" y="398" width="347" height="185" as="geometry" />
+        </mxCell>
+        <mxCell id="node5" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;CarriageDepotDao&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ findAvailableCarriageModelsForConvoy(int, String): List&amp;lt;String&amp;gt;&lt;br/&gt;+ of(): CarriageDepotDao&lt;br/&gt;+ updateCarriageDepotStatusAndExitTime(int, int, String, Timestamp): void&lt;br/&gt;+ findCarriagesWithDepotStatusByConvoy(int): List&amp;lt;CarriageDepotDTO&amp;gt;&lt;br/&gt;+ insertCarriageDepot(CarriageDepot): void&lt;br/&gt;+ findAvailableCarriagesForConvoy(int, String): List&amp;lt;Carriage&amp;gt;&lt;br/&gt;+ deleteCarriageDepotByCarriageIfAvailable(int): void&lt;br/&gt;+ findActiveDepotByCarriage(int): CarriageDepot&lt;br/&gt;+ getCarriagesInCleaningOrMaintenance(): List&amp;lt;CarriageDepot&amp;gt;&lt;br/&gt;+ getCarriagesByDepot(int): List&amp;lt;CarriageDepot&amp;gt;&lt;br/&gt;+ findAvailableCarriageTypesForConvoy(int): List&amp;lt;String&amp;gt;&lt;br/&gt;+ getCarriagesByConvoyPosition(int): List&amp;lt;Carriage&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="-416" y="972" width="493" height="327" as="geometry" />
+        </mxCell>
+        <mxCell id="node8" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;CarriageDepotDaoImp&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- getCarriagesByConvoyPositionQuery: String&lt;br/&gt;- updateSql: String&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ getCarriagesByConvoyPosition(int): List&amp;lt;Carriage&amp;gt;&lt;br/&gt;+ updateCarriageDepotStatusAndExitTime(int, int, String, Timestamp): void&lt;br/&gt;+ findAvailableCarriageModelsForConvoy(int, String): List&amp;lt;String&amp;gt;&lt;br/&gt;- mapResultSetToCarriageDepot(ResultSet): CarriageDepot&lt;br/&gt;+ getCarriagesByDepot(int): List&amp;lt;CarriageDepot&amp;gt;&lt;br/&gt;- getCarriageDepots(String, int): List&amp;lt;CarriageDepot&amp;gt;&lt;br/&gt;+ deleteCarriageDepotByCarriageIfAvailable(int): void&lt;br/&gt;+ findCarriagesWithDepotStatusByConvoy(int): List&amp;lt;CarriageDepotDTO&amp;gt;&lt;br/&gt;+ findActiveDepotByCarriage(int): CarriageDepot&lt;br/&gt;+ getCarriagesInCleaningOrMaintenance(): List&amp;lt;CarriageDepot&amp;gt;&lt;br/&gt;+ findAvailableCarriagesForConvoy(int, String): List&amp;lt;Carriage&amp;gt;&lt;br/&gt;+ findAvailableCarriageTypesForConvoy(int): List&amp;lt;String&amp;gt;&lt;br/&gt;+ insertCarriageDepot(CarriageDepot): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="-416" y="1411" width="493" height="401" as="geometry" />
+        </mxCell>
+        <mxCell id="node26" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;ConvoyAssignedRow&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ idLine: int&lt;br/&gt;+ arrivalStation: String&lt;br/&gt;+ departureStation: String&lt;br/&gt;+ idFirstStation: int&lt;br/&gt;+ arrivalTime: String&lt;br/&gt;+ idStaff: int&lt;br/&gt;+ convoyId: int&lt;br/&gt;+ timeDeparture: Timestamp&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="271" y="677" width="216" height="231" as="geometry" />
+        </mxCell>
+        <mxCell id="node14" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;ConvoyDao&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ selectAllConvoys(): List&amp;lt;Convoy&amp;gt;&lt;br/&gt;+ createConvoy(List&amp;lt;Carriage&amp;gt;): Convoy&lt;br/&gt;+ selectConvoyDetailsById(int): ConvoyDetailsRaw&lt;br/&gt;+ getConvoysForNewRun(int, String, LocalDate, int): List&amp;lt;Convoy&amp;gt;&lt;br/&gt;+ selectAssignedConvoysRowsByStaff(int): List&amp;lt;ConvoyAssignedRow&amp;gt;&lt;br/&gt;+ addCarriagesToConvoy(int, List&amp;lt;Carriage&amp;gt;): void&lt;br/&gt;+ removeCarriageFromConvoy(int, Carriage): boolean&lt;br/&gt;+ of(): ConvoyDao&lt;br/&gt;+ selectConvoy(int): Convoy&lt;br/&gt;+ removeConvoy(int): boolean&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="137" y="972" width="485" height="279" as="geometry" />
+        </mxCell>
+        <mxCell id="node13" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;ConvoyDaoImp&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- convoyForNewRunQuery: String&lt;br/&gt;- selectCarriagesByConvoyIdQuery: String&lt;br/&gt;- selectConvoyQuery: String&lt;br/&gt;- deleteConvoyQuery: String&lt;br/&gt;- selectAllConvoyIdsQuery: String&lt;br/&gt;- removeCarriageFromConvoyQuery: String&lt;br/&gt;- updateCarriageConvoyQuery: String&lt;br/&gt;- insertConvoyQuery: String&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ removeConvoy(int): boolean&lt;br/&gt;+ getConvoysForNewRun(int, String, LocalDate, int): List&amp;lt;Convoy&amp;gt;&lt;br/&gt;+ selectAllConvoys(): List&amp;lt;Convoy&amp;gt;&lt;br/&gt;+ selectAssignedConvoysRowsByStaff(int): List&amp;lt;ConvoyAssignedRow&amp;gt;&lt;br/&gt;+ createConvoy(List&amp;lt;Carriage&amp;gt;): Convoy&lt;br/&gt;+ selectConvoyDetailsById(int): ConvoyDetailsRaw&lt;br/&gt;+ selectConvoy(int): Convoy&lt;br/&gt;+ addCarriagesToConvoy(int, List&amp;lt;Carriage&amp;gt;): void&lt;br/&gt;+ removeCarriageFromConvoy(int, Carriage): boolean&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="137" y="1411" width="485" height="449" as="geometry" />
+        </mxCell>
+        <mxCell id="node11" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;ConvoyPoolDao&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ checkConvoyAvailability(int): List&amp;lt;ConvoyTableDTO&amp;gt;&lt;br/&gt;+ insertConvoyPool(ConvoyPool): void&lt;br/&gt;+ getConvoyTableDataByStation(int): List&amp;lt;ConvoyTableDTO&amp;gt;&lt;br/&gt;+ of(): ConvoyPoolDao&lt;br/&gt;+ getConvoyPoolById(int): ConvoyPool&lt;br/&gt;+ checkAndUpdateConvoyStatus(int): boolean&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="681" y="972" width="423" height="183" as="geometry" />
+        </mxCell>
+        <mxCell id="node3" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;ConvoyPoolDaoImp&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- INSERT: String&lt;br/&gt;- checkConvoyStatus: String&lt;br/&gt;- updateConvoyStatus: String&lt;br/&gt;- SELECT_TABLE_DATA_BY_STATION: String&lt;br/&gt;- SELECT_BY_ID: String&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ getConvoyPoolById(int): ConvoyPool&lt;br/&gt;+ getConvoyTableDataByStation(int): List&amp;lt;ConvoyTableDTO&amp;gt;&lt;br/&gt;+ checkConvoyAvailability(int): List&amp;lt;ConvoyTableDTO&amp;gt;&lt;br/&gt;+ insertConvoyPool(ConvoyPool): void&lt;br/&gt;+ checkAndUpdateConvoyStatus(int): boolean&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="681" y="1422" width="423" height="281" as="geometry" />
+        </mxCell>
+        <mxCell id="node6" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;DepotDao&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ of(): DepotDao&lt;br/&gt;+ getAllDepots(): List&amp;lt;Depot&amp;gt;&lt;br/&gt;+ getDepot(int): Depot&lt;br/&gt;+ getDepotByStationId(int): Depot&lt;br/&gt;+ insertDepot(int): void&lt;br/&gt;+ deleteDepot(int): void&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="-724" y="972" width="249" height="183" as="geometry" />
+        </mxCell>
+        <mxCell id="node16" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;DepotDaoImp&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- getDepots(String): List&amp;lt;Depot&amp;gt;&lt;br/&gt;+ deleteDepot(int): void&lt;br/&gt;+ getDepot(int): Depot&lt;br/&gt;+ insertDepot(int): void&lt;br/&gt;+ getDepotByStationId(int): Depot&lt;br/&gt;+ getAllDepots(): List&amp;lt;Depot&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="-724" y="1411" width="249" height="183" as="geometry" />
+        </mxCell>
+        <mxCell id="node19" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;LineDao&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ of(): LineDao&lt;br/&gt;+ getAllLines(): List&amp;lt;Line&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#d5e8d4;strokeColor=#82b366;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-700" y="94" width="200" height="109" as="geometry" />
+        </mxCell>
+        <mxCell id="node10" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;LineDaoImp&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- getLineRawQuery: String&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ getAllLines(): List&amp;lt;Line&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-700" y="401" width="200" height="96" as="geometry" />
+        </mxCell>
+        <mxCell id="node21" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;LineStationDao&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ of(): LineStationDao&lt;br/&gt;+ findByLine(int): List&amp;lt;LineStation&amp;gt;&lt;br/&gt;+ findTimeTableForRun(int, int, String): List&amp;lt;StationArrAndDep&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#d5e8d4;strokeColor=#82b366;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-462" y="94" width="440" height="139" as="geometry" />
+        </mxCell>
+        <mxCell id="node24" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;LineStationDaoImp&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- findTimeTableForRunSQL: String&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ findTimeTableForRun(int, int, String): List&amp;lt;StationArrAndDep&amp;gt;&lt;br/&gt;+ findByLine(int): List&amp;lt;LineStation&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="-462" y="401" width="440" height="122" as="geometry" />
+        </mxCell>
+        <mxCell id="node25" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;LineStationRow&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;~ timeToNext: Duration&lt;br/&gt;~ idStation: int&lt;br/&gt;~ location: String&lt;br/&gt;~ stationOrder: int&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="-330.5" y="601" width="177" height="146" as="geometry" />
+        </mxCell>
+        <mxCell id="node2" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;NotificationDao&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ moveNotificationToHistory(int, int, Timestamp, String, int, String, String, String): void&lt;br/&gt;+ getAllNotifications(): List&amp;lt;Notification&amp;gt;&lt;br/&gt;+ getNotificationsByConvoyId(int): List&amp;lt;Notification&amp;gt;&lt;br/&gt;+ of(): NotificationDao&lt;br/&gt;+ deleteNotification(int, int, Timestamp): void&lt;br/&gt;+ selectApprovedNotificationsByConvoy(int): List&amp;lt;Notification&amp;gt;&lt;br/&gt;+ addNotification(int, int, Timestamp, String, int): void&lt;br/&gt;+ getAllNotificationsForConvoyAndStaff(int, int): List&amp;lt;Notification&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="1164" y="972" width="461" height="231" as="geometry" />
+        </mxCell>
+        <mxCell id="node1" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;NotificationDaoImp&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- allNotificationsQuery: String&lt;br/&gt;- addNotificationQuery: String&lt;br/&gt;- insertNotificationHistoryQuery: String&lt;br/&gt;- notificationsByConvoyIdQuery: String&lt;br/&gt;- allNotificationsForConvoyAndStaffQuery: String&lt;br/&gt;- deleteNotificationQuery: String&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ moveNotificationToHistory(int, int, Timestamp, String, int, String, String, String): void&lt;br/&gt;+ getNotificationsByConvoyId(int): List&amp;lt;Notification&amp;gt;&lt;br/&gt;- resultSetToNotificationList(ResultSet): List&amp;lt;Notification&amp;gt;?&lt;br/&gt;+ getAllNotificationsForConvoyAndStaff(int, int): List&amp;lt;Notification&amp;gt;&lt;br/&gt;+ getAllNotifications(): List&amp;lt;Notification&amp;gt;&lt;br/&gt;+ deleteNotification(int, int, Timestamp): void&lt;br/&gt;+ addNotification(int, int, Timestamp, String, int): void&lt;br/&gt;+ selectApprovedNotificationsByConvoy(int): List&amp;lt;Notification&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="1164" y="1422" width="461" height="377" as="geometry" />
+        </mxCell>
+        <mxCell id="node22" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;PostgresConnection&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- PROPERTIES_PATH: String&lt;br/&gt;- user: String&lt;br/&gt;- url: String&lt;br/&gt;- password: String&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ getConnection(): Connection&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1">
+          <mxGeometry x="681" y="671" width="228" height="161" as="geometry" />
+        </mxCell>
+        <mxCell id="node12" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;RunDao&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ findRunsByStaffAfterTime(int, Timestamp): boolean&lt;br/&gt;+ selectRunDTODetails(int, int, int, Timestamp): RunDTO&lt;br/&gt;+ deleteRun(int, int, int, Timestamp): boolean&lt;br/&gt;+ updateRunStaff(int, int, int, Timestamp, int): void&lt;br/&gt;+ updateRunDepartureTime(int, int, int, Timestamp, Timestamp): boolean&lt;br/&gt;+ selectAllRun(): List&amp;lt;Run&amp;gt;&lt;br/&gt;+ of(): RunDao&lt;br/&gt;+ selectRunsByConvoyAndTimeForTakeFutureRuns(int, Timestamp): List&amp;lt;ConvoyTableDTO&amp;gt;&lt;br/&gt;+ selectRunByLineConvoyAndStaff(int, int, Timestamp, int, int): Run&lt;br/&gt;+ selectRunsByStaff(int): List&amp;lt;Run&amp;gt;&lt;br/&gt;+ findRunsByConvoyAfterTime(int, int, int, Timestamp): boolean&lt;br/&gt;+ selectRunsForConvoyAfterTime(int, Timestamp): List&amp;lt;Run&amp;gt;&lt;br/&gt;+ selectRunsByConvoy(int): List&amp;lt;Run&amp;gt;&lt;br/&gt;+ replaceFutureRunsConvoy(int, int, RunDTO): boolean&lt;br/&gt;+ searchRunsByDay(String, String, String, String, Timestamp, Timestamp): List&amp;lt;Run&amp;gt;&lt;br/&gt;+ createRun(int, int, int, Timestamp, Timestamp, int, int): boolean&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="-538" y="1924" width="615" height="423" as="geometry" />
+        </mxCell>
+        <mxCell id="node0" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;RunDaoImp&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- selectRunsByConvoyQuery: String&lt;br/&gt;- selectAllRunQuery: String&lt;br/&gt;- selectRunsByStaffQuery: String&lt;br/&gt;- selectRunsForOperatorAfterTimeQuery: String&lt;br/&gt;- selectConvoyTableDTOQuery: String&lt;br/&gt;- insertRunQuery: String&lt;br/&gt;- replaceFutureRunsConvoyQuery: String&lt;br/&gt;- selectRunsForConvoyAfterTimeSimpleQuery: String&lt;br/&gt;- deleteRunQuery: String&lt;br/&gt;- selectRunByLineConvoyAndStaffQuery: String&lt;br/&gt;- selectConvoyByIdQuery: String&lt;br/&gt;- selectRunDTOdetails: String&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ replaceFutureRunsConvoy(int, int, RunDTO): boolean&lt;br/&gt;+ selectRunsByConvoy(int): List&amp;lt;Run&amp;gt;&lt;br/&gt;+ findRunsByStaffAfterTime(int, Timestamp): boolean&lt;br/&gt;+ createRun(int, int, int, Timestamp, Timestamp, int, int): boolean&lt;br/&gt;- resultSetToRunList(ResultSet): List&amp;lt;Run&amp;gt;?&lt;br/&gt;+ selectRunDTODetails(int, int, int, Timestamp): RunDTO&lt;br/&gt;+ selectAllRun(): List&amp;lt;Run&amp;gt;&lt;br/&gt;+ searchRunsByDay(String, String, String, String, Timestamp, Timestamp): List&amp;lt;Run&amp;gt;&lt;br/&gt;- resultSetToRun(ResultSet): Run&lt;br/&gt;+ selectRunsByConvoyAndTimeForTakeFutureRuns(int, Timestamp): List&amp;lt;ConvoyTableDTO&amp;gt;&lt;br/&gt;+ selectRunByLineConvoyAndStaff(int, int, Timestamp, int, int): Run&lt;br/&gt;+ deleteRun(int, int, int, Timestamp): boolean&lt;br/&gt;+ selectRunsByStaff(int): List&amp;lt;Run&amp;gt;&lt;br/&gt;+ findRunsByConvoyAfterTime(int, int, int, Timestamp): boolean&lt;br/&gt;+ selectRunsForConvoyAfterTime(int, Timestamp): List&amp;lt;Run&amp;gt;&lt;br/&gt;+ updateRunStaff(int, int, int, Timestamp, int): void&lt;br/&gt;- getRuns(int, String): List&amp;lt;Run&amp;gt;&lt;br/&gt;+ updateRunDepartureTime(int, int, int, Timestamp, Timestamp): boolean&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="489" y="1924" width="615" height="761" as="geometry" />
+        </mxCell>
+        <mxCell id="node17" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;StaffDao&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ checkOperatorAvailability(int, int, Timestamp): List&amp;lt;Staff&amp;gt;&lt;br/&gt;+ of(): StaffDao&lt;br/&gt;+ findByEmail(String): Staff&lt;br/&gt;+ findByType(TypeOfStaff): List&amp;lt;Staff&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="16" y="94" width="416" height="169" as="geometry" />
+        </mxCell>
+        <mxCell id="node20" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;StaffDaoImp&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ findByType(TypeOfStaff): List&amp;lt;Staff&amp;gt;&lt;br/&gt;- getStaffListWithType(String, TypeOfStaff): List&amp;lt;Staff&amp;gt;&lt;br/&gt;+ findByEmail(String): Staff&lt;br/&gt;- updateForCheckOperatorAvailability(int, int, Timestamp): void&lt;br/&gt;+ checkOperatorAvailability(int, int, Timestamp): List&amp;lt;Staff&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="4" y="396" width="439" height="159" as="geometry" />
+        </mxCell>
+        <mxCell id="node7" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;StaffPoolDao&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ of(): StaffPoolDao&lt;br/&gt;+ findAvailableOperatorsForRun(int, LocalDate, String): List&amp;lt;StaffDTO&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="469" y="94" width="482" height="109" as="geometry" />
+        </mxCell>
+        <mxCell id="node23" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;StaffPoolDaoImp&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- SELECT_AVAILABLE_OPERATORS_FOR_RUN: String&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ findAvailableOperatorsForRun(int, LocalDate, String): List&amp;lt;StaffDTO&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="469" y="396" width="482" height="96" as="geometry" />
+        </mxCell>
+        <mxCell id="node9" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&lt;/i&gt;&lt;br/&gt;&lt;b&gt;StationDao&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;+ of(): StationDao&lt;br/&gt;+ findAllHeadStations(): List&amp;lt;Station&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+          <mxGeometry x="989" y="94" width="272" height="109" as="geometry" />
+        </mxCell>
+        <mxCell id="node4" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;StationDaoImp&lt;/b&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;p style=&quot;margin:0 0 0 4px;line-height:1.6;&quot;&gt;- getStations(String): List&amp;lt;Station&amp;gt;&lt;br/&gt;+ findAllHeadStations(): List&amp;lt;Station&amp;gt;&lt;/p&gt;" style="verticalAlign=top;align=left;overflow=fill;fontSize=14;fontFamily=Helvetica;html=1;rounded=0;shadow=0;comic=0;labelBackgroundColor=none;strokeWidth=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+          <mxGeometry x="989" y="398" width="272" height="94" as="geometry" />
+        </mxCell>
+        <mxCell id="edge16" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.543;exitY=1.000;exitDx=0;exitDy=0;entryX=0.543;entryY=0.000;entryDx=0;entryDy=0;" parent="1" source="node15" target="node18" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label98" value="«create»" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=top;strokeColor=default;" parent="edge16" vertex="1" connectable="0">
+          <mxGeometry x="1487" y="304" as="geometry" />
+        </mxCell>
+        <mxCell id="edge0" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=block;endSize=12;strokeColor=#008200;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;" parent="1" source="node18" target="node15" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge26" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.531;exitY=1.000;exitDx=0;exitDy=0;entryX=0.531;entryY=0.000;entryDx=0;entryDy=0;" parent="1" source="node5" target="node8" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label158" value="«create»" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=top;strokeColor=default;" parent="edge26" vertex="1" connectable="0">
+          <mxGeometry x="-138" y="1338" as="geometry" />
+        </mxCell>
+        <mxCell id="edge10" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=block;endSize=12;strokeColor=#008200;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;" parent="1" source="node8" target="node5" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge12" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=circlePlus;startFill=0;endArrow=none;strokeColor=#820000;exitX=0.500;exitY=1.000;exitDx=0;exitDy=0;entryX=0.500;entryY=0.000;entryDx=0;entryDy=0;" parent="1" source="node26" target="node14" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge25" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.531;exitY=1.000;exitDx=0;exitDy=0;entryX=0.531;entryY=0.000;entryDx=0;entryDy=0;" parent="1" source="node14" target="node13" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label152" value="«create»" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=top;strokeColor=default;" parent="edge25" vertex="1" connectable="0">
+          <mxGeometry x="404" y="1321" as="geometry" />
+        </mxCell>
+        <mxCell id="edge5" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=block;endSize=12;strokeColor=#008200;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;" parent="1" source="node13" target="node14" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge17" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.535;exitY=1.000;exitDx=0;exitDy=0;entryX=0.535;entryY=0.000;entryDx=0;entryDy=0;" parent="1" source="node11" target="node3" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label104" value="«create»" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=top;strokeColor=default;" parent="edge17" vertex="1" connectable="0">
+          <mxGeometry x="916" y="1280" as="geometry" />
+        </mxCell>
+        <mxCell id="edge8" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=block;endSize=12;strokeColor=#008200;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;" parent="1" source="node3" target="node11" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge20" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.560;exitY=1.000;exitDx=0;exitDy=0;entryX=0.560;entryY=0.000;entryDx=0;entryDy=0;" parent="1" source="node6" target="node16" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label122" value="«create»" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=top;strokeColor=default;" parent="edge20" vertex="1" connectable="0">
+          <mxGeometry x="-585" y="1273" as="geometry" />
+        </mxCell>
+        <mxCell id="edge19" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=1.000;exitY=0.497;exitDx=0;exitDy=0;entryX=0.000;entryY=0.227;entryDx=0;entryDy=0;" parent="1" source="node16" target="node8" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-445" y="1502" />
+              <mxPoint x="-445" y="1503" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label116" value="«create»" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=top;strokeColor=default;" parent="edge19" vertex="1" connectable="0">
+          <mxGeometry x="-470" y="1468" as="geometry" />
+        </mxCell>
+        <mxCell id="edge4" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=block;endSize=12;strokeColor=#008200;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;" parent="1" source="node16" target="node6" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge24" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.575;exitY=1.000;exitDx=0;exitDy=0;entryX=0.575;entryY=0.000;entryDx=0;entryDy=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="node19" target="node10" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label146" value="«create»" style="edgeLabel;resizable=1;html=1;align=left;verticalAlign=top;strokeColor=default;movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="edge24" vertex="1" connectable="0">
+          <mxGeometry x="-585" y="281" as="geometry" />
+        </mxCell>
+        <mxCell id="edge1" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=block;endSize=12;strokeColor=#008200;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="node10" target="node19" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge27" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.534;exitY=1.000;exitDx=0;exitDy=0;entryX=0.534;entryY=0.000;entryDx=0;entryDy=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="node21" target="node24" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label164" value="«create»" style="edgeLabel;resizable=1;html=1;align=left;verticalAlign=top;strokeColor=default;movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="edge27" vertex="1" connectable="0">
+          <mxGeometry x="-227" y="293" as="geometry" />
+        </mxCell>
+        <mxCell id="edge11" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=block;endSize=12;strokeColor=#008200;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="node24" target="node21" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge21" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.534;exitY=1.000;exitDx=0;exitDy=0;entryX=0.585;entryY=0.000;entryDx=0;entryDy=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="node24" target="node25" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label128" value="«create»" style="edgeLabel;resizable=1;html=1;align=left;verticalAlign=top;strokeColor=default;movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="edge21" vertex="1" connectable="0">
+          <mxGeometry x="-227" y="548" as="geometry" />
+        </mxCell>
+        <mxCell id="edge13" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=0;startArrow=circlePlus;startFill=0;endArrow=none;strokeColor=#820000;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="node25" target="node24" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge15" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.533;exitY=1.000;exitDx=0;exitDy=0;entryX=0.533;entryY=0.000;entryDx=0;entryDy=0;" parent="1" source="node2" target="node1" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label92" value="«create»" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=top;strokeColor=default;" parent="edge15" vertex="1" connectable="0">
+          <mxGeometry x="1409" y="1303" as="geometry" />
+        </mxCell>
+        <mxCell id="edge6" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=block;endSize=12;strokeColor=#008200;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;" parent="1" source="node1" target="node2" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge23" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=1.000;exitY=0.900;exitDx=0;exitDy=0;entryX=0.000;entryY=0.500;entryDx=0;entryDy=0;" parent="1" source="node12" target="node0" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label140" value="«create»" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=top;strokeColor=default;" parent="edge23" vertex="1" connectable="0">
+          <mxGeometry x="258" y="2320" as="geometry" />
+        </mxCell>
+        <mxCell id="edge9" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=block;endSize=12;strokeColor=#008200;exitX=0.000;exitY=0.278;exitDx=0;exitDy=0;entryX=1.000;entryY=0.500;entryDx=0;entryDy=0;" parent="1" source="node0" target="node12" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge14" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.536;exitY=1.000;exitDx=0;exitDy=0;entryX=0.534;entryY=0.000;entryDx=0;entryDy=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="node17" target="node20" edge="1">
+          <mxGeometry width="249" height="303" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label86" value="«create»" style="edgeLabel;resizable=1;html=1;align=left;verticalAlign=top;strokeColor=default;movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="edge14" vertex="1" connectable="0">
+          <mxGeometry x="248" y="302" width="2" as="geometry" />
+        </mxCell>
+        <mxCell id="edge2" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=block;endSize=12;strokeColor=#008200;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="node20" target="node17" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge22" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.531;exitY=1.000;exitDx=0;exitDy=0;entryX=0.531;entryY=0.000;entryDx=0;entryDy=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="node7" target="node23" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label134" value="«create»" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=top;strokeColor=default;movable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="edge22" vertex="1" connectable="0">
+          <mxGeometry x="725" y="279" as="geometry" />
+        </mxCell>
+        <mxCell id="edge3" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=block;endSize=12;strokeColor=#008200;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="node23" target="node7" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge18" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=openThin;endSize=12;strokeColor=#595959;exitX=0.555;exitY=1.000;exitDx=0;exitDy=0;entryX=0.555;entryY=0.000;entryDx=0;entryDy=0;" parent="1" source="node9" target="node4" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="label110" value="«create»" style="edgeLabel;resizable=0;html=1;align=left;verticalAlign=top;strokeColor=default;" parent="edge18" vertex="1" connectable="0">
+          <mxGeometry x="1140" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="edge7" value="" style="html=1;rounded=1;edgeStyle=orthogonalEdgeStyle;dashed=1;startArrow=none;endArrow=block;endSize=12;strokeColor=#008200;exitX=0.500;exitY=0.000;exitDx=0;exitDy=0;entryX=0.500;entryY=1.000;entryDx=0;entryDy=0;" parent="1" source="node4" target="node9" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <Array as="points" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

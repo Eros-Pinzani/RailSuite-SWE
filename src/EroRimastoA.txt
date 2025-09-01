@@ -3,3 +3,4 @@ Controllare ogni volta che venga creato o modificata una run che il DB si aggior
 todo fix warning assenza convoglio o personale, update del convoglio o personale in createRun
 
 
+ciao

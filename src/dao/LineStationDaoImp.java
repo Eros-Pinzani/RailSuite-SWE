@@ -77,65 +77,73 @@ class LineStationDaoImp implements LineStationDao {
              PreparedStatement stmt = conn.prepareStatement(findTimeTableForRunSQL)) {
             mapper.LineStationMapper.setFindTimeTableForRunParams(stmt, idLine, idStartStation);
             ResultSet rs = stmt.executeQuery();
-
-            // Leggo tutte le righe in una lista di oggetti
             List<LineStationRow> rows = new ArrayList<>();
             while (rs.next()) {
                 int idStation = rs.getInt("id_station");
                 String location = rs.getString("location");
                 int stationOrder = rs.getInt("station_order");
                 String intervalStr = rs.getString("time_to_next_station");
-                Duration d = mapper.LineStationMapper.parseDurationFromPgInterval(intervalStr); // può ritornare null
+                Duration d = mapper.LineStationMapper.parseDurationFromPgInterval(intervalStr);
                 rows.add(new LineStationRow(idStation, location, stationOrder, d));
             }
-
             if (rows.isEmpty()) {
                 return Collections.emptyList();
             }
-
-            // Se la prima riga non corrisponde alla stazione di partenza, invertiamo
-            boolean forward = rows.getFirst().idStation == idStartStation;
-            if (!forward) {
-                Collections.reverse(rows);
-            }
-
-            // Calcolo arrivi/partenze
             LocalTime depPrev = LocalTime.parse(departureTime);
             List<TimeTable.StationArrAndDep> result = new ArrayList<>();
-
-            for (int i = 0; i < rows.size(); i++) {
-                LineStationRow r = rows.get(i);
-                String arr, dep;
-
-                if (i == 0) {
-                    // stazione di partenza
-                    arr = "------";
-                    dep = depPrev.toString();
-                } else {
-                    // per arrivare alla stazione i uso il time_to_next della stazione (i-1)
-                    Duration prevSegment = rows.get(i - 1).timeToNext;
-                    if (prevSegment == null) {
-                        // gestione del NULL: log e assumo Duration.ZERO
-                        System.out.println("Warning: time_to_next_station is NULL for station "
-                                + rows.get(i - 1).idStation + " — assuming Duration.ZERO");
-                        prevSegment = Duration.ZERO;
-                    }
-                    LocalTime arrCurr = depPrev.plus(prevSegment);
-                    arr = arrCurr.toString();
-
-                    if (i < rows.size() - 1) {
-                        // fermata di 1 minuto
-                        depPrev = arrCurr.plusMinutes(1);
+            boolean forward = rows.getFirst().stationOrder == 1;
+            if (!forward) {
+                for (int i = 0; i < rows.size(); i++) {
+                    LineStationRow r = rows.get(i);
+                    String arr, dep;
+                    if (i == 0) {
+                        arr = "------";
                         dep = depPrev.toString();
                     } else {
-                        // ultima stazione: nessuna partenza
-                        dep = "------";
+                        Duration segment = rows.get(i).timeToNext;
+                        if (segment == null) {
+                            System.out.println("Warning: time_to_next_station is NULL for station "
+                                    + rows.get(i).idStation + " — assuming Duration.ZERO");
+                            segment = Duration.ZERO;
+                        }
+                        LocalTime arrCurr = depPrev.plus(segment);
+                        arr = arrCurr.toString();
+                        if (i < rows.size() - 1) {
+                            depPrev = arrCurr.plusMinutes(1);
+                            dep = depPrev.toString();
+                        } else {
+                            dep = "------";
+                        }
                     }
+                    result.add(new TimeTable.StationArrAndDep(r.idStation, r.location, arr, dep));
                 }
+            } else {
+                for (int i = 0; i < rows.size(); i++) {
+                    LineStationRow r = rows.get(i);
+                    String arr, dep;
+                    if (i == 0) {
+                        arr = "------";
+                        dep = depPrev.toString();
+                    } else {
+                        Duration prevSegment = rows.get(i - 1).timeToNext;
+                        if (prevSegment == null) {
+                            System.out.println("Warning: time_to_next_station is NULL for station "
+                                    + rows.get(i - 1).idStation + " — assuming Duration.ZERO");
+                            prevSegment = Duration.ZERO;
+                        }
+                        LocalTime arrCurr = depPrev.plus(prevSegment);
+                        arr = arrCurr.toString();
+                        if (i < rows.size() - 1) {
+                            depPrev = arrCurr.plusMinutes(1);
+                            dep = depPrev.toString();
+                        } else {
+                            dep = "------";
+                        }
+                    }
 
-                result.add(new TimeTable.StationArrAndDep(r.idStation, r.location, arr, dep));
+                    result.add(new TimeTable.StationArrAndDep(r.idStation, r.location, arr, dep));
+                }
             }
-
             return result;
         }
     }

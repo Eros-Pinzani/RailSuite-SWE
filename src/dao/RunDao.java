@@ -28,7 +28,7 @@ public interface RunDao {
      * @return the corresponding Run object, or null if not found
      * @throws SQLException if a database access error occurs
      */
-    Run selectRunByLineConvoyAndStaff(int idLine, int idConvoy, int idStaff) throws SQLException;
+    Run selectRunByLineConvoyAndStaff(int idLine, int idConvoy, Timestamp timeDeparture, int idStaff, int idFirstStation) throws SQLException;
 
     /**
      * Removes a run identified by line and convoy.

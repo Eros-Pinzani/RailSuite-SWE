@@ -51,11 +51,12 @@ public class RunMapper {
         );
     }
 
-    public static void setRunKeyParams(PreparedStatement ps, int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException {
+    public static void setRunKeyParams(PreparedStatement ps, int idLine, int idConvoy, int idStaff, Timestamp timeDeparture, int idFirstStation) throws SQLException {
         ps.setInt(1, idLine);
         ps.setInt(2, idConvoy);
         ps.setInt(3, idStaff);
-        ps.setTimestamp(4, timeDeparture);
+        if(timeDeparture != null) ps.setTimestamp(4, timeDeparture);
+        if(idFirstStation != 0) ps.setInt(5, idFirstStation);
     }
 
     public static void setInsertRunParams(PreparedStatement ps, int idLine, int idConvoy, int idStaff, Timestamp timeDeparture, Timestamp timeArrival, int idFirstStation, int idLastStation) throws SQLException {
@@ -105,5 +106,11 @@ public class RunMapper {
         ps.setInt(4, idStaff);
         ps.setTimestamp(5, oldDeparture);
     }
-}
 
+    public static void setRunDeleteKeyParams(PreparedStatement ps, int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException {
+        ps.setInt(1, idLine);
+        ps.setInt(2, idConvoy);
+        ps.setInt(3, idStaff);
+        if(timeDeparture != null) ps.setTimestamp(4, timeDeparture);
+    }
+}

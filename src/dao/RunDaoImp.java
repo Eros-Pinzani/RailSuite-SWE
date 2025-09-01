@@ -22,7 +22,7 @@ public class RunDaoImp implements RunDao {
                 LEFT JOIN staff s ON r.id_staff = s.id_staff
                 LEFT JOIN station fs ON r.id_first_station = fs.id_station
                 LEFT JOIN station ls ON r.id_last_station = ls.id_station
-            WHERE r.id_convoy = ? AND r.id_line = ? AND r.id_staff = ?
+            WHERE r.id_convoy = ? AND r.id_line = ? AND r.id_staff = ? AND r.time_departure = ? AND r.id_first_station = ?
             """;
     // SQL query to delete a run by line and convoy
     private static final String deleteRunQuery = "DELETE FROM run WHERE id_line = ? AND id_convoy = ? AND id_staff = ? AND time_departure = ?";
@@ -114,10 +114,16 @@ public class RunDaoImp implements RunDao {
     }
 
     @Override
-    public Run selectRunByLineConvoyAndStaff(int idLine, int idConvoy, int idStaff) throws SQLException {
+    public  Run selectRunByLineConvoyAndStaff(int idLine, int idConvoy, Timestamp timeDeparture, int idStaff, int idFirstStation) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectRunByLineConvoyAndStaffQuery)) {
-            mapper.RunMapper.setRunKeyParams(pstmt, idLine, idConvoy, idStaff, null);
+            //
+            pstmt.setInt(1, idLine);
+            pstmt.setInt(2, idConvoy);
+            pstmt.setInt(3, idStaff);
+            if(timeDeparture != null) pstmt.setTimestamp(4, timeDeparture);
+            if(idFirstStation != 0) pstmt.setInt(5, idFirstStation);
+            //mapper.RunMapper.setRunKeyParams(pstmt, idLine, idConvoy, idStaff, timeDeparture, idFirstStation);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return mapper.RunMapper.toDomain(rs);
@@ -131,7 +137,7 @@ public class RunDaoImp implements RunDao {
     public boolean deleteRun(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(deleteRunQuery)) {
-            mapper.RunMapper.setRunKeyParams(pstmt, idLine, idConvoy, idStaff, timeDeparture);
+            mapper.RunMapper.setRunDeleteKeyParams(pstmt, idLine, idConvoy, idStaff, timeDeparture);
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
         } catch (SQLException e) {
@@ -222,7 +228,7 @@ public class RunDaoImp implements RunDao {
     public RunDTO selectRunDTODetails(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectRunDTOdetails)) {
-            mapper.RunMapper.setRunKeyParams(pstmt, idLine, idConvoy, idStaff, timeDeparture);
+            mapper.RunMapper.setRunKeyParams(pstmt, idLine, idConvoy, idStaff, timeDeparture, 0);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return mapper.RunMapper.toRunDTO(rs);

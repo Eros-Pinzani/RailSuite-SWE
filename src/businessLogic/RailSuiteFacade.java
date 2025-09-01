@@ -215,8 +215,8 @@ public class RailSuiteFacade {
      * Retrieves a run by line, convoy, and staff ID.
      * Used to get run information for a specific line, convoy, and staff.
      */
-    public Run selectRun(int idLine, int idConvoy, int idStaff) throws SQLException {
-        return runDao.selectRunByLineConvoyAndStaff(idLine, idConvoy, idStaff);
+    public Run selectRun(int idLine, int idConvoy, Timestamp timeDeparture, int idStaff, int idFirstStation) throws SQLException {
+        return runDao.selectRunByLineConvoyAndStaff(idLine, idConvoy, timeDeparture, idStaff, idFirstStation);
     }
 
     /**

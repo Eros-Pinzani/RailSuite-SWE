@@ -7,10 +7,12 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -115,14 +117,14 @@ public class CreateRunController {
                 }
             }
             lineComboBox.setItems(FXCollections.observableArrayList(uniqueLines));
-            lineComboBox.setCellFactory(lv -> new ListCell<Line>() {
+            lineComboBox.setCellFactory(lv -> new ListCell<>() {
                 @Override
                 protected void updateItem(Line item, boolean empty) {
                     super.updateItem(item, empty);
                     setText(empty || item == null ? null : item.getLineName());
                 }
             });
-            lineComboBox.setButtonCell(new ListCell<Line>() {
+            lineComboBox.setButtonCell(new ListCell<>() {
                 @Override
                 protected void updateItem(Line item, boolean empty) {
                     super.updateItem(item, empty);
@@ -130,24 +132,21 @@ public class CreateRunController {
                 }
             });
             // Operatore disponibile: mostra domain.DTO.StaffDTO
-            operatorComboBox.setCellFactory(lv -> new ListCell<StaffDTO>() {
+            operatorComboBox.setCellFactory(lv -> new ListCell<>() {
                 @Override
                 protected void updateItem(StaffDTO item, boolean empty) {
                     super.updateItem(item, empty);
                     setText(empty || item == null ? null : item.getStaffNameSurname());
                 }
             });
-            operatorComboBox.setButtonCell(new ListCell<StaffDTO>() {
+            operatorComboBox.setButtonCell(new ListCell<>() {
                 @Override
                 protected void updateItem(StaffDTO item, boolean empty) {
                     super.updateItem(item, empty);
                     setText(empty || item == null ? null : item.getStaffNameSurname());
                 }
             });
-            // Popola la ComboBox degli orari in base alla data selezionata (default: oggi)
-            LocalDate selectedDate = datePicker.getValue() != null ? datePicker.getValue() : LocalDate.now();
-            departureTimePicker.setItems(FXCollections.observableArrayList(createRunService.getAvailableDepartureTimes(selectedDate)));
-            convoyComboBox.setCellFactory(lv -> new ListCell<Convoy>() {
+            convoyComboBox.setCellFactory(lv -> new ListCell<>() {
                 @Override
                 protected void updateItem(Convoy item, boolean empty) {
                     super.updateItem(item, empty);
@@ -166,6 +165,24 @@ public class CreateRunController {
             carriageIdColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleIntegerProperty(cellData.getValue().getId()));
             carriageModelColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getModel()));
             carriageCapacityColumn.setCellValueFactory(cellData -> new javafx.beans.property.SimpleIntegerProperty(cellData.getValue().getCapacity()));
+
+            stationColumn.setCellFactory(tc -> new TableCell<TimeTable.StationArrAndDep, String>() {
+                private final Label label = new Label();
+                {
+                    label.setWrapText(true);
+                    label.setMaxWidth(150);
+                    setGraphic(label);
+                }
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        label.setText("");
+                    } else {
+                        label.setText(item);
+                    }
+                }
+            });
         } catch (Exception e) {
             logger.severe("Error initializing fields: " + e.getMessage());
         }
@@ -183,10 +200,12 @@ public class CreateRunController {
 
         // Second set of filters
         typeOfConvoyComboHandler = e -> updateConvoyAvailability();
-        convoyComboHandler = e -> {};
+        convoyComboHandler = e -> {
+        };
         convoyComboBox.setOnAction(convoyComboHandler);
         typeOfConvoyComboBox.setOnAction(typeOfConvoyComboHandler);
-        operatorComboBox.setOnAction(e -> {});
+        operatorComboBox.setOnAction(e -> {
+        });
 
         typeOfConvoyComboBox.setDisable(true);
         convoyComboBox.setDisable(true);
@@ -213,6 +232,7 @@ public class CreateRunController {
 
     /**
      * Calculates travel time asynchronously for the selected line.
+     *
      * @param selectedLine the selected line
      */
     private void calculateTravelTimeAsync(Line selectedLine) {
@@ -256,7 +276,8 @@ public class CreateRunController {
         String time = departureTimePicker.getValue();
         int idStation;
         if (selectedLine != null && startStation != null && date != null && time != null) {
-            if (selectedLine.getFirstStationLocation().equals(startStation)) idStation = selectedLine.getIdFirstStation();
+            if (selectedLine.getFirstStationLocation().equals(startStation))
+                idStation = selectedLine.getIdFirstStation();
             else if (selectedLine.getLastStationLocation().equals(startStation))
                 idStation = selectedLine.getIdLastStation();
             else {
@@ -264,12 +285,27 @@ public class CreateRunController {
                 return;
             }
             createRunService.setConvoyPools(idStation, time, date, selectedLine.getIdLine());
-            typeOfConvoyComboBox.setItems(FXCollections.observableArrayList(
-                    createRunService.getConvoyTypes(createRunService.getConvoysPoolAvailable())));
-            typeOfConvoyComboBox.setDisable(false);
+            List<Convoy> convoys = createRunService.getConvoysPoolAvailable();
+            if (convoys.isEmpty()) {
+                typeOfConvoyComboBox.getItems().clear();
+                convoyComboBox.getItems().clear();
+                typeOfConvoyComboBox.setDisable(true);
+                convoyComboBox.setDisable(true);
+                showErrorPopup("Nessun convoglio disponibile per i filtri selezionati.");
+            } else {
+                typeOfConvoyComboBox.setItems(FXCollections.observableArrayList(
+                        createRunService.getConvoyTypes(convoys)));
+                typeOfConvoyComboBox.setDisable(false);
+            }
             List<StaffDTO> operators = createRunService.getStaffPools(idStation, date, time);
-            operatorComboBox.setItems(FXCollections.observableArrayList(operators));
-            operatorComboBox.setDisable(false);
+            if (operators.isEmpty()) {
+                operatorComboBox.getItems().clear();
+                operatorComboBox.setDisable(true);
+                showErrorPopup("Nessun operatore disponibile per i filtri selezionati.");
+            } else {
+                operatorComboBox.setItems(FXCollections.observableArrayList(operators));
+                operatorComboBox.setDisable(false);
+            }
         } else {
             typeOfConvoyComboBox.getItems().clear();
             convoyComboBox.getItems().clear();
@@ -319,11 +355,20 @@ public class CreateRunController {
                 int idStartStation = selectedLine.getFirstStationLocation().equals(startStation) ? selectedLine.getIdFirstStation() : selectedLine.getIdLastStation();
                 List<TimeTable.StationArrAndDep> rows = createRunService.getTimeTableForRun(idLine, idStartStation, time);
                 routeTableView.setItems(FXCollections.observableArrayList(rows));
+                boolean hasZeroDuration = false;
+                for (int i = 1; i < rows.size(); i++) {
+                    if (rows.get(i).getArriveTime().equals(rows.get(i).getDepartureTime()) && !rows.get(i).getArriveTime().equals("------")) {
+                        hasZeroDuration = true;
+                        break;
+                    }
+                }
+                if (hasZeroDuration) {
+                    showErrorPopup("Attenzione: alcuni tempi di percorrenza tra le stazioni non sono disponibili. Il percorso potrebbe essere incompleto.");
+                }
             } else {
                 routeTableView.getItems().clear();
                 showErrorPopup("Errore nel recupero della tabella del percorso. Assicurati di aver selezionato una linea, una stazione di partenza e un orario di partenza validi.");
             }
-
 
             if (convoy != null) {
                 carriagesTableView.setItems(FXCollections.observableArrayList(convoy.getCarriages()));
@@ -382,79 +427,6 @@ public class CreateRunController {
         updateRecapLabels();
     }
 
-    private void calculateTravelTimeAndCreateRun(Line selectedLine, LocalDate date, String time, Convoy convoy, StaffDTO operator, ProgressBar progressBar, Dialog<Void> dialog) {
-        javafx.concurrent.Task<Run> task = new javafx.concurrent.Task<>() {
-            @Override
-            protected Run call() {
-                updateProgress(0.2, 1.0);
-                createRunService.waitForTravelTime(selectedLine);
-                updateProgress(0.7, 1.0);
-                Run createdRun = createRunService.createRun(selectedLine, date, time, convoy, operator);
-                updateProgress(1.0, 1.0);
-                return createdRun;
-            }
-        };
-        progressBar.progressProperty().bind(task.progressProperty());
-        task.setOnSucceeded(e -> {
-            Run createdRun = task.getValue();
-            VBox resultBox = new VBox(10);
-            resultBox.setPadding(new javafx.geometry.Insets(20));
-            resultBox.getChildren().add(new Label("Corsa creata con successo!"));
-            Button btnDetails = new Button("Visualizza riepilogo");
-            Button btnHome = new Button("Torna alla home");
-            Button btnManage = new Button("Torna alla gestione corse");
-            btnDetails.setOnAction(ev -> {
-                Stage stage = (Stage) btnDetails.getScene().getWindow();
-                stage.close();
-                SceneManager.getInstance().openRunDetailsScene(
-                    createdRun.getIdLine(),
-                    createdRun.getIdConvoy(),
-                    createdRun.getIdStaff(),
-                    createdRun.getTimeDeparture(),
-                    createdRun.getIdFirstStation()
-                );
-            });
-            btnHome.setOnAction(ev -> {
-                Stage stage = (Stage) btnHome.getScene().getWindow();
-                stage.close();
-                SceneManager.getInstance().switchScene("/businessLogic/fxml/SupervisorHome.fxml");
-            });
-            btnManage.setOnAction(ev -> {
-                Stage stage = (Stage) btnManage.getScene().getWindow();
-                stage.close();
-                SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageRun.fxml");
-            });
-            resultBox.getChildren().addAll(btnDetails, btnHome, btnManage);
-            if (dialog != null) {
-                dialog.getDialogPane().setContent(resultBox);
-            } else {
-                Stage stage = (Stage) progressBar.getScene().getWindow();
-                stage.getScene().setRoot(resultBox);
-            }
-        });
-        task.setOnFailed(e -> {
-            VBox errorBox = new VBox(10);
-            errorBox.setPadding(new javafx.geometry.Insets(20));
-            errorBox.getChildren().add(new Label("Errore durante la creazione della corsa: " + task.getException().getMessage()));
-            Button closeBtn = new Button("Chiudi");
-            closeBtn.setOnAction(ev -> {
-                if (dialog != null) dialog.close();
-                else {
-                    Stage stage = (Stage) progressBar.getScene().getWindow();
-                    stage.close();
-                }
-            });
-            errorBox.getChildren().add(closeBtn);
-            if (dialog != null) {
-                dialog.getDialogPane().setContent(errorBox);
-            } else {
-                Stage stage = (Stage) progressBar.getScene().getWindow();
-                stage.getScene().setRoot(errorBox);
-            }
-        });
-        new Thread(task).start();
-    }
-
     @FXML
     private void handleCreateRun(ActionEvent event) {
         Line selectedLine = lineComboBox.getValue();
@@ -465,14 +437,61 @@ public class CreateRunController {
         ProgressBar progressBar = new ProgressBar();
         progressBar.setPrefWidth(250);
         Label loadingLabel = new Label("Creazione corsa in corso...");
-        Button closeBtn = new Button("Chiudi");
-        VBox vbox = new VBox(10, loadingLabel, progressBar, closeBtn);
+        VBox vbox = new VBox(10, loadingLabel, progressBar);
         vbox.setPadding(new javafx.geometry.Insets(20));
-        PopupManager.openPopup("Creazione corsa", null, vbox, null, null);
-        closeBtn.setOnAction(ev -> {
-            Stage stage = (Stage) closeBtn.getScene().getWindow();
-            stage.close();
+        Stage loadingStage = new Stage();
+        loadingStage.setTitle("Creazione corsa");
+        loadingStage.setScene(new Scene(vbox, 350, 100));
+        loadingStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        loadingStage.setResizable(false);
+        loadingStage.centerOnScreen();
+        loadingStage.show();
+        calculateTravelTimeAndCreateRun(selectedLine, date, time, convoy, operator, progressBar, loadingStage);
+    }
+
+    private void calculateTravelTimeAndCreateRun(Line selectedLine, LocalDate date, String time, Convoy convoy, StaffDTO operator, ProgressBar progressBar, Stage loadingStage) {
+        javafx.concurrent.Task<Run> task = new javafx.concurrent.Task<>() {
+            @Override
+            protected Run call() {
+                updateProgress(0.2, 1.0);
+                createRunService.waitForTravelTime(selectedLine);
+                updateProgress(0.7, 1.0);
+                Run run = createRunService.createRun(selectedLine, date, time, convoy, operator);
+                updateProgress(1.0, 1.0);
+                return run;
+            }
+        };
+        progressBar.progressProperty().bind(task.progressProperty());
+        task.setOnSucceeded(ignored -> {
+            List<Button> buttons = new ArrayList<>();
+            Button btnHome = new Button("Torna alla home");
+            btnHome.setUserData((Runnable) () -> SceneManager.getInstance().switchScene("/businessLogic/fxml/SupervisorHome.fxml"));
+            Button btnManage = new Button("Torna alla gestione corse");
+            btnManage.setUserData((Runnable) () -> SceneManager.getInstance().switchScene("/businessLogic/fxml/ManageRun.fxml"));
+            buttons.add(btnHome);
+            buttons.add(btnManage);
+            VBox popupContent = PopupManager.buildPopupContent(null, "Corsa creata con successo!", buttons);
+            loadingStage.setScene(new Scene(popupContent, 400, 200));
+            for (Button btn : buttons) {
+                btn.setOnAction(e -> {
+                    loadingStage.close();
+                    Object data = btn.getUserData();
+                    if (data instanceof Runnable runnable) {
+                        runnable.run();
+                    }
+                });
+            }
         });
-        calculateTravelTimeAndCreateRun(selectedLine, date, time, convoy, operator, progressBar, null);
+        task.setOnFailed(ignored -> {
+            List<Button> buttons = new ArrayList<>();
+            Button btnClose = new Button("Chiudi");
+            buttons.add(btnClose);
+            VBox popupContent = PopupManager.buildPopupContent(null, "Errore durante la creazione della corsa: " + (task.getException() != null ? task.getException().getMessage() : "Errore sconosciuto"), buttons);
+            loadingStage.setScene(new Scene(popupContent, 400, 200));
+            for (Button btn : buttons) {
+                btn.setOnAction(e -> loadingStage.close());
+            }
+        });
+        new Thread(task).start();
     }
 }

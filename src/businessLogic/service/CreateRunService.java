@@ -78,8 +78,12 @@ public class CreateRunService {
     public List<String> getConvoyTypes(List<Convoy> convoys) {
         List<String> convoyTypes = new ArrayList<>();
         for (Convoy convoy : convoys) {
-            if (!convoyTypes.contains(convoy.getCarriages().getFirst().getModelType())) {
-                convoyTypes.add(convoy.getCarriages().getFirst().getModelType());
+            List<Carriage> carriages = convoy.getCarriages();
+            if (carriages != null && !carriages.isEmpty()) {
+                String modelType = carriages.getFirst().getModelType();
+                if (!convoyTypes.contains(modelType)) {
+                    convoyTypes.add(modelType);
+                }
             }
         }
         return convoyTypes;
@@ -150,8 +154,10 @@ public class CreateRunService {
             if (travelTime == null) {
                 travelTime = waitForTravelTime(line);
             }
-            java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(date, java.time.LocalTime.parse(time));
+            java.time.LocalTime parsedTime = java.time.LocalTime.parse(time).withSecond(0).withNano(0);
+            java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(date, parsedTime);
             java.sql.Timestamp departureTimestamp = java.sql.Timestamp.valueOf(dateTime);
+            departureTimestamp.setNanos(dateTime.getNano());
             java.sql.Timestamp arrivalTimestamp = java.sql.Timestamp.valueOf(dateTime.plus(travelTime));
             facade.createRun(
                 line.getIdLine(),
@@ -162,7 +168,8 @@ public class CreateRunService {
                 line.getIdFirstStation(),
                 line.getIdLastStation()
             );
-            return facade.selectRun(line.getIdLine(), convoy.getId(), operator.getIdStaff());
+            return facade.selectRun(line.getIdLine(), convoy.getId(), departureTimestamp,operator.getIdStaff(), line.getIdFirstStation());
+
         }catch (Exception e) {
             throw new RuntimeException("Error while creating run: " + e.getMessage(), e);
         }

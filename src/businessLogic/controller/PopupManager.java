@@ -11,7 +11,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.Node;
 import domain.DTO.ConvoyTableDTO;
 import javafx.collections.ObservableList;
-import businessLogic.controller.ChangeConvoyPopupController;
+import javafx.scene.control.Button;
+import java.util.List;
 
 public class PopupManager {
     /**
@@ -106,5 +107,31 @@ public class PopupManager {
             popupController.setConvoys(convoysAvailable);
             popupController.setConfirmCallback(onConfirm);
         }
+    }
+
+
+    /**
+     * Costruisce il contenuto di un popup personalizzato (VBox) con header, testo e pulsanti.
+     * Non apre una finestra, ma restituisce solo il layout da inserire in una scena.
+     */
+    public static VBox buildPopupContent(String header, String contentText, List<Button> buttons) {
+        VBox vbox = new VBox(20);
+        vbox.setStyle("-fx-padding: 20;");
+        if (header != null && !header.isBlank()) {
+            Label headerLabel = new Label(header);
+            headerLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; margin-bottom: 10px;");
+            vbox.getChildren().add(headerLabel);
+        }
+        if (contentText != null && !contentText.isBlank()) {
+            Label textLabel = new Label(contentText);
+            textLabel.setWrapText(true);
+            vbox.getChildren().add(textLabel);
+        }
+        if (buttons != null && !buttons.isEmpty()) {
+            VBox btnBox = new VBox(10);
+            btnBox.getChildren().addAll(buttons);
+            vbox.getChildren().add(btnBox);
+        }
+        return vbox;
     }
 }

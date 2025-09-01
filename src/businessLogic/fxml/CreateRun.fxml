@@ -87,11 +87,11 @@
                   <VBox spacing="5.0">
                      <children>
                         <Label text="Percorso" />
-                        <TableView fx:id="routeTableView">
+                        <TableView fx:id="routeTableView" prefWidth="290.0" maxWidth="290.0" minWidth="290.0" prefHeight="400.0" maxHeight="400.0">
                           <columns>
-                            <TableColumn fx:id="stationColumn" prefWidth="150.0" text="Stazioni" />
-                            <TableColumn fx:id="arriveColumn" prefWidth="75.0" text="Arrivo" />
-                              <TableColumn fx:id="departureColumn" prefWidth="75.0" text="Partenza" />
+                            <TableColumn fx:id="stationColumn" prefWidth="150.0" text="Stazioni" resizable="false"/>
+                            <TableColumn fx:id="arriveColumn" prefWidth="70.0" text="Arrivo" resizable="false"/>
+                              <TableColumn fx:id="departureColumn" prefWidth="70.0" text="Partenza" resizable="false"/>
                           </columns>
                         </TableView>
                      </children>

@@ -2,5 +2,4 @@ Controllare ogni volta che venga creato o modificata una run che il DB si aggior
 
 todo fix warning assenza convoglio o personale, update del convoglio o personale in createRun
 
-
-ciao
+todo Riguardare alcune classi perché collegate alla facade e non dovrebbero (ManageConvoyController, ConvoyDetailsController, SupervisorHomeController, OperatoreHomeController, ManageCarriageController)

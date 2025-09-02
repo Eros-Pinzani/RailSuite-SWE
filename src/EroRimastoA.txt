@@ -1,5 +1,8 @@
-Controllare ogni volta che venga creato o modificata una run che il DB si aggiorni.
-
-todo fix warning assenza convoglio o personale, update del convoglio o personale in createRun
 
 todo sistamare i pakage in businessLogic
+
+todo popolare il db e cliccare TUTTI I PULSANTI
+
+todo testing
+
+pulizia del codice

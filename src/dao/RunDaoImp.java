@@ -3,6 +3,7 @@ package dao;
 import domain.DTO.ConvoyTableDTO;
 import domain.DTO.RunDTO;
 import domain.Run;
+import mapper.RunMapper;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -69,32 +70,36 @@ public class RunDaoImp implements RunDao {
             """;
     // Query per tutte le corse future di un convoglio dopo un certo orario
     private static final String selectRunsForConvoyAfterTimeSimpleQuery = """
-        SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
-               r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
-        FROM run r
-            LEFT JOIN line l ON r.id_line = l.id_line
-            LEFT JOIN staff s ON r.id_staff = s.id_staff
-            LEFT JOIN station fs ON r.id_first_station = fs.id_station
-            LEFT JOIN station ls ON r.id_last_station = ls.id_station
-        WHERE r.id_convoy = ? AND r.time_departure > ?""";
+            SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
+                   r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
+            FROM run r
+                LEFT JOIN line l ON r.id_line = l.id_line
+                LEFT JOIN staff s ON r.id_staff = s.id_staff
+                LEFT JOIN station fs ON r.id_first_station = fs.id_station
+                LEFT JOIN station ls ON r.id_last_station = ls.id_station
+            WHERE r.id_convoy = ? AND r.time_departure > ?""";
     private static final String selectConvoyTableDTOQuery = """
-        SELECT c.id_convoy,
-               MIN(car.model) AS model,
-               cp.status,
-               COUNT(car.id_carriage) AS carriage_count,
-               SUM(car.capacity) AS capacity,
-               MIN(car.model_type) AS model_type
-        FROM convoy c
-        LEFT JOIN carriage car ON c.id_convoy = car.id_convoy
-        LEFT JOIN convoy_pool cp ON c.id_convoy = cp.id_convoy
-        WHERE c.id_convoy = ?
-          AND EXISTS (
-              SELECT 1 FROM run r
-              WHERE r.id_convoy = c.id_convoy
-                AND r.time_departure > now()
-          )
-        GROUP BY c.id_convoy, cp.status
-    """;
+                SELECT c.id_convoy,
+                       MIN(car.model) AS model,
+                       cp.status,
+                       COUNT(car.id_carriage) AS carriage_count,
+                       SUM(car.capacity) AS capacity,
+                       MIN(car.model_type) AS model_type
+                FROM convoy c
+                LEFT JOIN carriage car ON c.id_convoy = car.id_convoy
+                LEFT JOIN convoy_pool cp ON c.id_convoy = cp.id_convoy
+                WHERE c.id_convoy = ?
+                  AND EXISTS (
+                      SELECT 1 FROM run r
+                      WHERE r.id_convoy = c.id_convoy
+                        AND r.time_departure > now()
+                  )
+                GROUP BY c.id_convoy, cp.status
+            """;
+    private static final String updateStaffAndConvoyAfterRunCreationQuery = """
+            UPDATE convoy_pool SET id_station = ? WHERE id_convoy = ?;
+            UPDATE staff_pool SET id_station = ? WHERE id_staff = ?
+            """;
 
 
     // --- MAPPING IN RUNMAPPER ---
@@ -114,16 +119,10 @@ public class RunDaoImp implements RunDao {
     }
 
     @Override
-    public  Run selectRunByLineConvoyAndStaff(int idLine, int idConvoy, Timestamp timeDeparture, int idStaff, int idFirstStation) throws SQLException {
+    public Run selectRunByLineConvoyAndStaff(int idLine, int idConvoy, Timestamp timeDeparture, int idStaff, int idFirstStation) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(selectRunByLineConvoyAndStaffQuery)) {
-            //
-            pstmt.setInt(1, idLine);
-            pstmt.setInt(2, idConvoy);
-            pstmt.setInt(3, idStaff);
-            if(timeDeparture != null) pstmt.setTimestamp(4, timeDeparture);
-            if(idFirstStation != 0) pstmt.setInt(5, idFirstStation);
-            //mapper.RunMapper.setRunKeyParams(pstmt, idLine, idConvoy, idStaff, timeDeparture, idFirstStation);
+            RunMapper.setRunKeyParams(pstmt, idLine, idConvoy, idStaff, timeDeparture, idFirstStation);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return mapper.RunMapper.toDomain(rs);
@@ -333,14 +332,14 @@ public class RunDaoImp implements RunDao {
     }
 
     private static final String selectAllRunQuery = """
-        SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
-               r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
-        FROM run r
-            LEFT JOIN line l ON r.id_line = l.id_line
-            LEFT JOIN staff s ON r.id_staff = s.id_staff
-            LEFT JOIN station fs ON r.id_first_station = fs.id_station
-            LEFT JOIN station ls ON r.id_last_station = ls.id_station
-    """;
+                SELECT r.id_line, l.name as line_name, r.id_convoy, r.id_staff, s.name, s.surname, r.time_departure, r.time_arrival,
+                       r.id_first_station, fs.location as first_station_name, r.id_last_station, ls.location as last_station_name
+                FROM run r
+                    LEFT JOIN line l ON r.id_line = l.id_line
+                    LEFT JOIN staff s ON r.id_staff = s.id_staff
+                    LEFT JOIN station fs ON r.id_first_station = fs.id_station
+                    LEFT JOIN station ls ON r.id_last_station = ls.id_station
+            """;
 
     @Override
     public List<Run> selectAllRun() throws SQLException {
@@ -367,5 +366,16 @@ public class RunDaoImp implements RunDao {
         }
         if (runs == null) return new ArrayList<>();
         return runs;
+    }
+
+    @Override
+    public void updateStaffAndConvoyAfterRunCreation(int idStaff, int idConvoy, int idLastStation) throws SQLException {
+        try (Connection conn = PostgresConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(updateStaffAndConvoyAfterRunCreationQuery)) {
+            mapper.RunMapper.setUpdateStaffAndConvoyAfterRunCreationParams(pstmt, idStaff, idConvoy, idLastStation);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new SQLException("Error updating staff and convoy after run creation", e);
+        }
     }
 }

@@ -3,6 +3,7 @@ package dao;
 import domain.DTO.ConvoyTableDTO;
 import domain.DTO.RunDTO;
 import domain.Run;
+
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 public interface RunDao {
     /**
      * Factory method to create a RunDao instance.
+     *
      * @return a new RunDao instance
      */
     static RunDao of() {
@@ -22,9 +24,10 @@ public interface RunDao {
 
     /**
      * Returns the run identified by line, convoy, and staff.
-     * @param idLine the line id
+     *
+     * @param idLine   the line id
      * @param idConvoy the convoy id
-     * @param idStaff the staff id
+     * @param idStaff  the staff id
      * @return the corresponding Run object, or null if not found
      * @throws SQLException if a database access error occurs
      */
@@ -44,13 +47,14 @@ public interface RunDao {
 
     /**
      * Creates a new run with the specified parameters.
-     * @param idLine the line id
-     * @param idConvoy the convoy id
-     * @param idStaff the staff id
-     * @param timeDeparture departure time
-     * @param timeArrival arrival time
+     *
+     * @param idLine         the line id
+     * @param idConvoy       the convoy id
+     * @param idStaff        the staff id
+     * @param timeDeparture  departure time
+     * @param timeArrival    arrival time
      * @param idFirstStation first station id
-     * @param idLastStation last station id
+     * @param idLastStation  last station id
      * @return true if the creation was successful, false otherwise
      * @throws SQLException if a database access error occurs
      */
@@ -58,6 +62,7 @@ public interface RunDao {
 
     /**
      * Returns all runs associated with a specific staff.
+     *
      * @param idStaff the staff id
      * @return list of Run objects
      * @throws SQLException if a database access error occurs
@@ -66,6 +71,7 @@ public interface RunDao {
 
     /**
      * Returns all runs associated with a specific convoy.
+     *
      * @param idConvoy the convoy id
      * @return list of Run objects
      * @throws SQLException if a database access error occurs
@@ -74,12 +80,13 @@ public interface RunDao {
 
     /**
      * Searches for runs based on the provided filters (all optional) and a date range.
-     * @param lineName line name
-     * @param convoyId convoy id (string)
+     *
+     * @param lineName         line name
+     * @param convoyId         convoy id (string)
      * @param staffNameSurname staff name and surname
      * @param firstStationName first station name
-     * @param dayStart start day (inclusive)
-     * @param dayEnd end day (inclusive)
+     * @param dayStart         start day (inclusive)
+     * @param dayEnd           end day (inclusive)
      * @return list of Run objects matching the filters
      * @throws SQLException if a database access error occurs
      */
@@ -88,10 +95,10 @@ public interface RunDao {
     /**
      * Returns a RunDTO object containing detailed information about a run.
      *
-     * @param idLine         the line id
-     * @param idConvoy       the convoy id
-     * @param idStaff        the staff id
-     * @param timeDeparture  the departure time
+     * @param idLine        the line id
+     * @param idConvoy      the convoy id
+     * @param idStaff       the staff id
+     * @param timeDeparture the departure time
      * @return a RunDTO object with run details, or null if not found
      * @throws SQLException if a database access error occurs
      */
@@ -100,8 +107,8 @@ public interface RunDao {
     /**
      * Checks if the operator has other runs scheduled after the selected departure time.
      *
-     * @param idStaff        the staff id
-     * @param timeDeparture  the departure time of the selected run
+     * @param idStaff       the staff id
+     * @param timeDeparture the departure time of the selected run
      * @return true if there are conflicts, false otherwise
      * @throws SQLException if a database access error occurs
      */
@@ -110,10 +117,10 @@ public interface RunDao {
     /**
      * Checks if there are runs for a specific convoy after a given departure time.
      *
-     * @param idLine         the line id
-     * @param idConvoy       the convoy id
-     * @param idStaff        the staff id
-     * @param timeDeparture  the departure time
+     * @param idLine        the line id
+     * @param idConvoy      the convoy id
+     * @param idStaff       the staff id
+     * @param timeDeparture the departure time
      * @return true if there are runs after the specified time, false otherwise
      * @throws SQLException if a database access error occurs
      */
@@ -122,22 +129,23 @@ public interface RunDao {
     /**
      * Selects runs for a convoy that are scheduled to depart after a specified time.
      *
-     * @param idConvoy       the convoy id
-     * @param timeDeparture  the departure time
+     * @param idConvoy      the convoy id
+     * @param timeDeparture the departure time
      * @return list of Run objects that match the criteria
      * @throws SQLException if a database access error occurs
      */
     List<ConvoyTableDTO> selectRunsByConvoyAndTimeForTakeFutureRuns(int idConvoy, Timestamp timeDeparture) throws SQLException;
 
-    boolean replaceFutureRunsConvoy(int idConvoy, int newIdConvoy, RunDTO run)throws SQLException;
+    boolean replaceFutureRunsConvoy(int idConvoy, int newIdConvoy, RunDTO run) throws SQLException;
 
     void updateRunStaff(int idLine, int idConvoy, int idStaff, Timestamp timeDeparture, int idStaff1) throws SQLException;
 
     /**
      * Aggiorna l'orario di partenza di una run.
-     * @param idLine id della linea
-     * @param idConvoy id del convoglio
-     * @param idStaff id dello staff
+     *
+     * @param idLine       id della linea
+     * @param idConvoy     id del convoglio
+     * @param idStaff      id dello staff
      * @param oldDeparture orario di partenza attuale
      * @param newDeparture nuovo orario di partenza
      * @return true se l'aggiornamento ha successo, false altrimenti
@@ -147,6 +155,7 @@ public interface RunDao {
 
     /**
      * Returns all runs in the database.
+     *
      * @return list of Run objects
      * @throws SQLException if a database access error occurs
      */
@@ -154,10 +163,13 @@ public interface RunDao {
 
     /**
      * Restituisce tutte le corse future di un convoglio dopo un certo orario.
-     * @param idConvoy id del convoglio
+     *
+     * @param idConvoy  id del convoglio
      * @param afterTime timestamp di riferimento
      * @return lista di Run future
      * @throws SQLException se si verifica un errore di accesso al database
      */
     List<Run> selectRunsForConvoyAfterTime(int idConvoy, java.sql.Timestamp afterTime) throws SQLException;
+
+    void updateStaffAndConvoyAfterRunCreation(int idStaff, int idConvoy, int idFirstStation) throws SQLException;
 }

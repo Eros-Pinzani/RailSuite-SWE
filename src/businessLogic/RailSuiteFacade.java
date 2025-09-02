@@ -2,6 +2,7 @@ package businessLogic;
 
 import dao.*;
 import domain.*;
+
 import java.sql.Timestamp;
 import java.util.List;
 import java.sql.SQLException;
@@ -210,6 +211,10 @@ public class RailSuiteFacade {
     }
 
     // Run
+
+    public void updateStaffAndConvoyAfterRunCreation(int idStaff, int idConvoy, int idLastStation) throws SQLException {
+        runDao.updateStaffAndConvoyAfterRunCreation(idStaff, idConvoy, idLastStation);
+    }
 
     /**
      * Retrieves a run by line, convoy, and staff ID.

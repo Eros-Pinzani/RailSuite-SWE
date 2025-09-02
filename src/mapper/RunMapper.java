@@ -3,6 +3,7 @@ package mapper;
 import domain.Run;
 import domain.DTO.RunDTO;
 import domain.DTO.ConvoyTableDTO;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.PreparedStatement;
@@ -11,43 +12,43 @@ import java.sql.Timestamp;
 public class RunMapper {
     public static Run toDomain(ResultSet rs) throws SQLException {
         return Run.of(
-            rs.getInt("id_line"),
-            rs.getString("line_name"),
-            rs.getInt("id_convoy"),
-            rs.getInt("id_staff"),
-            rs.getString("name"),
-            rs.getString("surname"),
-            rs.getInt("id_first_station"),
-            rs.getString("first_station_name"),
-            rs.getInt("id_last_station"),
-            rs.getString("last_station_name"),
-            rs.getTimestamp("time_departure"),
-            rs.getTimestamp("time_arrival")
+                rs.getInt("id_line"),
+                rs.getString("line_name"),
+                rs.getInt("id_convoy"),
+                rs.getInt("id_staff"),
+                rs.getString("name"),
+                rs.getString("surname"),
+                rs.getInt("id_first_station"),
+                rs.getString("first_station_name"),
+                rs.getInt("id_last_station"),
+                rs.getString("last_station_name"),
+                rs.getTimestamp("time_departure"),
+                rs.getTimestamp("time_arrival")
         );
     }
 
     public static RunDTO toRunDTO(ResultSet rs) throws SQLException {
         return new RunDTO(
-            rs.getInt("id_line"),
-            rs.getString("name"),
-            rs.getInt("id_convoy"),
-            rs.getInt("id_staff"),
-            rs.getString("staff_name"),
-            rs.getString("surname"),
-            rs.getString("email"),
-            rs.getTimestamp("time_departure"),
-            rs.getString("location")
+                rs.getInt("id_line"),
+                rs.getString("name"),
+                rs.getInt("id_convoy"),
+                rs.getInt("id_staff"),
+                rs.getString("staff_name"),
+                rs.getString("surname"),
+                rs.getString("email"),
+                rs.getTimestamp("time_departure"),
+                rs.getString("location")
         );
     }
 
     public static ConvoyTableDTO toConvoyTableDTO(ResultSet rs) throws SQLException {
         return new ConvoyTableDTO(
-            rs.getInt("id_convoy"),
-            rs.getString("model"),
-            rs.getString("status"),
-            rs.getInt("carriage_count"),
-            rs.getInt("capacity"),
-            rs.getString("model_type")
+                rs.getInt("id_convoy"),
+                rs.getString("model"),
+                rs.getString("status"),
+                rs.getInt("carriage_count"),
+                rs.getInt("capacity"),
+                rs.getString("model_type")
         );
     }
 
@@ -55,8 +56,8 @@ public class RunMapper {
         ps.setInt(1, idLine);
         ps.setInt(2, idConvoy);
         ps.setInt(3, idStaff);
-        if(timeDeparture != null) ps.setTimestamp(4, timeDeparture);
-        if(idFirstStation != 0) ps.setInt(5, idFirstStation);
+        if (timeDeparture != null) ps.setTimestamp(4, timeDeparture);
+        if (idFirstStation != 0) ps.setInt(5, idFirstStation);
     }
 
     public static void setInsertRunParams(PreparedStatement ps, int idLine, int idConvoy, int idStaff, Timestamp timeDeparture, Timestamp timeArrival, int idFirstStation, int idLastStation) throws SQLException {
@@ -111,6 +112,13 @@ public class RunMapper {
         ps.setInt(1, idLine);
         ps.setInt(2, idConvoy);
         ps.setInt(3, idStaff);
-        if(timeDeparture != null) ps.setTimestamp(4, timeDeparture);
+        if (timeDeparture != null) ps.setTimestamp(4, timeDeparture);
+    }
+
+    public static void setUpdateStaffAndConvoyAfterRunCreationParams(PreparedStatement ps, int idStaff, int idConvoy, int idFirstStation) throws SQLException {
+        ps.setInt(1, idFirstStation);
+        ps.setInt(2, idConvoy);
+        ps.setInt(3, idFirstStation);
+        ps.setInt(4, idStaff);
     }
 }

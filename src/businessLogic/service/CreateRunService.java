@@ -60,7 +60,6 @@ public class CreateRunService {
             for (int i = 0; i < stations.size() - 1; i++) {
                 totalTime = totalTime.plus(stations.get(i).getTimeToNextStation());
             }
-            /* Add a +1 min for every station stop */
             return totalTime.plusMinutes(stations.size());
         } catch (Exception e) {
             throw new RuntimeException("Error while calculating travel time: " + e.getMessage(), e);
@@ -150,7 +149,7 @@ public class CreateRunService {
     }
 
     public Run createRun(Line line, LocalDate date, String time, Convoy convoy, StaffDTO operator) {
-        try{
+        try {
             if (travelTime == null) {
                 travelTime = waitForTravelTime(line);
             }
@@ -160,17 +159,18 @@ public class CreateRunService {
             departureTimestamp.setNanos(dateTime.getNano());
             java.sql.Timestamp arrivalTimestamp = java.sql.Timestamp.valueOf(dateTime.plus(travelTime));
             facade.createRun(
-                line.getIdLine(),
-                convoy.getId(),
-                operator.getIdStaff(),
-                departureTimestamp,
-                arrivalTimestamp,
-                line.getIdFirstStation(),
-                line.getIdLastStation()
+                    line.getIdLine(),
+                    convoy.getId(),
+                    operator.getIdStaff(),
+                    departureTimestamp,
+                    arrivalTimestamp,
+                    line.getIdFirstStation(),
+                    line.getIdLastStation()
             );
-            return facade.selectRun(line.getIdLine(), convoy.getId(), departureTimestamp,operator.getIdStaff(), line.getIdFirstStation());
+            facade.updateStaffAndConvoyAfterRunCreation(operator.getIdStaff(), convoy.getId(), line.getIdLastStation());
+            return facade.selectRun(line.getIdLine(), convoy.getId(), departureTimestamp, operator.getIdStaff(), line.getIdFirstStation());
 
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("Error while creating run: " + e.getMessage(), e);
         }
     }
@@ -188,6 +188,7 @@ public class CreateRunService {
      * This method starts a new thread to calculate the travel time and waits for it to complete.
      * If the travel time is not calculated within a certain number of tries, it throws an
      * IllegalStateException.
+     *
      * @param selectedLine the line for which to calculate the travel time
      * @return the calculated travel time
      * @throws IllegalStateException if the travel time is not calculated within the maximum number of tries

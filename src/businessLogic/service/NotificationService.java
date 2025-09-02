@@ -45,4 +45,22 @@ public class NotificationService {
             LOGGER.log(Level.SEVERE, "Errore durante l'aggiunta della notifica", e);
         }
     }
+
+    public List<Notification> getNotificationsByConvoyId(int convoyId) {
+        try {
+            return facade.getNotificationsByConvoyId(convoyId);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Errore durante il recupero delle notifiche per convoglio", e);
+            return List.of();
+        }
+    }
+
+    public List<Notification> getAllNotificationsForConvoyAndStaff(int convoyId, int idStaff) {
+        try {
+            return facade.getAllNotificationsForConvoyAndStaff(convoyId, idStaff);
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Errore durante il recupero delle notifiche per convoglio e staff", e);
+            return List.of();
+        }
+    }
 }

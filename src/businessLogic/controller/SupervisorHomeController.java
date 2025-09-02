@@ -1,7 +1,8 @@
 package businessLogic.controller;
 
-import businessLogic.service.NotificationService;
 import businessLogic.service.NotificationObserver;
+import businessLogic.service.SupervisorHomeService;
+import businessLogic.service.SupervisorHomeService.NotificationRow;
 import domain.Notification;
 import domain.Staff;
 import javafx.fxml.FXML;
@@ -14,8 +15,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import java.util.List;
-import javafx.beans.property.SimpleStringProperty;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -49,32 +49,8 @@ public class SupervisorHomeController implements NotificationObserver {
     @FXML
     private Button gestioneConvogliButton;
 
-    private NotificationService notificationService;
+    private final SupervisorHomeService supervisorHomeService = new SupervisorHomeService();
     private final ObservableList<NotificationRow> data = FXCollections.observableArrayList();
-
-    public static class NotificationRow {
-        private final Notification notification;
-        private final int idCarriage;
-        private final SimpleStringProperty typeOfCarriage;
-        private final SimpleStringProperty dateTimeOfNotification;
-        private final SimpleStringProperty staffSurname;
-        private final SimpleStringProperty typeOfNotification;
-
-        public NotificationRow(Notification notification, int idCarriage, String typeOfCarriage, String dateTimeOfNotification, String staffSurname, String typeOfNotification) {
-            this.notification = notification;
-            this.idCarriage = idCarriage;
-            this.typeOfCarriage = new SimpleStringProperty(typeOfCarriage);
-            this.dateTimeOfNotification = new SimpleStringProperty(dateTimeOfNotification);
-            this.staffSurname = new SimpleStringProperty(staffSurname);
-            this.typeOfNotification = new SimpleStringProperty(typeOfNotification);
-        }
-        public Notification getNotification() { return notification; }
-        public int getIdCarriage() { return idCarriage; }
-        public String getTypeOfCarriage() { return typeOfCarriage.get(); } // Usato da JavaFX per il binding
-        public String getDateTimeOfNotification() { return dateTimeOfNotification.get(); } // Usato da JavaFX per il binding
-        public String getStaffSurname() { return staffSurname.get(); }
-        public String getTypeOfNotification() { return typeOfNotification.get(); } // Usato da JavaFX per il binding
-    }
 
     /**
      * Initializes the controller after its root element has been completely processed.
@@ -117,10 +93,7 @@ public class SupervisorHomeController implements NotificationObserver {
             }
         });
 
-        // Inizializza la facade e passa al NotificationService
-        businessLogic.RailSuiteFacade facade = new businessLogic.RailSuiteFacade();
-        notificationService = new NotificationService(facade);
-        notificationService.addObserver(this);
+        supervisorHomeService.addNotificationObserver(this);
         refreshNotificationsTable();
         notificationTable.getItems().addListener((javafx.collections.ListChangeListener<NotificationRow>) _ -> adjustTableHeight());
         adjustTableHeight();
@@ -157,16 +130,9 @@ public class SupervisorHomeController implements NotificationObserver {
     }
 
     @Override
-    public void onNotificationAdded(Notification notification) {
-        if (notification.getStatus() != null && notification.getStatus().equals("INVIATA")) {
-            data.add(new NotificationRow(
-                notification,
-                notification.getIdCarriage(),
-                notification.getTypeOfCarriage(),
-                notification.getDateTimeOfNotification().toString(),
-                notification.getStaffSurname(),
-                notification.getTypeOfNotification()
-            ));
+    public void onNotificationAdded(domain.Notification notification) {
+        if (supervisorHomeService.isNotificationSend(notification)) {
+            data.add(supervisorHomeService.toNotificationRow(notification));
             adjustTableHeight();
         }
     }
@@ -176,20 +142,7 @@ public class SupervisorHomeController implements NotificationObserver {
      */
     private void refreshNotificationsTable() {
         data.clear();
-        List<Notification> notifications = notificationService.getAllNotifications();
-        if (notifications == null) notifications = java.util.Collections.emptyList();
-        for (Notification n : notifications) {
-            if (n.getStatus() != null && n.getStatus().equals("INVIATA")) {
-                data.add(new NotificationRow(
-                    n,
-                    n.getIdCarriage(),
-                    n.getTypeOfCarriage(),
-                    n.getDateTimeOfNotification().toString(),
-                    n.getStaffSurname(),
-                    n.getTypeOfNotification()
-                ));
-            }
-        }
+        data.addAll(supervisorHomeService.getAllNotificationRows());
         notificationTable.setItems(data);
         adjustTableHeight();
     }

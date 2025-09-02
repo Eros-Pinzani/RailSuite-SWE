@@ -112,4 +112,15 @@ public class ManageCarriagesService {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Restituisce una carrozza dato il suo id.
+     */
+    public Carriage getCarriageById(int idCarriage) {
+        try {
+            return facade.selectCarriage(idCarriage);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

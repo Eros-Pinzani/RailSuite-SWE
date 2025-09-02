@@ -161,4 +161,18 @@ public class ConvoyService {
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Returns all head stations in the system.
+     * Used to populate the station ComboBox in the controller.
+     * @return List of all head stations.
+     */
+    public List<domain.Station> getAllHeadStations() {
+        try {
+            return facade.findAllHeadStations();
+        } catch (Exception e) {
+            logger.severe("Errore nel recupero delle stazioni head: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
 }

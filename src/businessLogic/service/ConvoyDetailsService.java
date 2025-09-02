@@ -1,6 +1,6 @@
 package businessLogic.service;
 
-import java.sql.SQLException;
+
 import java.util.logging.Logger;
 
 /**
@@ -18,6 +18,7 @@ import businessLogic.RailSuiteFacade;
 public class ConvoyDetailsService {
     private static final Logger logger = Logger.getLogger(ConvoyDetailsService.class.getName());
     private final RailSuiteFacade facade = new RailSuiteFacade();
+    private final NotificationService notificationService = new NotificationService(facade);
 
     public static class ConvoyDetailsDTO {
         public final String convoyId;
@@ -114,25 +115,7 @@ public class ConvoyDetailsService {
         public List<StationRow> stationRows;
     }
 
-    public void sendNotificationTechnicalIssue(Carriage carriage, AssignedConvoyInfo convoyDetailsDTO) {
-        sendNotification(carriage, "MAINTENANCE", convoyDetailsDTO);
-    }
-
-    public void sendNotificationCleaning(Carriage carriage, AssignedConvoyInfo convoyDetailsDTO) {
-        sendNotification(carriage, "CLEANING", convoyDetailsDTO);
-    }
-
-    private void sendNotification(Carriage carriage, String workType, AssignedConvoyInfo convoyDetailsDTO) {
-        try {
-            facade.addNotification(
-                carriage.getId(),
-                carriage.getIdConvoy(),
-                new java.sql.Timestamp(System.currentTimeMillis()),
-                workType,
-                convoyDetailsDTO.idStaff
-            );
-        } catch (Exception e) {
-            logger.severe("Error sending notification: " + e.getMessage());
-        }
+    public NotificationService getNotificationService() {
+        return notificationService;
     }
 }

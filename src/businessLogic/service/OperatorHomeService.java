@@ -12,8 +12,8 @@ public class OperatorHomeService {
 
     private final RailSuiteFacade facade;
 
-    public OperatorHomeService(RailSuiteFacade facade) {
-        this.facade = facade;
+    public OperatorHomeService() {
+        this.facade = new RailSuiteFacade();
     }
 
     public static class AssignedConvoyInfo {

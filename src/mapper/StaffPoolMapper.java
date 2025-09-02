@@ -49,10 +49,12 @@ public class StaffPoolMapper {
     public static void setFindAvailableOperatorsParams(PreparedStatement ps, int idStation, java.time.LocalDate date, java.sql.Timestamp departureTimestamp) throws SQLException {
         ps.setInt(1, idStation);
         ps.setDate(2, java.sql.Date.valueOf(date));
-        ps.setTimestamp(3, departureTimestamp);
-        ps.setTimestamp(4, departureTimestamp);
+        ps.setInt(3, idStation);
+        ps.setDate(4, java.sql.Date.valueOf(date));
         ps.setTimestamp(5, departureTimestamp);
         ps.setDate(6, java.sql.Date.valueOf(date));
-        ps.setDate(7, java.sql.Date.valueOf(date));
+        ps.setTimestamp(7, departureTimestamp);
+        ps.setTimestamp(8, departureTimestamp);
+        ps.setTimestamp(9, departureTimestamp);
     }
 }

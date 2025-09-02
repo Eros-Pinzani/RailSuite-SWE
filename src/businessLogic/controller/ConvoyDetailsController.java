@@ -1,6 +1,5 @@
 package businessLogic.controller;
 
-import businessLogic.RailSuiteFacade;
 import businessLogic.service.ConvoyDetailsService;
 import businessLogic.service.ConvoyDetailsService.StationRow;
 import businessLogic.service.OperatorHomeService.AssignedConvoyInfo;
@@ -46,10 +45,9 @@ public class ConvoyDetailsController {
     @FXML private Button toggleStationTableButton;
 
     private final ConvoyDetailsService convoyDetailsService = new ConvoyDetailsService();
-    private final RailSuiteFacade facade = new RailSuiteFacade();
     private AssignedConvoyInfo convoyInfo;
     private static AssignedConvoyInfo staticConvoyInfo;
-    private final NotificationService notificationService = new NotificationService(facade);
+    private final NotificationService notificationService;
 
     // Mappa: idCarrozza -> Set dei tipi di segnalazione già fatte (per TUTTI gli operatori)
     private final java.util.Map<Integer, java.util.Set<String>> notifiedTypesByCarriage = new java.util.HashMap<>();
@@ -226,9 +224,9 @@ public class ConvoyDetailsController {
         if (carriageTable != null) carriageTable.setItems(FXCollections.observableArrayList(dto.carriages));
         if (stationTable != null) stationTable.setItems(FXCollections.observableArrayList(dto.stationRows));
 
-        // Recupera le notifiche dal DB e aggiorna la mappa notifiedTypesByCarriage
+        // Recupera le notifiche dal NotificationService e aggiorna la mappa notifiedTypesByCarriage
         try {
-            var notifications = facade.getNotificationsByConvoyId(Integer.parseInt(dto.convoyId));
+            var notifications = notificationService.getNotificationsByConvoyId(Integer.parseInt(dto.convoyId));
             notifiedTypesByCarriage.clear();
             if (notifications != null) {
                 for (var n : notifications) {
@@ -248,7 +246,7 @@ public class ConvoyDetailsController {
             Staff staff = UserSession.getInstance().getStaff();
             notifiedTypesByCarriagePerStaff.clear();
             if (staff != null) {
-                var staffNotifications = facade.getAllNotificationsForConvoyAndStaff(Integer.parseInt(dto.convoyId), staff.getIdStaff());
+                var staffNotifications = notificationService.getAllNotificationsForConvoyAndStaff(Integer.parseInt(dto.convoyId), staff.getIdStaff());
                 if (staffNotifications != null) {
                     for (var n : staffNotifications) {
                         String type = n.getTypeOfNotification();
@@ -328,5 +326,9 @@ public class ConvoyDetailsController {
         // Aggiorna subito la mappa per disabilitare il pulsante
         notifiedTypesByCarriagePerStaff.computeIfAbsent(carriage.getId(), k -> new java.util.HashSet<>()).add("CLEANING");
         if (carriageTable != null) carriageTable.refresh();
+    }
+
+    public ConvoyDetailsController() {
+        this.notificationService = convoyDetailsService.getNotificationService();
     }
 }

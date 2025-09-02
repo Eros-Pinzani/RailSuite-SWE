@@ -5,7 +5,6 @@ package businessLogic.controller;
  * Handles the display and management of carriages in a convoy,
  * including adding, removing, and updating carriage information.
  */
-import businessLogic.RailSuiteFacade;
 import businessLogic.service.ManageCarriagesService;
 import domain.Carriage;
 import domain.DTO.ConvoyTableDTO;
@@ -44,7 +43,6 @@ public class ManageCarriagesController {
     @FXML private Button backButton;
 
     private final ManageCarriagesService manageCarriagesService = new ManageCarriagesService();
-    private final RailSuiteFacade facade = new RailSuiteFacade();
     private Station selectedStation;
     private ConvoyTableDTO selectedConvoy;
     private final javafx.collections.ObservableList<CarriageDepotDTO> manageCarriageList = FXCollections.observableArrayList();
@@ -189,7 +187,7 @@ public class ManageCarriagesController {
         if (manageCarriageList.isEmpty()) return null;
         int idCarriage = manageCarriageList.getFirst().getIdCarriage();
         try {
-            domain.Carriage carriage = facade.selectCarriage(idCarriage);
+            domain.Carriage carriage = manageCarriagesService.getCarriageById(idCarriage);
             return carriage != null ? carriage.getModelType() : null;
         } catch (Exception e) {
             return null;

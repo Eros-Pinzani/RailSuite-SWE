@@ -5,7 +5,6 @@ package businessLogic.controller;
  * Handles the display, creation, and removal of convoys for a selected station.
  */
 import businessLogic.service.ConvoyService;
-import businessLogic.RailSuiteFacade;
 import domain.DTO.ConvoyTableDTO;
 import domain.Station;
 import domain.Staff;
@@ -31,7 +30,6 @@ public class ManageConvoyController {
     @FXML private Button backButton;
 
     private final ConvoyService convoyService = new ConvoyService();
-    private final RailSuiteFacade facade = new RailSuiteFacade();
 
     /**
      * Initializes the controller after its root element has been completely processed.
@@ -58,9 +56,9 @@ public class ManageConvoyController {
             }
         });
 
-        // Carica le stazioni head nella ComboBox
+        // Carica le stazioni head nella ComboBox tramite ConvoyService
         try {
-            List<Station> stations = facade.findAllHeadStations();
+            List<Station> stations = convoyService.getAllHeadStations();
             stationComboBox.setItems(FXCollections.observableArrayList(stations));
         } catch (Exception e) {
             stationComboBox.setItems(FXCollections.observableArrayList());

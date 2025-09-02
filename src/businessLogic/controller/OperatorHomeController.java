@@ -32,6 +32,7 @@ public class OperatorHomeController {
     @FXML private Label noConvoyLabel;
 
     private static final Logger logger = Logger.getLogger(OperatorHomeController.class.getName());
+    private final OperatorHomeService service = new OperatorHomeService();
 
     /**
      * Initializes the controller after its root element has been completely processed.
@@ -106,7 +107,6 @@ public class OperatorHomeController {
      * @param staffId The ID of the operator staff.
      */
     private void populateAssignedTrainsTable(int staffId) {
-        OperatorHomeService service = new OperatorHomeService(new businessLogic.RailSuiteFacade());
         try {
             List<OperatorHomeService.AssignedConvoyInfo> convoys = service.getAssignedConvoysForOperator(staffId);
             boolean hasConvoys = !convoys.isEmpty();

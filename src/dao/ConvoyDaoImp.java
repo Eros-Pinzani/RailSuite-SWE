@@ -1,5 +1,6 @@
 package dao;
 
+import businessLogic.service.ConvoyDetailsService;
 import domain.Carriage;
 import domain.Convoy;
 
@@ -185,7 +186,7 @@ class ConvoyDaoImp implements ConvoyDao {
     }
 
     @Override
-    public businessLogic.service.ConvoyDetailsService.ConvoyDetailsRaw selectConvoyDetailsById(int id) throws SQLException {
+    public ConvoyDetailsService.ConvoyDetailsRaw selectConvoyDetailsById(int id) throws SQLException {
         try (
                 java.sql.Connection conn = PostgresConnection.getConnection();
                 java.sql.PreparedStatement stmt = conn.prepareStatement(
@@ -237,7 +238,7 @@ class ConvoyDaoImp implements ConvoyDao {
 
     @Override
     public List<Convoy> getConvoysForNewRun(int idStation, String timeDeparture, LocalDate dateDeparture, int idLine) throws SQLException {
-        List<Convoy> convoys = new ArrayList<>();
+        List<Convoy> convoys;
         try (Connection conn = PostgresConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(convoyForNewRunQuery)) {
             java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(dateDeparture, java.time.LocalTime.parse(timeDeparture));

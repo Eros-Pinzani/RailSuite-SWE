@@ -1,6 +1,4 @@
 
-todo sistamare i pakage in businessLogic
-
 todo popolare il db e cliccare TUTTI I PULSANTI
 
 todo testing

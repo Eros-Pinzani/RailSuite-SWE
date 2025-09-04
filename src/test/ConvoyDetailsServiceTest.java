@@ -62,6 +62,11 @@ class ConvoyDetailsServiceTest {
             ps.setInt(1, 88888);
             ps.executeUpdate();
         }
+        // Cleanup depot
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM depot WHERE id_depot = ?;")) {
+            ps.setInt(1, 88888);
+            ps.executeUpdate();
+        }
         // NON cancellare da station e line
         // Cleanup entità residue anche per id 999999 (usato nel test di fallimento)
         try (PreparedStatement ps = conn.prepareStatement("DELETE FROM run WHERE id_convoy = ? OR id_line = ? OR id_staff = ? OR id_first_station = ? OR id_last_station = ?;")) {
@@ -89,7 +94,17 @@ class ConvoyDetailsServiceTest {
             ps.setInt(1, 999999);
             ps.executeUpdate();
         }
+        // Cleanup depot anche per 999999
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM depot WHERE id_depot = ?;")) {
+            ps.setInt(1, 999999);
+            ps.executeUpdate();
+        }
         // NON cancellare da station e line
+        // Inserisci depot di test
+        try (PreparedStatement ps = conn.prepareStatement("INSERT INTO depot (id_depot) VALUES (?)")) {
+            ps.setInt(1, 88888);
+            ps.executeUpdate();
+        } catch (Exception e) { if (!e.getMessage().contains("duplicate")) throw e; }
         // Inserisci dati di test (fuori dal blocco try-catch!)
         testStationId = 88888;
         testLineId = 88888;
@@ -97,13 +112,13 @@ class ConvoyDetailsServiceTest {
         testCarriageId = 88888;
         testDepartureTime = new Timestamp(System.currentTimeMillis());
         testArrivalTime = "23:59";
-        // Stazione
+        // Stazione (head)
         try (PreparedStatement ps = conn.prepareStatement("INSERT INTO station (id_station, location, num_bins, service_description, is_head) VALUES (?, ?, ?, ?, ?);")) {
             ps.setInt(1, testStationId);
             ps.setString(2, "JUnitTestStation");
             ps.setInt(3, 1);
             ps.setString(4, "JUnit test station");
-            ps.setBoolean(5, false);
+            ps.setBoolean(5, true);
             ps.executeUpdate();
         } catch (Exception e) { if (!e.getMessage().contains("duplicate")) throw e; }
         // Linea
@@ -176,7 +191,11 @@ class ConvoyDetailsServiceTest {
                 ps.setInt(1, testConvoyId);
                 ps.executeUpdate();
             }
-            // NON cancellare da station e line
+            // Cleanup depot
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM depot WHERE id_depot = ?;")) {
+                ps.setInt(1, testStationId);
+                ps.executeUpdate();
+            }
         } finally {
             conn.close();
         }

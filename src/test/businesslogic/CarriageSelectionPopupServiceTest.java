@@ -54,17 +54,13 @@ public class CarriageSelectionPopupServiceTest {
             ps.setInt(2, 99998);
             ps.executeUpdate();
         }
+        // Cleanup notifiche residue che referenziano la carriage di test
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM notification WHERE id_carriage = ?;")) {
+            ps.setInt(1, 99999);
+            ps.executeUpdate();
+        }
         // Inserisci una stazione di test con id fisso per evitare problemi di autoincrement
         testStationId = 99999;
-        // Inserisci un deposito di test con id fisso per rispettare il vincolo di chiave esterna
-        String insertDepot = "INSERT INTO depot (id_depot) VALUES (?)";
-        try (PreparedStatement ps = conn.prepareStatement(insertDepot)) {
-            ps.setInt(1, testStationId);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            // Ignora errore di chiave duplicata (depot già presente)
-            if (!e.getMessage().contains("duplicate key value")) throw e;
-        }
         String insertStation = "INSERT INTO station (id_station, location, num_bins, service_description, is_head) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(insertStation)) {
             ps.setInt(1, testStationId);
@@ -79,6 +75,15 @@ public class CarriageSelectionPopupServiceTest {
             ps.executeUpdate();
         } catch (Exception e) {
             // Ignora errore di chiave duplicata (stazione già presente)
+            if (!e.getMessage().contains("duplicate key value")) throw e;
+        }
+        // Inserisci un deposito di test con id fisso per rispettare il vincolo di chiave esterna
+        String insertDepot = "INSERT INTO depot (id_depot) VALUES (?)";
+        try (PreparedStatement ps = conn.prepareStatement(insertDepot)) {
+            ps.setInt(1, testStationId);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            // Ignora errore di chiave duplicata (depot già presente)
             if (!e.getMessage().contains("duplicate key value")) throw e;
         }
         // Inserisci una carrozza di test con id fisso
@@ -142,6 +147,11 @@ public class CarriageSelectionPopupServiceTest {
             ps.setInt(1, testCarriageId);
             ps.executeUpdate();
         }
+        // Rimuovi le notifiche di test prima di eliminare la carriage
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM notification WHERE id_carriage = ?;")) {
+            ps.setInt(1, testCarriageId);
+            ps.executeUpdate();
+        }
         // Rimuovi la carrozza di test
         String deleteCarriage = "DELETE FROM carriage WHERE id_carriage = ?";
         try (PreparedStatement ps = conn.prepareStatement(deleteCarriage)) {
@@ -160,6 +170,16 @@ public class CarriageSelectionPopupServiceTest {
         }
         try (PreparedStatement ps = conn.prepareStatement(deleteConvoyPool)) {
             ps.setInt(1, emptyConvoyId);
+            ps.executeUpdate();
+        }
+        // Rimuovi il deposito di test
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM depot WHERE id_depot = ?;")) {
+            ps.setInt(1, testStationId);
+            ps.executeUpdate();
+        }
+        // Rimuovi la stazione di test
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM station WHERE id_station = ?;")) {
+            ps.setInt(1, testStationId);
             ps.executeUpdate();
         }
         conn.close();

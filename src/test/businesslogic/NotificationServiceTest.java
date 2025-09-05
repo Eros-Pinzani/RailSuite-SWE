@@ -18,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class NotificationServiceTest {
     private NotificationService service;
-    private NotificationDao notificationDao;
     private TestNotificationObserver observer;
     private final int testCarriageId = 99999;
     private final int testStaffId = 99999;
@@ -26,7 +25,6 @@ class NotificationServiceTest {
     private final String testTypeOfNotification = "MAINTENANCE";
     private final String testStaffName = "Mario";
     private final String testStaffSurname = "Rossi";
-    private Timestamp testTimestamp;
     private int testConvoyId; // Modificato in variabile d'istanza
 
     static class TestNotificationObserver implements NotificationObserver {
@@ -41,9 +39,9 @@ class NotificationServiceTest {
     void setUp() throws Exception {
         RailSuiteFacade facade = new RailSuiteFacade();
         service = new NotificationService(facade);
-        notificationDao = NotificationDao.of();
+        NotificationDao notificationDao = NotificationDao.of();
         observer = new TestNotificationObserver();
-        testTimestamp = new Timestamp(System.currentTimeMillis());
+        Timestamp testTimestamp = new Timestamp(System.currentTimeMillis());
         // Inserisci la carrozza di test se non esiste
         try {
             PreparedStatement ps = getPreparedStatement();
@@ -65,9 +63,16 @@ class NotificationServiceTest {
         dao.ConvoyDao convoyDao = dao.ConvoyDao.of();
         domain.Convoy convoy = convoyDao.createConvoy(java.util.List.of(carriage));
         testConvoyId = convoy.getId(); // Aggiorna l'id reale del convoglio
-        // Pulisci eventuali notifiche residue
+        // Pulisci tutte le notifiche residue che referenziano la carriage, lo staff o il convoglio di test
         try {
-            notificationDao.deleteNotification(testCarriageId, testConvoyId, testTimestamp);
+            String deleteAllTestNotifications = "DELETE FROM notification WHERE (id_carriage = ? OR id_staff = ?) AND id_convoy = ?";
+            java.sql.Connection conn = dao.PostgresConnection.getConnection();
+            java.sql.PreparedStatement ps = conn.prepareStatement(deleteAllTestNotifications);
+            ps.setInt(1, testCarriageId);
+            ps.setInt(2, testStaffId);
+            ps.setInt(3, testConvoyId);
+            ps.executeUpdate();
+            ps.close();
         } catch (Exception ignored) {}
         // Inserisci una notifica di test
         notificationDao.addNotification(testCarriageId, testConvoyId, testTimestamp, testTypeOfNotification, testStaffId);
@@ -103,9 +108,16 @@ class NotificationServiceTest {
 
     @AfterEach
     void tearDown() {
-        // Rimuovi la notifica di test
+        // Rimuovi tutte le notifiche di test prima di eliminare la carriage, lo staff o il convoglio
         try {
-            notificationDao.deleteNotification(testCarriageId, testConvoyId, testTimestamp);
+            String deleteAllTestNotifications = "DELETE FROM notification WHERE (id_carriage = ? OR id_staff = ?) AND id_convoy = ?";
+            java.sql.Connection conn = dao.PostgresConnection.getConnection();
+            java.sql.PreparedStatement ps = conn.prepareStatement(deleteAllTestNotifications);
+            ps.setInt(1, testCarriageId);
+            ps.setInt(2, testStaffId);
+            ps.setInt(3, testConvoyId);
+            ps.executeUpdate();
+            ps.close();
         } catch (Exception ignored) {}
         // Rimuovi la carrozza di test
         try {

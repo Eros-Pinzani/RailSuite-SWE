@@ -53,13 +53,6 @@ public class ManageCarriagesServiceTest {
         }
         // Inserisci una stazione di test
         testStationId = 88888;
-        String insertDepot = "INSERT INTO depot (id_depot) VALUES (?)";
-        try (PreparedStatement ps = conn.prepareStatement(insertDepot)) {
-            ps.setInt(1, testStationId);
-            ps.executeUpdate();
-        } catch (Exception e) {
-            if (!e.getMessage().contains("duplicate key value")) throw e;
-        }
         String insertStation = "INSERT INTO station (id_station, location, num_bins, service_description, is_head) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(insertStation)) {
             ps.setInt(1, testStationId);
@@ -67,6 +60,14 @@ public class ManageCarriagesServiceTest {
             ps.setInt(3, 1);
             ps.setString(4, "JUnit test station");
             ps.setBoolean(5, false);
+            ps.executeUpdate();
+        } catch (Exception e) {
+            if (!e.getMessage().contains("duplicate key value")) throw e;
+        }
+        // Inserisci un deposito di test SOLO dopo la station
+        String insertDepot = "INSERT INTO depot (id_depot) VALUES (?)";
+        try (PreparedStatement ps = conn.prepareStatement(insertDepot)) {
+            ps.setInt(1, testStationId);
             ps.executeUpdate();
         } catch (Exception e) {
             if (!e.getMessage().contains("duplicate key value")) throw e;
@@ -134,6 +135,31 @@ public class ManageCarriagesServiceTest {
             ps.setInt(1, testConvoyId);
             ps.executeUpdate();
         }
+        // Elimina tutte le dipendenze da depot, line_station, run, staff_pool
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM depot WHERE id_depot IN (SELECT id_station FROM station WHERE location = 'JUnitTestStation')")) {
+            ps.executeUpdate();
+        } catch (Exception ignored) {}
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM line_station WHERE id_station IN (SELECT id_station FROM station WHERE location = 'JUnitTestStation') OR id_line IN (SELECT id_line FROM line WHERE name = 'JUnitTestLine')")) {
+            ps.executeUpdate();
+        } catch (Exception ignored) {}
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM run WHERE id_first_station IN (SELECT id_station FROM station WHERE location = 'JUnitTestStation') OR id_last_station IN (SELECT id_station FROM station WHERE location = 'JUnitTestStation') OR id_line IN (SELECT id_line FROM line WHERE name = 'JUnitTestLine') OR id_staff IN (SELECT id_staff FROM staff WHERE name = 'JUnit' AND surname = 'Tester')")) {
+            ps.executeUpdate();
+        } catch (Exception ignored) {}
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM staff_pool WHERE id_staff IN (SELECT id_staff FROM staff WHERE name = 'JUnit' AND surname = 'Tester')")) {
+            ps.executeUpdate();
+        } catch (Exception ignored) {}
+        // Elimina tutte le station di test
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM station WHERE location = 'JUnitTestStation'")) {
+            ps.executeUpdate();
+        } catch (Exception ignored) {}
+        // Elimina tutte le staff di test
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM staff WHERE name = 'JUnit' AND surname = 'Tester'")) {
+            ps.executeUpdate();
+        } catch (Exception ignored) {}
+        // Elimina tutte le line di test
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM line WHERE name = 'JUnitTestLine'")) {
+            ps.executeUpdate();
+        } catch (Exception ignored) {}
         conn.close();
     }
 

@@ -40,12 +40,10 @@ class CreateRunServiceTest {
         String dbPassword = props.getProperty("db.password");
         conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
         // Cleanup entità residue
-        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM run WHERE id_convoy = ? OR id_line = ? OR id_staff = ? OR id_first_station = ? OR id_last_station = ?;")) {
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM notification WHERE id_carriage = ? OR id_convoy = ? OR id_staff = ?;")) {
             ps.setInt(1, 88888);
             ps.setInt(2, 88888);
             ps.setInt(3, 88888);
-            ps.setInt(4, 88888);
-            ps.setInt(5, 88888);
             ps.executeUpdate();
         }
         try (PreparedStatement ps = conn.prepareStatement("DELETE FROM convoy_pool WHERE id_convoy = ? OR id_station = ?;")) {
@@ -69,11 +67,6 @@ class CreateRunServiceTest {
             ps.setInt(1, 88888);
             ps.executeUpdate();
         }
-        // Inserisci depot di test
-        try (PreparedStatement ps = conn.prepareStatement("INSERT INTO depot (id_depot) VALUES (?)")) {
-            ps.setInt(1, 88888);
-            ps.executeUpdate();
-        } catch (Exception e) { if (!e.getMessage().contains("duplicate")) throw e; }
         // Inserisci dati di test
         testStationId = 88888;
         int testStationId2 = 88889;
@@ -81,6 +74,20 @@ class CreateRunServiceTest {
         testStaffId = 88888;
         testCarriageId = 88888;
         testDate = LocalDate.now().plusDays(1);
+        // Inserisci/aggiorna linea di test PRIMA delle associazioni in line_station
+        try (PreparedStatement ps = conn.prepareStatement("INSERT INTO line (id_line, name) VALUES (?, ?) ON CONFLICT (id_line) DO UPDATE SET name = EXCLUDED.name;")) {
+            ps.setInt(1, testLineId);
+            ps.setString(2, "JUnitTestLine");
+            ps.executeUpdate();
+        } catch (Exception e) {
+            if (!e.getMessage().contains("duplicate")) throw e;
+            // Se già esiste, aggiorna i dati e forza is_head = true
+            try (PreparedStatement ps2 = conn.prepareStatement("UPDATE line SET name = ? WHERE id_line = ?;")) {
+                ps2.setString(1, "JUnitTestLine");
+                ps2.setInt(2, testLineId);
+                ps2.executeUpdate();
+            }
+        }
         // Inserisci/aggiorna stazione di test 1
         try (PreparedStatement ps = conn.prepareStatement("INSERT INTO station (id_station, location, num_bins, service_description, is_head) VALUES (?, ?, ?, ?, ?);")) {
             ps.setInt(1, testStationId);
@@ -171,6 +178,14 @@ class CreateRunServiceTest {
     void tearDown() throws Exception {
         if (conn == null || conn.isClosed()) return;
         try {
+            // Cancella notifiche collegate alle entità di test
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM notification WHERE id_carriage = ? OR id_convoy = ? OR id_staff = ?;")) {
+                ps.setInt(1, testCarriageId);
+                ps.setInt(2, testConvoyId);
+                ps.setInt(3, testStaffId);
+                ps.executeUpdate();
+            }
+            // Cancella run
             try (PreparedStatement ps = conn.prepareStatement("DELETE FROM run WHERE id_convoy = ? OR id_line = ? OR id_staff = ? OR id_first_station = ? OR id_last_station = ?;")) {
                 ps.setInt(1, testConvoyId);
                 ps.setInt(2, testLineId);
@@ -179,23 +194,28 @@ class CreateRunServiceTest {
                 ps.setInt(5, testStationId);
                 ps.executeUpdate();
             }
+            // Cancella convoy_pool
             try (PreparedStatement ps = conn.prepareStatement("DELETE FROM convoy_pool WHERE id_convoy = ? OR id_station = ?;")) {
                 ps.setInt(1, testConvoyId);
                 ps.setInt(2, testStationId);
                 ps.executeUpdate();
             }
+            // Cancella carriage_depot
             try (PreparedStatement ps = conn.prepareStatement("DELETE FROM carriage_depot WHERE id_carriage = ?;")) {
                 ps.setInt(1, testCarriageId);
                 ps.executeUpdate();
             }
+            // Cancella carriage
             try (PreparedStatement ps = conn.prepareStatement("DELETE FROM carriage WHERE id_carriage = ?;")) {
                 ps.setInt(1, testCarriageId);
                 ps.executeUpdate();
             }
+            // Cancella convoy
             try (PreparedStatement ps = conn.prepareStatement("DELETE FROM convoy WHERE id_convoy = ?;")) {
                 ps.setInt(1, testConvoyId);
                 ps.executeUpdate();
             }
+            // Cancella depot
             try (PreparedStatement ps = conn.prepareStatement("DELETE FROM depot WHERE id_depot = ?;")) {
                 ps.setInt(1, testStationId);
                 ps.executeUpdate();
@@ -212,8 +232,28 @@ class CreateRunServiceTest {
                 ps.setInt(2, 88889);
                 ps.executeUpdate();
             }
+            // Cancella staff_pool di test
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM staff_pool WHERE id_staff = ?;")) {
+                ps.setInt(1, testStaffId);
+                ps.executeUpdate();
+            } catch (Exception ignored) {}
+            // Cancella staff di test
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM staff WHERE id_staff = ?;")) {
+                ps.setInt(1, testStaffId);
+                ps.executeUpdate();
+            } catch (Exception ignored) {}
+            // Cancella stazioni di test
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM station WHERE id_station = ?;")) {
+                ps.setInt(1, 88888);
+                ps.executeUpdate();
+            } catch (Exception ignored) {}
             try (PreparedStatement ps = conn.prepareStatement("DELETE FROM station WHERE id_station = ?;")) {
                 ps.setInt(1, 88889);
+                ps.executeUpdate();
+            } catch (Exception ignored) {}
+            // Cancella la linea di test
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM line WHERE id_line = ?;")) {
+                ps.setInt(1, testLineId);
                 ps.executeUpdate();
             } catch (Exception ignored) {}
             conn.close();

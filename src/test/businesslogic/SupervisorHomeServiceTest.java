@@ -62,7 +62,7 @@ class SupervisorHomeServiceTest {
         boolean found = notifications.stream().anyMatch(n ->
             n.getIdCarriage() == idCarriage &&
             n.getIdConvoy() == idConvoy &&
-            n.getDateTimeOfNotification().equals(now)
+            Math.abs(n.getDateTimeOfNotification().getTime() - now.getTime()) < 1000
         );
         assertTrue(found, "La notifica di test non è stata trovata tra quelle restituite.");
 

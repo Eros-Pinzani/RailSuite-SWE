@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class CreateConvoyServiceTest {
     private int testCarriageId;
     private int testStationId;
+    private Integer testConvoyId; // id del convoy creato nel test
     private Connection conn;
 
     @BeforeEach
@@ -30,6 +31,12 @@ class CreateConvoyServiceTest {
         String dbPassword = props.getProperty("db.password");
         conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
         // Cleanup entità residue
+        try (PreparedStatement ps = conn.prepareStatement("DELETE FROM notification WHERE id_carriage = ? OR id_convoy = ? OR id_staff = ?;")) {
+            ps.setInt(1, 88888);
+            ps.setInt(2, 88888);
+            ps.setInt(3, 88888);
+            ps.executeUpdate();
+        }
         try (PreparedStatement ps = conn.prepareStatement("DELETE FROM carriage_depot WHERE id_carriage = ?;")) {
             ps.setInt(1, 88888);
             ps.executeUpdate();
@@ -46,11 +53,6 @@ class CreateConvoyServiceTest {
             ps.setInt(1, 88888);
             ps.executeUpdate();
         } catch (Exception ignored) {}
-        // Inserisci depot di test
-        try (PreparedStatement ps = conn.prepareStatement("INSERT INTO depot (id_depot) VALUES (?)")) {
-            ps.setInt(1, 88888);
-            ps.executeUpdate();
-        } catch (Exception e) { if (!e.getMessage().contains("duplicate")) throw e; }
         // Inserisci stazione di test
         testStationId = 88888;
         try (PreparedStatement ps = conn.prepareStatement("INSERT INTO station (id_station, location, num_bins, service_description, is_head) VALUES (?, ?, ?, ?, ?);")) {
@@ -59,6 +61,11 @@ class CreateConvoyServiceTest {
             ps.setInt(3, 1);
             ps.setString(4, "JUnit test station");
             ps.setBoolean(5, true);
+            ps.executeUpdate();
+        } catch (Exception e) { if (!e.getMessage().contains("duplicate")) throw e; }
+        // Ora inserisci depot di test (dopo station)
+        try (PreparedStatement ps = conn.prepareStatement("INSERT INTO depot (id_depot) VALUES (?)")) {
+            ps.setInt(1, testStationId);
             ps.executeUpdate();
         } catch (Exception e) { if (!e.getMessage().contains("duplicate")) throw e; }
         // Inserisci carrozza di test
@@ -97,11 +104,26 @@ class CreateConvoyServiceTest {
                 ps.setInt(1, testStationId);
                 ps.executeUpdate();
             }
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM notification WHERE id_carriage = ? OR id_convoy = ? OR id_staff = ?;")) {
+                ps.setInt(1, testCarriageId);
+                ps.setInt(2, testCarriageId);
+                ps.setInt(3, testCarriageId);
+                ps.executeUpdate();
+            }
             try (PreparedStatement ps = conn.prepareStatement("DELETE FROM station WHERE id_station = ?;")) {
                 ps.setInt(1, testStationId);
                 ps.executeUpdate();
-            } catch (Exception ignored) {}
-        } finally {
+            }
+            // Elimina il convoglio creato dal test se presente
+            if (testConvoyId != null && testConvoyId != 0) {
+                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM convoy WHERE id_convoy = ?")) {
+                    ps.setInt(1, testConvoyId);
+                    ps.executeUpdate();
+                } catch (Exception ignored) {}
+            }
+
+        } catch (Exception ignored) {}
+        finally {
             conn.close();
         }
     }
@@ -128,7 +150,16 @@ class CreateConvoyServiceTest {
             ps.executeUpdate();
         } catch (Exception e) { if (!e.getMessage().contains("duplicate")) throw new RuntimeException(e); }
         assertDoesNotThrow(() -> service.createConvoy(List.of(newCarriage)));
-        // Cleanup
+        // Recupera l'id_convoy associato alla carrozza 99999
+        try (PreparedStatement ps = conn.prepareStatement("SELECT id_convoy FROM carriage WHERE id_carriage = ?")) {
+            ps.setInt(1, 99999);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    testConvoyId = rs.getInt("id_convoy");
+                }
+            }
+        } catch (Exception ignored) {}
+        // Cleanup della carrozza (il convoglio sarà eliminato in tearDown)
         try (PreparedStatement ps = conn.prepareStatement("DELETE FROM carriage WHERE id_carriage = ?;")) {
             ps.setInt(1, 99999);
             ps.executeUpdate();

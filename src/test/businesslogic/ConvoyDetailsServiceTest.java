@@ -27,6 +27,12 @@ class ConvoyDetailsServiceTest {
 
     @BeforeEach
     void setUp() throws Exception {
+        testStationId = 88888;
+        testLineId = 88888;
+        testStaffId = 88888;
+        testCarriageId = 88888;
+        testDepartureTime = new Timestamp(System.currentTimeMillis());
+        testArrivalTime = "23:59";
         Properties props = new Properties();
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("dao/db.properties")) {
             if (is == null) throw new RuntimeException("db.properties non trovato nel classpath!");
@@ -100,18 +106,6 @@ class ConvoyDetailsServiceTest {
             ps.executeUpdate();
         }
         // NON cancellare da station e line
-        // Inserisci depot di test
-        try (PreparedStatement ps = conn.prepareStatement("INSERT INTO depot (id_depot) VALUES (?)")) {
-            ps.setInt(1, 88888);
-            ps.executeUpdate();
-        } catch (Exception e) { if (!e.getMessage().contains("duplicate")) throw e; }
-        // Inserisci dati di test (fuori dal blocco try-catch!)
-        testStationId = 88888;
-        testLineId = 88888;
-        testStaffId = 88888;
-        testCarriageId = 88888;
-        testDepartureTime = new Timestamp(System.currentTimeMillis());
-        testArrivalTime = "23:59";
         // Stazione (head)
         try (PreparedStatement ps = conn.prepareStatement("INSERT INTO station (id_station, location, num_bins, service_description, is_head) VALUES (?, ?, ?, ?, ?);")) {
             ps.setInt(1, testStationId);
@@ -119,6 +113,11 @@ class ConvoyDetailsServiceTest {
             ps.setInt(3, 1);
             ps.setString(4, "JUnit test station");
             ps.setBoolean(5, true);
+            ps.executeUpdate();
+        } catch (Exception e) { if (!e.getMessage().contains("duplicate")) throw e; }
+        // Inserisci depot di test
+        try (PreparedStatement ps = conn.prepareStatement("INSERT INTO depot (id_depot) VALUES (?)")) {
+            ps.setInt(1, 88888);
             ps.executeUpdate();
         } catch (Exception e) { if (!e.getMessage().contains("duplicate")) throw e; }
         // Linea
@@ -196,6 +195,31 @@ class ConvoyDetailsServiceTest {
                 ps.setInt(1, testStationId);
                 ps.executeUpdate();
             }
+            // Pulizia robusta di tutte le entità di test
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM depot WHERE id_depot IN (SELECT id_station FROM station WHERE location = 'JUnitTestStation')")) {
+                ps.executeUpdate();
+            } catch (Exception ignored) {}
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM line_station WHERE id_station IN (SELECT id_station FROM station WHERE location = 'JUnitTestStation') OR id_line IN (SELECT id_line FROM line WHERE name = 'JUnitTestLine')")) {
+                ps.executeUpdate();
+            } catch (Exception ignored) {}
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM run WHERE id_first_station IN (SELECT id_station FROM station WHERE location = 'JUnitTestStation') OR id_last_station IN (SELECT id_station FROM station WHERE location = 'JUnitTestStation') OR id_line IN (SELECT id_line FROM line WHERE name = 'JUnitTestLine') OR id_staff IN (SELECT id_staff FROM staff WHERE name = 'JUnit' AND surname = 'Tester')")) {
+                ps.executeUpdate();
+            } catch (Exception ignored) {}
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM staff_pool WHERE id_staff IN (SELECT id_staff FROM staff WHERE name = 'JUnit' AND surname = 'Tester')")) {
+                ps.executeUpdate();
+            } catch (Exception ignored) {}
+            // Elimina tutte le station di test
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM station WHERE location = 'JUnitTestStation'")) {
+                ps.executeUpdate();
+            } catch (Exception ignored) {}
+            // Elimina tutte le staff di test
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM staff WHERE name = 'JUnit' AND surname = 'Tester'")) {
+                ps.executeUpdate();
+            } catch (Exception ignored) {}
+            // Elimina tutte le line di test
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM line WHERE name = 'JUnitTestLine'")) {
+                ps.executeUpdate();
+            } catch (Exception ignored) {}
         } finally {
             conn.close();
         }

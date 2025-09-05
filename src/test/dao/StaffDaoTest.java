@@ -166,7 +166,6 @@ class StaffDaoTest {
         // Crea una run precedente per id2 che termina nella stessa stazione
         insertRun(id2, 99905, lineId, depRun2, arrRun2, stationId, stationId);
         List<Staff> available = staffDao.checkOperatorAvailability(id1, lineId, depRun1);
-        System.out.println("DEBUG - Disponibili per id1: " + available);
         assertNotNull(available);
         assertTrue(available.stream().anyMatch(s -> s.getIdStaff() == id2));
         assertFalse(available.stream().anyMatch(s -> s.getIdStaff() == id1));

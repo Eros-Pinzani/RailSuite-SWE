@@ -150,7 +150,6 @@ class StaffPoolDaoTest {
         // staff1 ha già una run in quella data
         insertRun(staff1, convoyId, lineId, Timestamp.valueOf("2025-09-05 08:00:00"), Timestamp.valueOf("2025-09-05 09:00:00"), stationId, stationId);
         List<StaffDTO> available = staffPoolDao.findAvailableOperatorsForRun(stationId, LocalDate.of(2025, 9, 5), "10:00:00");
-        System.out.println("DEBUG - Disponibili: " + available);
         assertNotNull(available);
         assertTrue(available.stream().anyMatch(s -> s.getIdStaff() == staff1));
         assertTrue(available.stream().anyMatch(s -> s.getIdStaff() == staff2));

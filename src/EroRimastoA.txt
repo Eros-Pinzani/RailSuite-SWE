@@ -1,6 +1,4 @@
 
 todo popolare il db e cliccare TUTTI I PULSANTI
 
-todo testing
-
 pulizia del codice

@@ -159,8 +159,8 @@ class StaffDaoTest {
         insertStaff(id2, "Luca", "Bianchi", "luca.bianchi@test.com", "OPERATOR");
         staffIds.add(id1);
         staffIds.add(id2);
-        insertStaffPool(id1, stationId, Timestamp.valueOf("2025-09-05 08:00:00"), Timestamp.valueOf("2025-09-05 18:00:00"), null, "AVAILABLE");
-        insertStaffPool(id2, stationId, Timestamp.valueOf("2025-09-05 08:00:00"), Timestamp.valueOf("2025-09-05 18:00:00"), null, "AVAILABLE");
+        insertStaffPool(id1, stationId, Timestamp.valueOf("2025-09-05 08:00:00"), Timestamp.valueOf("2025-09-05 18:00:00"));
+        insertStaffPool(id2, stationId, Timestamp.valueOf("2025-09-05 08:00:00"), Timestamp.valueOf("2025-09-05 18:00:00"));
         // Crea la run di riferimento per id1
         insertRun(id1, 99904, lineId, depRun1, arrRun1, stationId, stationId);
         // Crea una run precedente per id2 che termina nella stessa stazione
@@ -185,19 +185,15 @@ class StaffDaoTest {
         }
     }
 
-    private void insertStaffPool(int idStaff, int idStation, Timestamp shiftStart, Timestamp shiftEnd, Integer idConvoy, String status) throws SQLException {
+    private void insertStaffPool(int idStaff, int idStation, Timestamp shiftStart, Timestamp shiftEnd) throws SQLException {
         String sql = "INSERT INTO staff_pool (id_staff, id_station, shift_start, shift_end, id_convoy, status) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, idStaff);
             ps.setInt(2, idStation);
             ps.setTimestamp(3, shiftStart);
             ps.setTimestamp(4, shiftEnd);
-            if (idConvoy == null) {
-                ps.setNull(5, Types.INTEGER);
-            } else {
-                ps.setInt(5, idConvoy);
-            }
-            ps.setString(6, status);
+            ps.setNull(5, Types.INTEGER);
+            ps.setString(6, "AVAILABLE");
             ps.executeUpdate();
         }
     }

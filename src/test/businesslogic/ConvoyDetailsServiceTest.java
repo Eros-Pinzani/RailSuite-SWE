@@ -1,4 +1,4 @@
-package test;
+package test.businesslogic;
 
 import businessLogic.service.ConvoyDetailsService;
 import businessLogic.service.OperatorHomeService.AssignedConvoyInfo;

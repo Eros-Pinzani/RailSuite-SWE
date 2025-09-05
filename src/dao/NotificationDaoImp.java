@@ -65,9 +65,7 @@ class NotificationDaoImp implements NotificationDao {
         while (rs.next()) {
             notifications.add(mapper.NotificationMapper.toDomain(rs));
         }
-        if (notifications.isEmpty()) {
-            return null;
-        }
+        // Restituisci sempre la lista, anche se vuota
         return notifications;
     }
 

@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ConvoyDaoTest {
     private static Connection conn;
     private ConvoyDao convoyDao;
+    private List<Integer> convoyIds = new ArrayList<>();
 
     @BeforeAll
     static void setupClass() throws Exception {
@@ -28,10 +29,21 @@ class ConvoyDaoTest {
 
     @AfterEach
     void tearDown() throws Exception {
-        try (PreparedStatement ps1 = conn.prepareStatement("DELETE FROM carriage WHERE id_carriage >= 88888");
-             PreparedStatement ps2 = conn.prepareStatement("DELETE FROM convoy WHERE id_convoy >= 88888")) {
+        try (PreparedStatement ps1 = conn.prepareStatement("DELETE FROM carriage WHERE id_carriage >= 88888")) {
             ps1.executeUpdate();
-            ps2.executeUpdate();
+        }
+        if (!convoyIds.isEmpty()) {
+            StringBuilder inClause = new StringBuilder();
+            for (int i = 0; i < convoyIds.size(); i++) {
+                inClause.append(i == 0 ? "?" : ",?");
+            }
+            String sql = "DELETE FROM convoy WHERE id_convoy IN (" + inClause + ")";
+            try (PreparedStatement ps2 = conn.prepareStatement(sql)) {
+                for (int i = 0; i < convoyIds.size(); i++) {
+                    ps2.setInt(i + 1, convoyIds.get(i));
+                }
+                ps2.executeUpdate();
+            }
         }
     }
 
@@ -42,6 +54,7 @@ class ConvoyDaoTest {
         List<Carriage> carriages = new ArrayList<>();
         carriages.add(selectCarriage(carriageId));
         Convoy convoy = convoyDao.createConvoy(carriages);
+        convoyIds.add(convoy.getId());
         assertNotNull(convoy);
         Convoy found = convoyDao.selectConvoy(convoy.getId());
         assertNotNull(found);
@@ -55,6 +68,7 @@ class ConvoyDaoTest {
         List<Carriage> carriages = new ArrayList<>();
         carriages.add(selectCarriage(carriageId));
         Convoy convoy = convoyDao.createConvoy(carriages);
+        convoyIds.add(convoy.getId());
         List<Convoy> all = convoyDao.selectAllConvoys();
         assertTrue(all.stream().anyMatch(c -> c.getId() == convoy.getId()));
     }
@@ -66,6 +80,7 @@ class ConvoyDaoTest {
         List<Carriage> carriages = new ArrayList<>();
         carriages.add(selectCarriage(carriageId));
         Convoy convoy = convoyDao.createConvoy(carriages);
+        convoyIds.add(convoy.getId());
         boolean removed = convoyDao.removeConvoy(convoy.getId());
         assertTrue(removed);
         Convoy found = convoyDao.selectConvoy(convoy.getId());
@@ -79,6 +94,7 @@ class ConvoyDaoTest {
         List<Carriage> carriages = new ArrayList<>();
         carriages.add(selectCarriage(carriageId));
         Convoy convoy = convoyDao.createConvoy(carriages);
+        convoyIds.add(convoy.getId());
         Carriage carriage = selectCarriage(carriageId);
         boolean removed = convoyDao.removeCarriageFromConvoy(convoy.getId(), carriage);
         assertTrue(removed);

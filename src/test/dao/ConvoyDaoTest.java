@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ConvoyDaoTest {
     private static Connection conn;
     private ConvoyDao convoyDao;
-    private List<Integer> convoyIds = new ArrayList<>();
+    private final List<Integer> convoyIds = new ArrayList<>();
 
     @BeforeAll
     static void setupClass() throws Exception {

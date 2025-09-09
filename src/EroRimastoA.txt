@@ -1,4 +1,0 @@
-
-todo popolare il db e cliccare TUTTI I PULSANTI
-
-pulizia del codice

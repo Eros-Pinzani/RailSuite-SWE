@@ -114,10 +114,6 @@ public class RunDaoImp implements RunDao {
         return runs;
     }
 
-    private Run resultSetToRun(ResultSet rs) throws SQLException {
-        return mapper.RunMapper.toDomain(rs);
-    }
-
     @Override
     public Run selectRunByLineConvoyAndStaff(int idLine, int idConvoy, Timestamp timeDeparture, int idStaff, int idFirstStation) throws SQLException {
         try (Connection conn = PostgresConnection.getConnection();

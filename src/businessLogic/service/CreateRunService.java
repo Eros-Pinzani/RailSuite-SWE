@@ -148,11 +148,12 @@ public class CreateRunService {
         }
     }
 
-    public Run createRun(Line line, LocalDate date, String time, Convoy convoy, StaffDTO operator) {
+    public Run createRun(Line line,int idStartStation, LocalDate date, String time, Convoy convoy, StaffDTO operator) {
         try {
             if (travelTime == null) {
                 travelTime = waitForTravelTime(line);
             }
+            int idLastStation = (line.getIdFirstStation()==idStartStation) ? line.getIdLastStation() : line.getIdFirstStation();
             java.time.LocalTime parsedTime = java.time.LocalTime.parse(time).withSecond(0).withNano(0);
             java.time.LocalDateTime dateTime = java.time.LocalDateTime.of(date, parsedTime);
             java.sql.Timestamp departureTimestamp = java.sql.Timestamp.valueOf(dateTime);
@@ -164,10 +165,10 @@ public class CreateRunService {
                     operator.getIdStaff(),
                     departureTimestamp,
                     arrivalTimestamp,
-                    line.getIdFirstStation(),
-                    line.getIdLastStation()
+                    idStartStation,
+                    idLastStation
             );
-            facade.updateStaffAndConvoyAfterRunCreation(operator.getIdStaff(), convoy.getId(), line.getIdLastStation());
+            facade.updateStaffAndConvoyAfterRunCreation(operator.getIdStaff(), convoy.getId(), idLastStation);
             return facade.selectRun(line.getIdLine(), convoy.getId(), departureTimestamp, operator.getIdStaff(), line.getIdFirstStation());
 
         } catch (Exception e) {

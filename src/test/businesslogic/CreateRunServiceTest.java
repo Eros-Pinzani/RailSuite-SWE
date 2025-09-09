@@ -411,6 +411,6 @@ class CreateRunServiceTest {
         assertNotNull(staffList, "La lista degli operatori disponibili è null");
         assertFalse(staffList.isEmpty(), "Nessun operatore disponibile per la run di test");
         StaffDTO staff = staffList.getFirst();
-        assertDoesNotThrow(() -> service.createRun(line, testDate, "08:00", convoy, staff));
+        assertDoesNotThrow(() -> service.createRun(line, testStationId, testDate, "08:00", convoy, staff));
     }
 }

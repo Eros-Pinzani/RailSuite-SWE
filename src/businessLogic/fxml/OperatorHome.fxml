@@ -1,15 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
 <StackPane minHeight="600.0" minWidth="800.0" style="-fx-background-color: #f5f5f5;" xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="businessLogic.controller.OperatorHomeController">
     <VBox>
         <!-- HEADER -->
         <HBox alignment="CENTER_RIGHT" minHeight="50.0" prefHeight="50.0" spacing="15.0" style="-fx-background-color: #1976d2; -fx-padding: 16 32 16 16;">
-            <Label text="Dashboard" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white;" alignment="CENTER_LEFT" />
+            <Label alignment="CENTER_LEFT" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white;" text="Dashboard" />
             <Pane HBox.hgrow="ALWAYS" />
             <Label fx:id="operatorNameLabel" alignment="CENTER" style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: white;" />
             <MenuButton fx:id="menuButton" graphicTextGap="0" style="-fx-background-color: transparent;">
@@ -30,15 +37,15 @@
             </font>
          </Label>
          <!-- MESSAGGIO AL POSTO DELLA TABELLA -->
-         <Label fx:id="noConvoyLabel" text="Non ha nessun turno a lui associato" visible="false" style="-fx-font-size: 16px; -fx-text-fill: #888; -fx-padding: 20 0 0 0;" />
-         <TableView fx:id="assignedTrainsTable" minHeight="50" prefWidth="700" VBox.vgrow="NEVER" maxHeight="-1" editable="false" visible="true">
+         <Label fx:id="noConvoyLabel" style="-fx-font-size: 16px; -fx-text-fill: #888; -fx-padding: 20 0 0 0;" text="Non ha nessun turno a lui associato" visible="false" />
+         <TableView fx:id="assignedTrainsTable" editable="false" maxHeight="-1" minHeight="50" prefWidth="700" visible="true" VBox.vgrow="NEVER">
            <columns>
-             <TableColumn fx:id="convoyIdColumn" editable="false" prefWidth="82.4" sortable="false" text="Convoglio" reorderable="false" />
-             <TableColumn fx:id="departureStationColumn" editable="false" prefWidth="149.6" sortable="false" text="Stazione di partenza" reorderable="false" />
-             <TableColumn fx:id="departureTimeColumn" editable="false" prefWidth="132.8" sortable="false" text="Orario di partenza" reorderable="false" />
-             <TableColumn fx:id="arrivalStationColumn" editable="false" prefWidth="137.6" sortable="false" text="Stazione di arrivo" reorderable="false" />
-             <TableColumn fx:id="arrivalTimeColumn" editable="false" prefWidth="137.6" sortable="false" text="Orario di arrivo" reorderable="false" />
-             <TableColumn fx:id="detailsColumn" editable="false" prefWidth="148.8" sortable="false" text="Dettagli" reorderable="false" />
+             <TableColumn fx:id="convoyIdColumn" editable="false" prefWidth="82.4" reorderable="false" sortable="false" text="Convoglio" />
+             <TableColumn fx:id="departureStationColumn" editable="false" prefWidth="149.6" reorderable="false" sortable="false" text="Stazione di partenza" />
+             <TableColumn fx:id="departureTimeColumn" editable="false" prefWidth="132.8" reorderable="false" sortable="false" text="Orario di partenza" />
+             <TableColumn fx:id="arrivalStationColumn" editable="false" prefWidth="137.6" reorderable="false" sortable="false" text="Stazione di arrivo" />
+             <TableColumn fx:id="arrivalTimeColumn" editable="false" prefWidth="137.6" reorderable="false" sortable="false" text="Orario di arrivo" />
+             <TableColumn fx:id="detailsColumn" editable="false" prefWidth="119.199951171875" reorderable="false" sortable="false" text="Dettagli" />
            </columns>
          </TableView>
          <VBox.margin>

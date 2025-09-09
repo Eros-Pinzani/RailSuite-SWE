@@ -15,6 +15,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TableColumn;
 
 import java.sql.Timestamp;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -46,9 +47,9 @@ public class ManageRunController {
     @FXML
     private TableColumn<Run, String> lineNameColumn;
     @FXML
-    private TableColumn<Run, Timestamp> startTimeColumn;
+    private TableColumn<Run, String> startTimeColumn;
     @FXML
-    private TableColumn<Run, Timestamp> endTimeColumn;
+    private TableColumn<Run, String> endTimeColumn;
     @FXML
     private TableColumn<Run, String> startStationColumn;
     @FXML
@@ -98,8 +99,20 @@ public class ManageRunController {
         operatorColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getStaffNameSurname()));
         convoyIdColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleObjectProperty<>(data.getValue().getIdConvoy()));
         lineNameColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getLineName()));
-        startTimeColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleObjectProperty<>(data.getValue().getTimeDeparture()));
-        endTimeColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleObjectProperty<>(data.getValue().getTimeArrival()));
+        startTimeColumn.setCellValueFactory(data -> {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+            String formatted = data.getValue().getTimeDeparture() != null
+                    ? data.getValue().getTimeDeparture().toLocalDateTime().format(formatter)
+                    : "";
+            return new javafx.beans.property.SimpleStringProperty(formatted);
+        });
+        endTimeColumn.setCellValueFactory(data -> {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+            String formatted = data.getValue().getTimeArrival() != null
+                    ? data.getValue().getTimeArrival().toLocalDateTime().format(formatter)
+                    : "";
+            return new javafx.beans.property.SimpleStringProperty(formatted);
+        });
         startStationColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getFirstStationName()));
         endStationColumn.setCellValueFactory(data -> new javafx.beans.property.SimpleStringProperty(data.getValue().getLastStationName()));
         statusColumn.setCellValueFactory(data -> {

@@ -73,16 +73,16 @@
             </HBox>
                 <!-- Fine sezione filtri -->
                 <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Riepilogo corse" />
-                <TableView fx:id="summaryTable" VBox.vgrow="ALWAYS">
+                <TableView fx:id="summaryTable" maxWidth="736.0" prefWidth="736.0" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
                     <columns>
-                        <TableColumn fx:id="operatorColumn" reorderable="false" text="Operatore" />
-                        <TableColumn fx:id="convoyIdColumn" reorderable="false" text="Convoglio" />
-                        <TableColumn fx:id="lineNameColumn" reorderable="false" text="Linea" />
-                        <TableColumn fx:id="startTimeColumn" reorderable="false" text="Ora Inizio" />
-                        <TableColumn fx:id="endTimeColumn" reorderable="false" text="Ora Fine" />
-                        <TableColumn fx:id="startStationColumn" reorderable="false" text="Origine" />
-                        <TableColumn fx:id="endStationColumn" reorderable="false" text="Destinazione" />
-                        <TableColumn fx:id="statusColumn" reorderable="false" text="Stato" />
+                        <TableColumn fx:id="operatorColumn" prefWidth="110.0" reorderable="false" text="Operatore" />
+                        <TableColumn fx:id="convoyIdColumn" prefWidth="62.0" reorderable="false" text="Convoglio" />
+                        <TableColumn fx:id="lineNameColumn" prefWidth="100.0" reorderable="false" text="Linea" />
+                        <TableColumn fx:id="startTimeColumn" prefWidth="60.0" reorderable="false" text="Ora Inizio" />
+                        <TableColumn fx:id="endTimeColumn" prefWidth="60.0" reorderable="false" text="Ora Fine" />
+                        <TableColumn fx:id="startStationColumn" prefWidth="94.0" reorderable="false" text="Origine" />
+                        <TableColumn fx:id="endStationColumn" prefWidth="84.0" reorderable="false" text="Destinazione" />
+                        <TableColumn fx:id="statusColumn" prefWidth="145.0" reorderable="false" text="Stato" />
                     </columns>
                 </TableView>
                 <HBox alignment="CENTER_RIGHT" spacing="16" style="-fx-padding: 16 0 0 0;">

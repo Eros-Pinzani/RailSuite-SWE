@@ -154,7 +154,7 @@ public class CreateRunController {
                         setText(null);
                     } else {
                         int capacity = item.getCarriages().stream().mapToInt(Carriage::getCapacity).sum();
-                        setText(item.getCarriages().getFirst().getModelType() + " - " + capacity);
+                        setText(item.getCarriages().getFirst().getModel() + " - " + capacity);
                     }
                 }
             });
@@ -430,6 +430,8 @@ public class CreateRunController {
     @FXML
     private void handleCreateRun(ActionEvent event) {
         Line selectedLine = lineComboBox.getValue();
+        String direction = startStationComboBox.getValue();
+        int idStartStation = selectedLine.getFirstStationLocation().equals(direction) ? selectedLine.getIdFirstStation() : selectedLine.getIdLastStation();
         LocalDate date = datePicker.getValue();
         String time = departureTimePicker.getValue();
         Convoy convoy = convoyComboBox.getValue();
@@ -446,17 +448,17 @@ public class CreateRunController {
         loadingStage.setResizable(false);
         loadingStage.centerOnScreen();
         loadingStage.show();
-        calculateTravelTimeAndCreateRun(selectedLine, date, time, convoy, operator, progressBar, loadingStage);
+        calculateTravelTimeAndCreateRun(selectedLine, idStartStation, date, time, convoy, operator, progressBar, loadingStage);
     }
 
-    private void calculateTravelTimeAndCreateRun(Line selectedLine, LocalDate date, String time, Convoy convoy, StaffDTO operator, ProgressBar progressBar, Stage loadingStage) {
+    private void calculateTravelTimeAndCreateRun(Line selectedLine, int idStartStation, LocalDate date, String time, Convoy convoy, StaffDTO operator, ProgressBar progressBar, Stage loadingStage) {
         javafx.concurrent.Task<Run> task = new javafx.concurrent.Task<>() {
             @Override
             protected Run call() {
                 updateProgress(0.2, 1.0);
                 createRunService.waitForTravelTime(selectedLine);
                 updateProgress(0.7, 1.0);
-                Run run = createRunService.createRun(selectedLine, date, time, convoy, operator);
+                Run run = createRunService.createRun(selectedLine, idStartStation, date, time, convoy, operator);
                 updateProgress(1.0, 1.0);
                 return run;
             }
